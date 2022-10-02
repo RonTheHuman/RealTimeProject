@@ -1,6 +1,6 @@
 ﻿namespace RealTimeProject
 {
-    partial class Form1
+    partial class Graphics
     {
         /// <summary>
         ///  Required designer variable.
@@ -29,11 +29,38 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            this.SocketTimer = new System.Windows.Forms.Timer(this.components);
+            this.TestLabel = new System.Windows.Forms.Label();
+            this.SuspendLayout();
+            // 
+            // SocketTimer
+            // 
+            this.SocketTimer.Enabled = true;
+            this.SocketTimer.Tick += new System.EventHandler(this.SocketTimer_Tick);
+            // 
+            // TestLabel
+            // 
+            this.TestLabel.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.TestLabel.Location = new System.Drawing.Point(127, 163);
+            this.TestLabel.Name = "TestLabel";
+            this.TestLabel.Size = new System.Drawing.Size(90, 86);
+            this.TestLabel.TabIndex = 0;
+            // 
+            // Form1
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.TestLabel);
+            this.Name = "Form1";
             this.Text = "Form1";
+            this.ResumeLayout(false);
+
         }
 
         #endregion
+
+        private System.Windows.Forms.Timer SocketTimer;
+        private Label TestLabel;
     }
 }
