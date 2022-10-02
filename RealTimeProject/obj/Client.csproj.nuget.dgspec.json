@@ -1,15 +1,15 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\RealTimeProject\\RealTimeProject.csproj": {}
+    "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\RealTimeProject\\Client.csproj": {}
   },
   "projects": {
-    "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\RealTimeProject\\RealTimeProject.csproj": {
+    "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\RealTimeProject\\Client.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\RealTimeProject\\RealTimeProject.csproj",
-        "projectName": "RealTimeProject",
-        "projectPath": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\RealTimeProject\\RealTimeProject.csproj",
+        "projectUniqueName": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\RealTimeProject\\Client.csproj",
+        "projectName": "Client",
+        "projectPath": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\RealTimeProject\\Client.csproj",
         "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\RealTimeProject\\obj\\",
         "projectStyle": "PackageReference",
