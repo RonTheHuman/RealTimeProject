@@ -9,18 +9,14 @@ namespace RealTimeProject
     {
         static void Main(string[] args)
         {
-            Socket serverSock = new Socket(SocketType.Stream, ProtocolType.Tcp);
-
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress address = ipHost.AddressList[0];
-            //foreach (IPAddress a in ipHost.AddressList){   
-            //    if (a.AddressFamily == AddressFamily.InterNetwork)
-            //    {
-            //        adress = a;
-            //        break;
-            //    }
-            //}
-            serverSock.Bind(new IPEndPoint(address, 0));
+            foreach (IPAddress a in ipHost.AddressList)
+            {
+                Console.WriteLine(a);
+            }
+            Socket serverSock = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            serverSock.Bind(new IPEndPoint(address, 12345));
             Console.WriteLine("Binded Successfully");
             serverSock.Listen(10);
             while (true)
