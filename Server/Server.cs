@@ -25,8 +25,7 @@ namespace RealTimeProject
                 Socket clientSock = serverSock.Accept();
                 while (true)
                 {
-                string msg = Console.ReadLine();
-                clientSock.Send(Encoding.Latin1.GetBytes(msg));
+                    //Console.WriteLine(clientSock.Receive());
                 }
             }
         }

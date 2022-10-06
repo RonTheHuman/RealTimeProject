@@ -46,14 +46,17 @@
             this.TestLabel.Size = new System.Drawing.Size(90, 86);
             this.TestLabel.TabIndex = 0;
             // 
-            // Form1
+            // Graphics
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.TestLabel);
-            this.Name = "Form1";
+            this.Name = "Graphics";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.Graphics_Load);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Graphics_KeyDown);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Graphics_KeyUp);
             this.ResumeLayout(false);
 
         }
