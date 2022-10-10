@@ -36,13 +36,12 @@
             // SocketTimer
             // 
             this.SocketTimer.Enabled = true;
-            this.SocketTimer.Interval = 17;
             this.SocketTimer.Tick += new System.EventHandler(this.SocketTimer_Tick);
             // 
             // TestLabel
             // 
             this.TestLabel.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.TestLabel.Location = new System.Drawing.Point(1, 159);
+            this.TestLabel.Location = new System.Drawing.Point(127, 163);
             this.TestLabel.Name = "TestLabel";
             this.TestLabel.Size = new System.Drawing.Size(90, 86);
             this.TestLabel.TabIndex = 0;
