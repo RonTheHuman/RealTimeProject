@@ -9,6 +9,7 @@ namespace RealTimeProject
     {
         bool RightPressed = false;
         bool LeftPressed = false;
+        byte[] data = new byte[64];
         Socket server;
         public Graphics()
         {
@@ -24,12 +25,22 @@ namespace RealTimeProject
 
         private void SocketTimer_Tick(object sender, EventArgs e)
         {
-            if (RightPressed)
+            server.ReceiveAsync(data, new SocketFlags());
+            string xStr = Encoding.Latin1.GetString(data).TrimEnd('\0');
+            if (xStr != "")
             {
-                server.Send(Encoding.Latin1.GetBytes("MoveRight"));
+                Console.Write("Data:");
+                Console.WriteLine(xStr);
+                TestLabel.Location = new Point(int.Parse(xStr), TestLabel.Location.Y);
             }
             if (RightPressed)
             {
+                Thread.Sleep(1000);
+                server.Send(Encoding.Latin1.GetBytes("MoveRight"));
+            }
+            if (LeftPressed)
+            {
+                Thread.Sleep(1000);
                 server.Send(Encoding.Latin1.GetBytes("MoveLeft"));
             }
         }

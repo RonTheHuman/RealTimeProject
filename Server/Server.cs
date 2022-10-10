@@ -7,6 +7,9 @@ namespace RealTimeProject
 {
     internal class Server
     {
+        static int x = 10;
+        static int speed = 5;
+        static int bufferSize = 1024;
         static void Main(string[] args)
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
@@ -25,7 +28,21 @@ namespace RealTimeProject
                 Socket clientSock = serverSock.Accept();
                 while (true)
                 {
-                    //Console.WriteLine(clientSock.Receive());
+                    //Thread.Sleep(200);
+                    byte[] data = new byte[bufferSize];
+                    clientSock.Receive(data);
+                    string action = Encoding.Latin1.GetString(data).TrimEnd('\0');
+                    switch (action)
+                    {
+                        case "MoveRight":
+                            x += speed;
+                            break;
+                        case "MoveLeft":
+                            x -= speed;
+                            break;
+                    }
+                    clientSock.Send(Encoding.Latin1.GetBytes(x.ToString()));
+                    Console.WriteLine("Sent " + x);
                 }
             }
         }
