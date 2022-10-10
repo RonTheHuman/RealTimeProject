@@ -13,11 +13,11 @@ namespace RealTimeProject
         static void Main(string[] args)
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress address = ipHost.AddressList[0];
             foreach (IPAddress a in ipHost.AddressList)
             {
                 Console.WriteLine(a);
             }
+            IPAddress address = ipHost.AddressList[1];
             Socket serverSock = new Socket(SocketType.Stream, ProtocolType.Tcp);
             serverSock.Bind(new IPEndPoint(address, 12345));
             Console.WriteLine("Binded Successfully");

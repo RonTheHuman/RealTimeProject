@@ -18,7 +18,7 @@ namespace RealTimeProject
         private void Graphics_Load(object sender, EventArgs e)
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress address = ipHost.AddressList[0];
+            IPAddress address = ipHost.AddressList[1];
             server = new Socket(SocketType.Stream, ProtocolType.Tcp);
             server.Connect(new IPEndPoint(address, 12345));
         }
@@ -35,13 +35,13 @@ namespace RealTimeProject
             }
             if (RightPressed)
             {
-                Thread.Sleep(1000);
                 server.Send(Encoding.Latin1.GetBytes("MoveRight"));
+                Console.WriteLine("Sent MoveRight");
             }
             if (LeftPressed)
             {
-                Thread.Sleep(1000);
                 server.Send(Encoding.Latin1.GetBytes("MoveLeft"));
+                Console.WriteLine("Sent MoveRight");
             }
         }
 
