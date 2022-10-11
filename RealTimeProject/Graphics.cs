@@ -9,7 +9,8 @@ namespace RealTimeProject
     {
         bool RightPressed = false;
         bool LeftPressed = false;
-        byte[] data = new byte[64];
+        byte[] buffer = new byte[64];
+        Task<int> recvTask;
         Socket server;
         public Graphics()
         {
@@ -21,26 +22,28 @@ namespace RealTimeProject
             IPAddress address = ipHost.AddressList[1];
             server = new Socket(SocketType.Stream, ProtocolType.Tcp);
             server.Connect(new IPEndPoint(address, 12345));
+            recvTask = server.ReceiveAsync(buffer, new SocketFlags());
         }
 
         private void SocketTimer_Tick(object sender, EventArgs e)
         {
-            server.ReceiveAsync(data, new SocketFlags());
-            string xStr = Encoding.Latin1.GetString(data).TrimEnd('\0');
-            if (xStr != "")
+            if (recvTask.IsCompleted)
             {
+                //Console.WriteLine("[{0}]", string.Join(", ", buffer));
+                string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0');
                 Console.Write("Data:");
-                Console.WriteLine(xStr);
-                TestLabel.Location = new Point(int.Parse(xStr), TestLabel.Location.Y);
+                Console.WriteLine(data);
+                TestLabel.Location = new Point(int.Parse(data.Substring(0, recvTask.Result)), TestLabel.Location.Y);
+                recvTask = server.ReceiveAsync(buffer, new SocketFlags());
             }
             if (RightPressed)
             {
-                server.Send(Encoding.Latin1.GetBytes("MoveRight"));
+                server.Send(Encoding.Latin1.GetBytes("MoveRight,"));
                 Console.WriteLine("Sent MoveRight");
             }
             if (LeftPressed)
             {
-                server.Send(Encoding.Latin1.GetBytes("MoveLeft"));
+                server.Send(Encoding.Latin1.GetBytes("MoveLeft,"));
                 Console.WriteLine("Sent MoveRight");
             }
         }

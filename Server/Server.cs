@@ -29,17 +29,22 @@ namespace RealTimeProject
                 while (true)
                 {
                     //Thread.Sleep(200);
-                    byte[] data = new byte[bufferSize];
-                    clientSock.Receive(data);
-                    string action = Encoding.Latin1.GetString(data).TrimEnd('\0');
-                    switch (action)
+                    byte[] buffer = new byte[bufferSize];
+                    clientSock.Receive(buffer);
+                    string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0');
+                    Console.WriteLine(data);
+                    string[] actions = data.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                    foreach (string action in actions)
                     {
-                        case "MoveRight":
-                            x += speed;
-                            break;
-                        case "MoveLeft":
-                            x -= speed;
-                            break;
+                        switch (action)
+                        {
+                            case "MoveRight":
+                                x += speed;
+                                break;
+                            case "MoveLeft":
+                                x -= speed;
+                                break;
+                        }
                     }
                     clientSock.Send(Encoding.Latin1.GetBytes(x.ToString()));
                     Console.WriteLine("Sent " + x);
