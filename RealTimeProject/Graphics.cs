@@ -9,6 +9,7 @@ namespace RealTimeProject
     {
         bool RightPressed = false;
         bool LeftPressed = false;
+
         byte[] buffer = new byte[64];
         Task<int> recvTask;
         Socket server;
@@ -20,6 +21,7 @@ namespace RealTimeProject
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress address = ipHost.AddressList[1];
+
             server = new Socket(SocketType.Stream, ProtocolType.Tcp);
             server.Connect(new IPEndPoint(address, 12345));
             recvTask = server.ReceiveAsync(buffer, new SocketFlags());
@@ -29,11 +31,11 @@ namespace RealTimeProject
         {
             if (recvTask.IsCompleted)
             {
-                //Console.WriteLine("[{0}]", string.Join(", ", buffer));
-                string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0');
-                Console.Write("Data:");
-                Console.WriteLine(data);
-                TestLabel.Location = new Point(int.Parse(data.Substring(0, recvTask.Result)), TestLabel.Location.Y);
+                Console.WriteLine("[{0}]", string.Join(", ", buffer));
+                string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0').Substring(0, recvTask.Result);
+                Console.WriteLine("Data:" + data);
+                TestLabel.Location = new Point(int.Parse(data), TestLabel.Location.Y);
+
                 recvTask = server.ReceiveAsync(buffer, new SocketFlags());
             }
             if (RightPressed)
