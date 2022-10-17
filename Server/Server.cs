@@ -26,6 +26,17 @@ namespace RealTimeProject
                 }
             }
         }
+
+        static void ReadSocket(Socket sock)
+        {
+            byte[] buffer = new byte[bufferSize];
+            sock.Receive(buffer);
+            string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0');
+            Console.WriteLine(data);
+            string[] commands = data.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            ExecuteCommands(commands);
+        }
+
         static void Main(string[] args)
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
@@ -36,20 +47,42 @@ namespace RealTimeProject
             Console.WriteLine("Binded Successfully");
             serverSock.Listen(10);
 
+            Socket clientSock1;
+            Socket clientSock2 = null;
+            Console.WriteLine("Waiting for first player");
+            clientSock1 = serverSock.Accept();
+            Console.WriteLine("First player " + clientSock1.RemoteEndPoint + " entered. Wait for second? [y/n]");
+            if (Console.Read() == 'y')
+            {
+                Console.WriteLine("Waiting for second player");
+                clientSock2 = serverSock.Accept();
+                Console.WriteLine("Second player " + clientSock1.RemoteEndPoint);
+            }
+
             while (true)
             {
-                Console.WriteLine("Waiting for conneciton");
-                Socket clientSock = serverSock.Accept();
-                while (true)
+                //Thread.Sleep(200);
+                bool updated = false;
+                // Get player commands and execute them
+                if (clientSock1.Poll(1, SelectMode.SelectRead))
                 {
-                    //Thread.Sleep(200);
-                    byte[] buffer = new byte[bufferSize];
-                    clientSock.Receive(buffer);
-                    string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0');
-                    Console.WriteLine(data);
-                    string[] commands = data.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                    ExecuteCommands(commands);
-                    clientSock.Send(Encoding.Latin1.GetBytes(gameState.ToString()));
+                    ReadSocket(clientSock1);
+                    updated = true;
+                }
+                if (clientSock2 != null)
+                {
+                    if (clientSock2.Poll(1, SelectMode.SelectRead))
+                    {
+                        ReadSocket(clientSock2);
+                        updated = true;
+                    }
+                }
+                // Send update to both
+                if (updated)
+                {
+                    clientSock1.Send(Encoding.Latin1.GetBytes(gameState.ToString()));
+                    if (clientSock2 != null)
+                        clientSock2.Send(Encoding.Latin1.GetBytes(gameState.ToString()));
                     Console.WriteLine("Sent " + gameState);
                 }
             }

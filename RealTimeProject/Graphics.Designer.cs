@@ -42,9 +42,9 @@
             // TestLabel
             // 
             this.TestLabel.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.TestLabel.Location = new System.Drawing.Point(1, 159);
+            this.TestLabel.Location = new System.Drawing.Point(12, 355);
             this.TestLabel.Name = "TestLabel";
-            this.TestLabel.Size = new System.Drawing.Size(90, 86);
+            this.TestLabel.Size = new System.Drawing.Size(56, 55);
             this.TestLabel.TabIndex = 0;
             // 
             // Graphics
