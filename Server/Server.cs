@@ -11,7 +11,7 @@ namespace RealTimeProject
         static Dictionary<string, int> gameState = new Dictionary<string, int>{["p1x"] = 10, ["p2x"] = 730};
         static int speed = 5;
         static int bufferSize = 1024;
-        static bool twoPlayers = false;
+        static bool twoPlayers = true;
 
         static void ExecuteCommands(string[] commands, int player)
         {
@@ -54,10 +54,12 @@ namespace RealTimeProject
             Console.WriteLine("Waiting for first player");
             clientSock1 = serverSock.Accept();
             Console.WriteLine("First player " + clientSock1.RemoteEndPoint + " entered");
+            clientSock1.Send(Encoding.Latin1.GetBytes("1"));
             if (twoPlayers)
             {
                 Console.WriteLine("Waiting for second player");
                 clientSock2 = serverSock.Accept();
+                clientSock2.Send(Encoding.Latin1.GetBytes("2"));
                 Console.WriteLine("Second player " + clientSock1.RemoteEndPoint);
             }
 

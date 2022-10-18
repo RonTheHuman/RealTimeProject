@@ -10,10 +10,11 @@ namespace RealTimeProject
     {
         bool RightPressed = false;
         bool LeftPressed = false;
+        Task bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(1));
+        int thisPlayer;
 
         byte[] buffer = new byte[64];
         Task<int> recvTask;
-        Task bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(1));
         Socket server;
         public Graphics()
         {
@@ -26,6 +27,8 @@ namespace RealTimeProject
 
             server = new Socket(SocketType.Stream, ProtocolType.Tcp);
             server.Connect(new IPEndPoint(address, 12345));
+            server.Receive(buffer);
+            thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer));
             recvTask = server.ReceiveAsync(buffer, new SocketFlags());
         }
 
@@ -64,7 +67,10 @@ namespace RealTimeProject
             }
             if (bulletTimeout.IsCompleted)
             {
-                Bullet1Label.Visible = false;
+                if (thisPlayer == 1)
+                    Bullet1Label.Visible = false;
+                else
+                    Bullet2Label.Visible = false;
             }
         }
 
@@ -81,8 +87,18 @@ namespace RealTimeProject
             if (e.KeyCode == Keys.Space)
             {
                 server.Send(Encoding.Latin1.GetBytes("Shoot,"));
-                Bullet1Label.Location = new Point(Player1Label.Location.X + 18, Bullet1Label.Location.Y);
-                Bullet1Label.Visible = true;
+                
+                //client simulation
+                if (thisPlayer == 1)
+                {
+                    Bullet1Label.Location = new Point(Player1Label.Location.X + 18, Bullet1Label.Location.Y);
+                    Bullet1Label.Visible = true;
+                }
+                if (thisPlayer == 2)
+                {
+                    Bullet2Label.Location = new Point(Player2Label.Location.X + 18, Bullet2Label.Location.Y);
+                    Bullet2Label.Visible = true;
+                }
                 if (bulletTimeout.IsCompleted)
                 {
                     bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(90));
