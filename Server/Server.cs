@@ -8,9 +8,10 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        static Dictionary<string, int> gameState = new Dictionary<string, int>();
+        static Dictionary<string, int> gameState = new Dictionary<string, int>{["p1x"] = 10, ["p2x"] = 730};
         static int speed = 5;
         static int bufferSize = 1024;
+        static bool twoPlayers = false;
 
         static void ExecuteCommands(string[] commands, int player)
         {
@@ -52,17 +53,13 @@ namespace RealTimeProject
             Socket clientSock2 = null;
             Console.WriteLine("Waiting for first player");
             clientSock1 = serverSock.Accept();
-            bool twoPlayers = true;
-            Console.WriteLine("First player " + clientSock1.RemoteEndPoint + " entered"); 
+            Console.WriteLine("First player " + clientSock1.RemoteEndPoint + " entered");
             if (twoPlayers)
             {
                 Console.WriteLine("Waiting for second player");
                 clientSock2 = serverSock.Accept();
                 Console.WriteLine("Second player " + clientSock1.RemoteEndPoint);
             }
-
-            gameState["p1x"] = 10;
-            gameState["p2x"] = 730;
 
             while (true)
             {

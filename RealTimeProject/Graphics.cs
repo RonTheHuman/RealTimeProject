@@ -13,6 +13,7 @@ namespace RealTimeProject
 
         byte[] buffer = new byte[64];
         Task<int> recvTask;
+        Task bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(1));
         Socket server;
         public Graphics()
         {
@@ -61,6 +62,10 @@ namespace RealTimeProject
                 server.Send(Encoding.Latin1.GetBytes("MoveLeft,"));
                 Console.WriteLine("Sent MoveRight");
             }
+            if (bulletTimeout.IsCompleted)
+            {
+                Bullet1Label.Visible = false;
+            }
         }
 
         private void Graphics_KeyDown(object sender, KeyEventArgs e)
@@ -72,6 +77,16 @@ namespace RealTimeProject
             if (e.KeyCode == Keys.Left)
             {
                 LeftPressed = true;
+            }
+            if (e.KeyCode == Keys.Space)
+            {
+                server.Send(Encoding.Latin1.GetBytes("Shoot,"));
+                Bullet1Label.Location = new Point(Player1Label.Location.X + 18, Bullet1Label.Location.Y);
+                Bullet1Label.Visible = true;
+                if (bulletTimeout.IsCompleted)
+                {
+                    bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(90));
+                }
             }
         }
 
