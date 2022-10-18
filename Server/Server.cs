@@ -2,39 +2,40 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 
 namespace RealTimeProject
 {
     internal class Server
     {
-        static int gameState = 10;
+        static Dictionary<string, int> gameState = new Dictionary<string, int>();
         static int speed = 5;
         static int bufferSize = 1024;
 
-        static void ExecuteCommands(string[] commands)
+        static void ExecuteCommands(string[] commands, int player)
         {
             foreach (string command in commands)
             {
                 switch (command)
                 {
                     case "MoveRight":
-                        gameState += speed;
+                        gameState["p" + player + "x"] += speed;
                         break;
                     case "MoveLeft":
-                        gameState -= speed;
+                        gameState["p" + player + "x"] -= speed;
                         break;
                 }
             }
         }
 
-        static void ReadSocket(Socket sock)
+        static void ReadSocket(Socket sock, int player)
         {
             byte[] buffer = new byte[bufferSize];
             sock.Receive(buffer);
             string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0');
             Console.WriteLine(data);
             string[] commands = data.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            ExecuteCommands(commands);
+            ExecuteCommands(commands, player);
         }
 
         static void Main(string[] args)
@@ -51,13 +52,17 @@ namespace RealTimeProject
             Socket clientSock2 = null;
             Console.WriteLine("Waiting for first player");
             clientSock1 = serverSock.Accept();
-            Console.WriteLine("First player " + clientSock1.RemoteEndPoint + " entered. Wait for second? [y/n]");
-            if (Console.Read() == 'y')
+            bool twoPlayers = true;
+            Console.WriteLine("First player " + clientSock1.RemoteEndPoint + " entered"); 
+            if (twoPlayers)
             {
                 Console.WriteLine("Waiting for second player");
                 clientSock2 = serverSock.Accept();
                 Console.WriteLine("Second player " + clientSock1.RemoteEndPoint);
             }
+
+            gameState["p1x"] = 10;
+            gameState["p2x"] = 730;
 
             while (true)
             {
@@ -66,24 +71,26 @@ namespace RealTimeProject
                 // Get player commands and execute them
                 if (clientSock1.Poll(1, SelectMode.SelectRead))
                 {
-                    ReadSocket(clientSock1);
+                    ReadSocket(clientSock1, 1);
                     updated = true;
                 }
                 if (clientSock2 != null)
                 {
                     if (clientSock2.Poll(1, SelectMode.SelectRead))
                     {
-                        ReadSocket(clientSock2);
+                        ReadSocket(clientSock2, 2);
                         updated = true;
                     }
                 }
                 // Send update to both
                 if (updated)
                 {
-                    clientSock1.Send(Encoding.Latin1.GetBytes(gameState.ToString()));
+                    string gameStateString = JsonSerializer.Serialize<Dictionary<string, int>>(gameState);
+                    byte[] sendData = Encoding.Latin1.GetBytes(gameStateString);
+                    clientSock1.Send(sendData);
                     if (clientSock2 != null)
-                        clientSock2.Send(Encoding.Latin1.GetBytes(gameState.ToString()));
-                    Console.WriteLine("Sent " + gameState);
+                        clientSock2.Send(sendData);
+                    Console.WriteLine("Sent " + gameStateString);
                 }
             }
         }

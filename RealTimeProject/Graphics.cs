@@ -2,6 +2,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Windows.Input;
 using System.Text;
+using System.Text.Json;
 
 namespace RealTimeProject
 {
@@ -27,14 +28,26 @@ namespace RealTimeProject
             recvTask = server.ReceiveAsync(buffer, new SocketFlags());
         }
 
+        private void UpdateGraphics(Dictionary<string, int> gameState)
+        {
+            Player1Label.Location = new Point(gameState["p1x"], Player1Label.Location.Y);
+            Player2Label.Location = new Point(gameState["p2x"], Player2Label.Location.Y);
+        }
+
         private void SocketTimer_Tick(object sender, EventArgs e)
         {
             if (recvTask.IsCompleted)
             {
-                Console.WriteLine("[{0}]", string.Join(", ", buffer));
+                //Console.WriteLine("[{0}]", string.Join(", ", buffer));
                 string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0').Substring(0, recvTask.Result);
+                while (data[data.Length - 1] != '}')
+                {
+                    recvTask = server.ReceiveAsync(buffer, new SocketFlags());
+                    data += Encoding.Latin1.GetString(buffer).TrimEnd('\0').Substring(0, recvTask.Result);
+                }
+                data = data.Substring(data.LastIndexOf('{'));
                 Console.WriteLine("Data:" + data);
-                TestLabel.Location = new Point(int.Parse(data), TestLabel.Location.Y);
+                UpdateGraphics(JsonSerializer.Deserialize<Dictionary<string, int>>(data));
 
                 recvTask = server.ReceiveAsync(buffer, new SocketFlags());
             }

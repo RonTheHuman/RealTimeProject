@@ -30,7 +30,8 @@
         {
             this.components = new System.ComponentModel.Container();
             this.SocketTimer = new System.Windows.Forms.Timer(this.components);
-            this.TestLabel = new System.Windows.Forms.Label();
+            this.Player1Label = new System.Windows.Forms.Label();
+            this.Player2Label = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // SocketTimer
@@ -39,20 +40,29 @@
             this.SocketTimer.Interval = 17;
             this.SocketTimer.Tick += new System.EventHandler(this.SocketTimer_Tick);
             // 
-            // TestLabel
+            // Player1Label
             // 
-            this.TestLabel.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.TestLabel.Location = new System.Drawing.Point(12, 355);
-            this.TestLabel.Name = "TestLabel";
-            this.TestLabel.Size = new System.Drawing.Size(56, 55);
-            this.TestLabel.TabIndex = 0;
+            this.Player1Label.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.Player1Label.Location = new System.Drawing.Point(12, 349);
+            this.Player1Label.Name = "Player1Label";
+            this.Player1Label.Size = new System.Drawing.Size(56, 55);
+            this.Player1Label.TabIndex = 0;
+            // 
+            // Player2Label
+            // 
+            this.Player2Label.BackColor = System.Drawing.SystemColors.Desktop;
+            this.Player2Label.Location = new System.Drawing.Point(732, 42);
+            this.Player2Label.Name = "Player2Label";
+            this.Player2Label.Size = new System.Drawing.Size(56, 55);
+            this.Player2Label.TabIndex = 1;
             // 
             // Graphics
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.TestLabel);
+            this.Controls.Add(this.Player2Label);
+            this.Controls.Add(this.Player1Label);
             this.Name = "Graphics";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Graphics_Load);
@@ -65,6 +75,7 @@
         #endregion
 
         private System.Windows.Forms.Timer SocketTimer;
-        private Label TestLabel;
+        private Label Player1Label;
+        private Label Player2Label;
     }
 }
