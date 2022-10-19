@@ -10,9 +10,12 @@ namespace RealTimeProject
     {
         const int speed = 50;
         const int bufferSize = 1024;
-        const bool twoPlayers = false;
+        const bool twoPlayers = true;
+        const int simLag = 200;
 
         static Dictionary<string, int> gameState = new Dictionary<string, int>{["p1x"] = 50, ["p2x"] = 700, ["p1score"] = 0, ["p2score"] = 0};
+        static Socket clientSock1;
+        static Socket clientSock2 = null;
 
         static void ExecuteCommands(string[] commands, int player)
         {
@@ -38,14 +41,28 @@ namespace RealTimeProject
             }
         }
 
-        static void ReadSocket(Socket sock, int player)
+        async static void ManagePlayer(Socket sock, int player)
         {
+            //get data
             byte[] buffer = new byte[bufferSize];
             sock.Receive(buffer);
+            if (player == 1)
+                await Task.Delay(simLag);
             string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0');
-            Console.WriteLine(data);
+            Console.WriteLine("player " + player + ": " +  data);
             string[] commands = data.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+            //update gamestate
             ExecuteCommands(commands, player);
+
+            //send update to both
+            string gameStateString = JsonSerializer.Serialize(gameState);
+            byte[] sendData = Encoding.Latin1.GetBytes(gameStateString);
+            if (clientSock2 != null)
+                clientSock2.Send(sendData);
+            Console.WriteLine("Sent " + gameStateString);
+            await Task.Delay(simLag);
+            clientSock1.Send(sendData);
         }
 
         static void Main(string[] args)
@@ -58,8 +75,6 @@ namespace RealTimeProject
             Console.WriteLine("Binded Successfully");
             serverSock.Listen(10);
 
-            Socket clientSock1;
-            Socket clientSock2 = null;
             Console.WriteLine("Waiting for first player");
             clientSock1 = serverSock.Accept();
             Console.WriteLine("First player " + clientSock1.RemoteEndPoint + " entered");
@@ -79,26 +94,16 @@ namespace RealTimeProject
                 // Get player commands and execute them
                 if (clientSock1.Poll(1, SelectMode.SelectRead))
                 {
-                    ReadSocket(clientSock1, 1);
+                    ManagePlayer(clientSock1, 1);
                     updated = true;
                 }
                 if (clientSock2 != null)
                 {
                     if (clientSock2.Poll(1, SelectMode.SelectRead))
                     {
-                        ReadSocket(clientSock2, 2);
+                        ManagePlayer(clientSock2, 2);
                         updated = true;
                     }
-                }
-                // Send update to both
-                if (updated)
-                {
-                    string gameStateString = JsonSerializer.Serialize<Dictionary<string, int>>(gameState);
-                    byte[] sendData = Encoding.Latin1.GetBytes(gameStateString);
-                    clientSock1.Send(sendData);
-                    if (clientSock2 != null)
-                        clientSock2.Send(sendData);
-                    Console.WriteLine("Sent " + gameStateString);
                 }
             }
         }

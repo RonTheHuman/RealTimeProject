@@ -46,7 +46,7 @@
             // Player1Label
             // 
             this.Player1Label.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.Player1Label.Location = new System.Drawing.Point(50, 267);
+            this.Player1Label.Location = new System.Drawing.Point(50, 250);
             this.Player1Label.Name = "Player1Label";
             this.Player1Label.Size = new System.Drawing.Size(50, 50);
             this.Player1Label.TabIndex = 0;
@@ -56,7 +56,7 @@
             // Player2Label
             // 
             this.Player2Label.BackColor = System.Drawing.SystemColors.Desktop;
-            this.Player2Label.Location = new System.Drawing.Point(700, 141);
+            this.Player2Label.Location = new System.Drawing.Point(700, 150);
             this.Player2Label.Name = "Player2Label";
             this.Player2Label.Size = new System.Drawing.Size(50, 50);
             this.Player2Label.TabIndex = 1;
@@ -66,7 +66,7 @@
             // Bullet1Label
             // 
             this.Bullet1Label.BackColor = System.Drawing.SystemColors.ControlText;
-            this.Bullet1Label.Location = new System.Drawing.Point(378, 165);
+            this.Bullet1Label.Location = new System.Drawing.Point(378, 168);
             this.Bullet1Label.Name = "Bullet1Label";
             this.Bullet1Label.Size = new System.Drawing.Size(14, 14);
             this.Bullet1Label.TabIndex = 2;
@@ -75,7 +75,7 @@
             // Bullet2Label
             // 
             this.Bullet2Label.BackColor = System.Drawing.SystemColors.ControlText;
-            this.Bullet2Label.Location = new System.Drawing.Point(378, 277);
+            this.Bullet2Label.Location = new System.Drawing.Point(378, 268);
             this.Bullet2Label.Name = "Bullet2Label";
             this.Bullet2Label.Size = new System.Drawing.Size(14, 14);
             this.Bullet2Label.TabIndex = 3;
