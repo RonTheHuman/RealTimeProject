@@ -8,8 +8,10 @@ namespace RealTimeProject
 {
     public partial class Graphics : Form
     {
-        bool RightPressed = false;
-        bool LeftPressed = false;
+        const bool gridMovement = true;
+
+        bool rightPressed = false;
+        bool leftPressed = false;
         Task bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(1));
         int thisPlayer;
 
@@ -57,12 +59,12 @@ namespace RealTimeProject
 
                 recvTask = server.ReceiveAsync(buffer, new SocketFlags());
             }
-            if (RightPressed)
+            if (rightPressed)
             {
                 server.Send(Encoding.Latin1.GetBytes("MoveRight,"));
                 Console.WriteLine("Sent MoveRight");
             }
-            if (LeftPressed)
+            if (leftPressed)
             {
                 server.Send(Encoding.Latin1.GetBytes("MoveLeft,"));
                 Console.WriteLine("Sent MoveRight");
@@ -80,11 +82,23 @@ namespace RealTimeProject
         {
             if (e.KeyCode == Keys.Right)
             {
-                RightPressed = true;
+                if (gridMovement)
+                {
+                    server.Send(Encoding.Latin1.GetBytes("MoveRight,"));
+                    Console.WriteLine("Sent MoveRight");
+                }
+                else
+                    rightPressed = true;
             }
             if (e.KeyCode == Keys.Left)
             {
-                LeftPressed = true;
+                if (gridMovement)
+                {
+                    server.Send(Encoding.Latin1.GetBytes("MoveLeft,"));
+                    Console.WriteLine("Sent MoveLeft");
+                }
+                else
+                    leftPressed = true;
             }
             if (e.KeyCode == Keys.Space)
             {
@@ -112,11 +126,11 @@ namespace RealTimeProject
         {
             if (e.KeyCode == Keys.Right)
             {
-                RightPressed = false;
+                rightPressed = false;
             }
             if (e.KeyCode == Keys.Left)
             {
-                LeftPressed = false;
+                leftPressed = false;
             }
         }
     }

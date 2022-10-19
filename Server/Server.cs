@@ -8,10 +8,11 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        static Dictionary<string, int> gameState = new Dictionary<string, int>{["p1x"] = 10, ["p2x"] = 730, ["p1score"] = 0, ["p2score"] = 0};
-        static int speed = 5;
-        static int bufferSize = 1024;
-        static bool twoPlayers = true;
+        const int speed = 50;
+        const int bufferSize = 1024;
+        const bool twoPlayers = false;
+
+        static Dictionary<string, int> gameState = new Dictionary<string, int>{["p1x"] = 50, ["p2x"] = 700, ["p1score"] = 0, ["p2score"] = 0};
 
         static void ExecuteCommands(string[] commands, int player)
         {

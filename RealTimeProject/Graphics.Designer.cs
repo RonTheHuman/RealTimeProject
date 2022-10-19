@@ -46,7 +46,7 @@
             // Player1Label
             // 
             this.Player1Label.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.Player1Label.Location = new System.Drawing.Point(12, 267);
+            this.Player1Label.Location = new System.Drawing.Point(50, 267);
             this.Player1Label.Name = "Player1Label";
             this.Player1Label.Size = new System.Drawing.Size(50, 50);
             this.Player1Label.TabIndex = 0;
@@ -56,7 +56,7 @@
             // Player2Label
             // 
             this.Player2Label.BackColor = System.Drawing.SystemColors.Desktop;
-            this.Player2Label.Location = new System.Drawing.Point(732, 141);
+            this.Player2Label.Location = new System.Drawing.Point(700, 141);
             this.Player2Label.Name = "Player2Label";
             this.Player2Label.Size = new System.Drawing.Size(50, 50);
             this.Player2Label.TabIndex = 1;
@@ -94,7 +94,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(784, 450);
             this.Controls.Add(this.ScoreLabel);
             this.Controls.Add(this.Bullet2Label);
             this.Controls.Add(this.Bullet1Label);
