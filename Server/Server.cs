@@ -8,7 +8,7 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        static Dictionary<string, int> gameState = new Dictionary<string, int>{["p1x"] = 10, ["p2x"] = 730};
+        static Dictionary<string, int> gameState = new Dictionary<string, int>{["p1x"] = 10, ["p2x"] = 730, ["p1score"] = 0, ["p2score"] = 0};
         static int speed = 5;
         static int bufferSize = 1024;
         static bool twoPlayers = true;
@@ -25,6 +25,14 @@ namespace RealTimeProject
                     case "MoveLeft":
                         gameState["p" + player + "x"] -= speed;
                         break;
+                    case "Shoot":
+                        if (gameState["p1x"] + 25 > gameState["p2x"] && 
+                            gameState["p1x"] + 25 < gameState["p2x"] + 50)
+                        {
+                            gameState["p" + player + "score"] += 1;
+                        }
+                        break;
+
                 }
             }
         }

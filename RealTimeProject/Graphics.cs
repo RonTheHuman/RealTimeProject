@@ -36,10 +36,12 @@ namespace RealTimeProject
         {
             Player1Label.Location = new Point(gameState["p1x"], Player1Label.Location.Y);
             Player2Label.Location = new Point(gameState["p2x"], Player2Label.Location.Y);
+            ScoreLabel.Text = "Blue score: " + gameState["p1score"] + "\nRed score: " + gameState["p2score"];
         }
 
         private void SocketTimer_Tick(object sender, EventArgs e)
         {
+            Task test = new(() => Thread.Sleep(1));
             if (recvTask.IsCompleted)
             {
                 //Console.WriteLine("[{0}]", string.Join(", ", buffer));

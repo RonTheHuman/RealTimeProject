@@ -34,6 +34,7 @@
             this.Player2Label = new System.Windows.Forms.Label();
             this.Bullet1Label = new System.Windows.Forms.Label();
             this.Bullet2Label = new System.Windows.Forms.Label();
+            this.ScoreLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // SocketTimer
@@ -80,11 +81,21 @@
             this.Bullet2Label.TabIndex = 3;
             this.Bullet2Label.Visible = false;
             // 
+            // ScoreLabel
+            // 
+            this.ScoreLabel.AutoSize = true;
+            this.ScoreLabel.Location = new System.Drawing.Point(348, 9);
+            this.ScoreLabel.Name = "ScoreLabel";
+            this.ScoreLabel.Size = new System.Drawing.Size(73, 30);
+            this.ScoreLabel.TabIndex = 4;
+            this.ScoreLabel.Text = "Blue score: 0\r\nRed score: 0";
+            // 
             // Graphics
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.ScoreLabel);
             this.Controls.Add(this.Bullet2Label);
             this.Controls.Add(this.Bullet1Label);
             this.Controls.Add(this.Player2Label);
@@ -96,6 +107,7 @@
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Graphics_KeyDown);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Graphics_KeyUp);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -106,5 +118,6 @@
         private Label Player2Label;
         private Label Bullet1Label;
         private Label Bullet2Label;
+        private Label ScoreLabel;
     }
 }
