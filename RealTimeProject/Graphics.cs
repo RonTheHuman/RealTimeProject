@@ -26,6 +26,7 @@ namespace RealTimeProject
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress address = ipHost.AddressList[1];
+            address = IPAddress.Parse("172.16.2.167");
 
             server = new Socket(SocketType.Stream, ProtocolType.Tcp);
             server.Connect(new IPEndPoint(address, 12345));
@@ -43,7 +44,6 @@ namespace RealTimeProject
 
         private void SocketTimer_Tick(object sender, EventArgs e)
         {
-            Task test = new(() => Thread.Sleep(1));
             if (recvTask.IsCompleted)
             {
                 //Console.WriteLine("[{0}]", string.Join(", ", buffer));

@@ -55,7 +55,8 @@
             // 
             // Player2Label
             // 
-            this.Player2Label.BackColor = System.Drawing.SystemColors.Desktop;
+            this.Player2Label.BackColor = System.Drawing.Color.Red;
+            this.Player2Label.ForeColor = System.Drawing.SystemColors.ControlText;
             this.Player2Label.Location = new System.Drawing.Point(700, 150);
             this.Player2Label.Name = "Player2Label";
             this.Player2Label.Size = new System.Drawing.Size(50, 50);
@@ -84,6 +85,7 @@
             // ScoreLabel
             // 
             this.ScoreLabel.AutoSize = true;
+            this.ScoreLabel.ForeColor = System.Drawing.Color.Black;
             this.ScoreLabel.Location = new System.Drawing.Point(348, 9);
             this.ScoreLabel.Name = "ScoreLabel";
             this.ScoreLabel.Size = new System.Drawing.Size(73, 30);

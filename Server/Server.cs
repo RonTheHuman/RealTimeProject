@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using GameState = System.Collections.Generic.Dictionary<string, int>;
+using TimedGameState = System.Tuple<System.DateTime, System.Collections.Generic.Dictionary<string, int>>;
 
 namespace RealTimeProject
 {
@@ -10,10 +13,14 @@ namespace RealTimeProject
     {
         const int speed = 50;
         const int bufferSize = 1024;
-        const bool twoPlayers = true;
-        const int simLag = 200;
+        const bool twoPlayers = false;
+        const int simLag = 0;
 
-        static Dictionary<string, int> gameState = new Dictionary<string, int>{["p1x"] = 50, ["p2x"] = 700, ["p1score"] = 0, ["p2score"] = 0};
+        static List<TimedGameState> gameStateHistory = 
+            new List<TimedGameState>
+            { new TimedGameState
+                (DateTime.Now, 
+                new GameState{["p1x"] = 50, ["p2x"] = 700, ["p1score"] = 0, ["p2score"] = 0})};
         static Socket clientSock1;
         static Socket clientSock2 = null;
 
@@ -21,23 +28,29 @@ namespace RealTimeProject
         {
             foreach (string command in commands)
             {
+                var newGameState = new GameState(gameStateHistory.Last().Item2);
                 switch (command)
                 {
                     case "MoveRight":
-                        gameState["p" + player + "x"] += speed;
+                        newGameState["p" + player + "x"] += speed;
                         break;
                     case "MoveLeft":
-                        gameState["p" + player + "x"] -= speed;
+                        newGameState["p" + player + "x"] -= speed;
                         break;
                     case "Shoot":
-                        if (gameState["p1x"] + 25 > gameState["p2x"] && 
-                            gameState["p1x"] + 25 < gameState["p2x"] + 50)
+                        if (newGameState["p1x"] + 25 > newGameState["p2x"] &&
+                            newGameState["p1x"] + 25 < newGameState["p2x"] + 50)
                         {
-                            gameState["p" + player + "score"] += 1;
+                            newGameState["p" + player + "score"] += 1;
                         }
                         break;
-
                 }
+                gameStateHistory.Add(new Tuple<DateTime, Dictionary<string, int>>(DateTime.Now, newGameState));
+                //Console.WriteLine(DateTime.Now.ToString("mm:ss.fff") +
+                //    "| Recieved: " + command + ", P" + player + ", State: " + JsonSerializer.Serialize(gameState));
+                Console.Clear();
+                gameStateHistory.ForEach(tgs => Console.Write("{0}|{1}\n", 
+                    tgs.Item1.ToString("mm.ss.fff"), JsonSerializer.Serialize(tgs.Item2)));
             }
         }
 
@@ -46,22 +59,25 @@ namespace RealTimeProject
             //get data
             byte[] buffer = new byte[bufferSize];
             sock.Receive(buffer);
+
             if (player == 1)
                 await Task.Delay(simLag);
+
             string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0');
-            Console.WriteLine("player " + player + ": " +  data);
+            //Console.WriteLine("player " + player + ": " +  data);
             string[] commands = data.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
             //update gamestate
             ExecuteCommands(commands, player);
 
             //send update to both
-            string gameStateString = JsonSerializer.Serialize(gameState);
+            string gameStateString = JsonSerializer.Serialize(gameStateHistory.Last().Item2);
             byte[] sendData = Encoding.Latin1.GetBytes(gameStateString);
             if (clientSock2 != null)
                 clientSock2.Send(sendData);
-            Console.WriteLine("Sent " + gameStateString);
+
             await Task.Delay(simLag);
+
             clientSock1.Send(sendData);
         }
 
@@ -69,6 +85,8 @@ namespace RealTimeProject
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress address = ipHost.AddressList[1];
+            address = IPAddress.Parse("172.16.2.167");
+            Console.WriteLine(address);
 
             Socket serverSock = new Socket(SocketType.Stream, ProtocolType.Tcp);
             serverSock.Bind(new IPEndPoint(address, 12345));
