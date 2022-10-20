@@ -11,9 +11,9 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        const int speed = 50;
+        const int speed = 5;
         const int bufferSize = 1024;
-        const bool twoPlayers = false;
+        const bool twoPlayers = true;
         const int simLag = 0;
 
         static List<TimedGameState> gameStateHistory = 
@@ -45,12 +45,15 @@ namespace RealTimeProject
                         }
                         break;
                 }
-                gameStateHistory.Add(new Tuple<DateTime, Dictionary<string, int>>(DateTime.Now, newGameState));
+                gameStateHistory.Add(new TimedGameState(DateTime.Now, newGameState));
                 //Console.WriteLine(DateTime.Now.ToString("mm:ss.fff") +
                 //    "| Recieved: " + command + ", P" + player + ", State: " + JsonSerializer.Serialize(gameState));
-                Console.Clear();
-                gameStateHistory.ForEach(tgs => Console.Write("{0}|{1}\n", 
-                    tgs.Item1.ToString("mm.ss.fff"), JsonSerializer.Serialize(tgs.Item2)));
+                //Console.Clear();
+                //foreach (TimedGameState tgs in gameStateHistory.Skip(gameStateHistory.Count - 10))
+                //{
+                //    Console.Write("{0}|{1}\n", tgs.Item1.ToString("mm.ss.fff"), JsonSerializer.Serialize(tgs.Item2));
+                //}  
+                    
             }
         }
 

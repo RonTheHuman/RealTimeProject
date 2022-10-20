@@ -8,7 +8,7 @@ namespace RealTimeProject
 {
     public partial class Graphics : Form
     {
-        const bool gridMovement = true;
+        const bool gridMovement = false;
 
         bool rightPressed = false;
         bool leftPressed = false;
