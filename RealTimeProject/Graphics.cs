@@ -26,12 +26,14 @@ namespace RealTimeProject
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress address = ipHost.AddressList[1];
-            address = IPAddress.Parse("172.16.2.167");
+            //address = IPAddress.Parse("172.16.2.167");
+            address = IPAddress.Parse("10.100.102.20");
 
             server = new Socket(SocketType.Stream, ProtocolType.Tcp);
             server.Connect(new IPEndPoint(address, 12345));
             server.Receive(buffer);
             thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer));
+            server.Send(new byte[] { 1 });
             recvTask = server.ReceiveAsync(buffer, new SocketFlags());
         }
 
@@ -46,6 +48,7 @@ namespace RealTimeProject
         {
             if (recvTask.IsCompleted)
             {
+                server.Send(new byte[] { 1 });
                 //Console.WriteLine("[{0}]", string.Join(", ", buffer));
                 string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0').Substring(0, recvTask.Result);
                 while (data[data.Length - 1] != '}')
