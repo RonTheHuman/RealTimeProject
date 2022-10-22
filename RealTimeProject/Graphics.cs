@@ -32,7 +32,7 @@ namespace RealTimeProject
             server.Connect(new IPEndPoint(address, 12345));
             server.Receive(buffer);
             thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer));
-            server.Send(new byte[] { 1 });
+            server.Send(new byte[] { (byte)'\0' });
             recvTask = server.ReceiveAsync(buffer, new SocketFlags());
         }
 
@@ -47,7 +47,7 @@ namespace RealTimeProject
         {
             if (recvTask.IsCompleted)
             {
-                server.Send(new byte[] { 1 });
+                server.Send(new byte[] { (byte)'\0' });
                 //Console.WriteLine("[{0}]", string.Join(", ", buffer));
                 string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0')[..recvTask.Result];
                 while (data[data.Length - 1] != '}')
@@ -63,11 +63,13 @@ namespace RealTimeProject
             }
             if (rightPressed)
             {
+                Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
                 server.Send(Encoding.Latin1.GetBytes("MoveRight,"));
                 Console.WriteLine("Sent MoveRight");
             }
             if (leftPressed)
             {
+                Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
                 server.Send(Encoding.Latin1.GetBytes("MoveLeft,"));
                 Console.WriteLine("Sent MoveRight");
             }
@@ -127,12 +129,13 @@ namespace RealTimeProject
             {
                 server.Send(Encoding.Latin1.GetBytes("Grid,"));
                 gridMovement = !gridMovement;
+                Console.WriteLine("Sent Grid");
 
             }
             else if (e.KeyCode == Keys.L)
             {
                 server.Send(Encoding.Latin1.GetBytes("LagComp,"));
-
+                Console.WriteLine("Sent LagComp");
             }
 
         }

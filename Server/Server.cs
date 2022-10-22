@@ -14,7 +14,7 @@ namespace RealTimeProject
         const int simLag = 0;
 
         static int speed = 50;
-        static bool compensateLag = false;
+        static bool compensateLag = true;
         static List<HistoryData> gameHistory = 
             new List<HistoryData>
             { new HistoryData
@@ -43,15 +43,6 @@ namespace RealTimeProject
                     {
                         nextGameState["p" + player + "score"] += 1;
                     }
-                    break;
-                case "Grid":
-                    if (speed == 50)
-                        speed = 5;
-                    else
-                        speed = 50;
-                    break;
-                case "LagComp":
-                    compensateLag = !compensateLag;
                     break;
             }
             return nextGameState;
@@ -86,8 +77,28 @@ namespace RealTimeProject
                 await Task.Delay(simLag);
 
             string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0');
-            //Console.WriteLine("player " + player + ": " +  data);
+           if (data == "")
+            {
+                return; //a bit of a hack but whatever
+            }
+            Console.WriteLine("p" + player + ": " + data);
             string[] commands = data.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            //first handle commands that don't change gamestate
+            foreach (string command in commands)
+            {
+                switch (command)
+                {
+                    case "Grid":
+                        if (speed == 50)
+                            speed = 5;
+                        else
+                            speed = 50;
+                        break;
+                    case "LagComp":
+                        compensateLag = !compensateLag;
+                        break;
+                }
+            }
 
             int insertIndex = gameHistory.Count;
             while (time <= gameHistory[insertIndex - 1].Item1)
@@ -97,6 +108,7 @@ namespace RealTimeProject
             GameState prevGameState;
             if (insertIndex == gameHistory.Count)
             {
+                Console.WriteLine("no redoing needed");
                 prevGameState = gameHistory.Last().Item3;
                 foreach (string command in commands)
                 {
@@ -193,7 +205,9 @@ namespace RealTimeProject
                 // Get player commands and execute them
                 if (clientSock1.Poll(1, SelectMode.SelectRead))
                 {
+                    var manageStart = DateTime.Now;
                     ManagePlayer(clientSock1, 1, DateTime.Now - (pRTTs[0] / 2) * Convert.ToByte(compensateLag));
+                    Console.WriteLine((DateTime.Now - manageStart).TotalMilliseconds + " ms to manage messages");
                 }
                 if (clientSock2 != null)
                 {
