@@ -8,8 +8,7 @@ namespace RealTimeProject
 {
     public partial class Graphics : Form
     {
-        const bool gridMovement = false;
-
+        bool gridMovement = true;
         bool rightPressed = false;
         bool leftPressed = false;
         Task bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(1));
@@ -50,14 +49,14 @@ namespace RealTimeProject
             {
                 server.Send(new byte[] { 1 });
                 //Console.WriteLine("[{0}]", string.Join(", ", buffer));
-                string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0').Substring(0, recvTask.Result);
+                string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0')[..recvTask.Result];
                 while (data[data.Length - 1] != '}')
                 {
                     recvTask = server.ReceiveAsync(buffer, new SocketFlags());
-                    data += Encoding.Latin1.GetString(buffer).TrimEnd('\0').Substring(0, recvTask.Result);
+                    data += Encoding.Latin1.GetString(buffer).TrimEnd('\0')[..recvTask.Result];
                 }
                 data = data.Substring(data.LastIndexOf('{'));
-                Console.WriteLine("Data:" + data);
+                //Console.WriteLine("Data:" + data);
                 UpdateGraphics(JsonSerializer.Deserialize<Dictionary<string, int>>(data));
 
                 recvTask = server.ReceiveAsync(buffer, new SocketFlags());
@@ -83,6 +82,7 @@ namespace RealTimeProject
 
         private void Graphics_KeyDown(object sender, KeyEventArgs e)
         {
+            Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
             if (e.KeyCode == Keys.Right)
             {
                 if (gridMovement)
@@ -93,7 +93,7 @@ namespace RealTimeProject
                 else
                     rightPressed = true;
             }
-            if (e.KeyCode == Keys.Left)
+            else if (e.KeyCode == Keys.Left)
             {
                 if (gridMovement)
                 {
@@ -103,7 +103,7 @@ namespace RealTimeProject
                 else
                     leftPressed = true;
             }
-            if (e.KeyCode == Keys.Space)
+            else if(e.KeyCode == Keys.Space)
             {
                 server.Send(Encoding.Latin1.GetBytes("Shoot,"));
                 
@@ -123,6 +123,18 @@ namespace RealTimeProject
                     bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(90));
                 }
             }
+            else if(e.KeyCode == Keys.G)
+            {
+                server.Send(Encoding.Latin1.GetBytes("Grid,"));
+                gridMovement = !gridMovement;
+
+            }
+            else if (e.KeyCode == Keys.L)
+            {
+                server.Send(Encoding.Latin1.GetBytes("LagComp,"));
+
+            }
+
         }
 
         private void Graphics_KeyUp(object sender, KeyEventArgs e)
@@ -135,6 +147,11 @@ namespace RealTimeProject
             {
                 leftPressed = false;
             }
+        }
+
+        private void TimeTimer_Tick(object sender, EventArgs e)
+        {
+            TimeLabel.Text = "Time: " + DateTime.Now.ToString("mm.ss.fff");
         }
     }
 }

@@ -35,6 +35,8 @@
             this.Bullet1Label = new System.Windows.Forms.Label();
             this.Bullet2Label = new System.Windows.Forms.Label();
             this.ScoreLabel = new System.Windows.Forms.Label();
+            this.TimeLabel = new System.Windows.Forms.Label();
+            this.TimeTimer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // SocketTimer
@@ -92,11 +94,27 @@
             this.ScoreLabel.TabIndex = 4;
             this.ScoreLabel.Text = "Blue score: 0\r\nRed score: 0";
             // 
+            // TimeLabel
+            // 
+            this.TimeLabel.AutoSize = true;
+            this.TimeLabel.Location = new System.Drawing.Point(36, 40);
+            this.TimeLabel.Name = "TimeLabel";
+            this.TimeLabel.Size = new System.Drawing.Size(36, 15);
+            this.TimeLabel.TabIndex = 5;
+            this.TimeLabel.Text = "Time:";
+            // 
+            // TimeTimer
+            // 
+            this.TimeTimer.Enabled = true;
+            this.TimeTimer.Interval = 1;
+            this.TimeTimer.Tick += new System.EventHandler(this.TimeTimer_Tick);
+            // 
             // Graphics
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(784, 450);
+            this.Controls.Add(this.TimeLabel);
             this.Controls.Add(this.ScoreLabel);
             this.Controls.Add(this.Bullet2Label);
             this.Controls.Add(this.Bullet1Label);
@@ -121,5 +139,7 @@
         private Label Bullet1Label;
         private Label Bullet2Label;
         private Label ScoreLabel;
+        private Label TimeLabel;
+        private System.Windows.Forms.Timer TimeTimer;
     }
 }
