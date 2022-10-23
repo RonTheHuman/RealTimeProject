@@ -24,9 +24,13 @@ namespace RealTimeProject
         static TimeSpan[] pRTTs = new TimeSpan[] {TimeSpan.Zero, TimeSpan.Zero};
         static Action<Socket, TimeSpan[], int> getRTT = (Socket sock, TimeSpan[] pRTTs, int i) =>
         {
+            sock.Send(new byte[1]);
+            Console.WriteLine("[sent echo]");
             DateTime sendTime = DateTime.Now;
-            sock.Receive(new byte[0]);
+            sock.Receive(new byte[1]);
+            Console.WriteLine("[recvd echo]");
             pRTTs[i] = DateTime.Now - sendTime;
+            Console.WriteLine("[p" + (i+1) + " rtt: " + pRTTs[0].TotalMilliseconds +  ", comp: " + compensateLag + "]");
         };
         //commands start with the player number. ex: "1Shoot"
         static GameState ExecuteCommand(string command, GameState prevGameState)
@@ -118,14 +122,6 @@ namespace RealTimeProject
                 }
             }
 
-            string printMsg = "";
-            foreach (HistoryData tgs in gameHistory.Skip(gameHistory.Count - 10))
-            {
-                printMsg += string.Format("{0}|{1}\n", tgs.Item1.ToString("mm.ss.fff"), JsonSerializer.Serialize(tgs.Item3));
-            }
-            //printMsg += gameStateHistory.Count;
-            Console.WriteLine(printMsg);
-
             //send update to both
             string gameStateString = JsonSerializer.Serialize(gameHistory.Last().Item3);
             byte[] sendData = Encoding.Latin1.GetBytes(gameStateString);
@@ -133,30 +129,29 @@ namespace RealTimeProject
             DateTime sendTime;
             if (client2Sock != null)
             { 
-                client2Sock.Send(sendData);
                 Task.Factory.StartNew(() => getRTT(client2SockEcho, pRTTs, 1));
-                //sendTime = DateTime.Now;
-                //clientSock2.Receive(new byte[0]);
-                //pRTTs[1] = DateTime.Now - sendTime;
+                client2Sock.Send(sendData);
             }
 
             await Task.Delay(simLag);
 
-            client1Sock.Send(sendData);
             Task.Factory.StartNew(() => getRTT(client1SockEcho, pRTTs, 0));
-            //sendTime = DateTime.Now;
-            //clientSock1.Receive(new byte[0]);
-            //pRTTs[0] = DateTime.Now - sendTime;
+            client1Sock.Send(sendData);
 
-            Console.WriteLine("p1 rtt: " + pRTTs[0].TotalMilliseconds + ", p2 rtt: " + pRTTs[1].TotalMilliseconds + ", comp: " + compensateLag);
+            string printMsg = "";
+            foreach (HistoryData tgs in gameHistory.Skip(gameHistory.Count - 10))
+            {
+                printMsg += string.Format("{0}|{1}\n", tgs.Item1.ToString("mm.ss.fff"), JsonSerializer.Serialize(tgs.Item3));
+            }
+            Console.WriteLine(printMsg.Trim('\n'));
         }
 
         static void Main(string[] args)
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress address = ipHost.AddressList[1];
-            address = IPAddress.Parse("172.16.2.167");
-            //address = IPAddress.Parse("10.100.102.20");
+            //address = IPAddress.Parse("172.16.2.167");
+            address = IPAddress.Parse("10.100.102.20");
             Console.WriteLine(address);
 
             Socket serverSock = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -172,8 +167,8 @@ namespace RealTimeProject
             client1SockEcho = serverSockEcho.Accept();
             Console.WriteLine("First player " + client1Sock.RemoteEndPoint + " entered");
 
-            client1Sock.Send(Encoding.Latin1.GetBytes("1"));
             Task.Factory.StartNew(() => getRTT(client1SockEcho, pRTTs, 0));
+            client1Sock.Send(Encoding.Latin1.GetBytes("1"));
 
             if (twoPlayers)
             {
@@ -182,21 +177,26 @@ namespace RealTimeProject
                 client2SockEcho = serverSockEcho.Accept();
                 Console.WriteLine("Second player " + client1Sock.RemoteEndPoint + " entered");
 
-                client2Sock.Send(Encoding.Latin1.GetBytes("2"));
                 Task.Factory.StartNew(() => getRTT(client2SockEcho, pRTTs, 1));
+                client2Sock.Send(Encoding.Latin1.GetBytes("2"));
             }
 
-            Console.WriteLine(pRTTs[0].TotalMilliseconds + ", " + pRTTs[1].TotalMilliseconds);
+            //Console.WriteLine("p1 rtt: " + pRTTs[0].TotalMilliseconds + ", p2 rtt: " + pRTTs[1].TotalMilliseconds + ", comp: " + compensateLag);
 
             while (true)
             {
                 //Thread.Sleep(200);
                 // Get player commands and execute them
+                //if (gameHistory.Count < 4)
+                //{
+                //    Console.WriteLine("while loop: " + DateTime.Now.ToString("mm.ss.fff"));
+                //}
                 if (client1Sock.Poll(1, SelectMode.SelectRead))
                 {
                     var manageStart = DateTime.Now;
+                    Console.WriteLine("\nmanageStart: " + DateTime.Now.ToString("mm.ss.fff"));
                     ManagePlayer(client1Sock, 1, DateTime.Now - (pRTTs[0] / 2) * Convert.ToByte(compensateLag));
-                    Console.WriteLine((DateTime.Now - manageStart).TotalMilliseconds + " ms to manage messages");
+                    Console.WriteLine("manageEnd: " + DateTime.Now.ToString("mm.ss.fff") + ", " + (DateTime.Now - manageStart).TotalMilliseconds + " ms to manage messages");
                 }
                 if (client2Sock != null)
                 {

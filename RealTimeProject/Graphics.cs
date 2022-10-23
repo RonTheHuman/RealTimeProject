@@ -14,10 +14,9 @@ namespace RealTimeProject
         Task bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(1));
         int thisPlayer;
 
-        byte[] buffer = new byte[64];
-        Task<int> recvTask;
-        Socket server;
-        Socket serverEcho;
+        byte[] buffer = new byte[1024];
+        Task<int> recvTask, recvEchoTask;
+        Socket server, serverEcho;
         public Graphics()
         {
             InitializeComponent();
@@ -26,19 +25,17 @@ namespace RealTimeProject
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress address = ipHost.AddressList[1];
-            address = IPAddress.Parse("172.16.2.167");
-            //address = IPAddress.Parse("10.100.102.20");
+            //address = IPAddress.Parse("172.16.2.167");
+            address = IPAddress.Parse("10.100.102.20");
 
             server = new Socket(SocketType.Stream, ProtocolType.Tcp);
             server.Connect(new IPEndPoint(address, 12345));
             serverEcho = new Socket(SocketType.Stream, ProtocolType.Tcp);
             serverEcho.Connect(new IPEndPoint(address, 12346));
-            Console.WriteLine("a");
             server.Receive(buffer);
-            Console.WriteLine("b");
             thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer));
-            serverEcho.Send(new byte[] { (byte)'\0' });
             recvTask = server.ReceiveAsync(buffer, new SocketFlags());
+            recvEchoTask = serverEcho.ReceiveAsync(new byte[1], new SocketFlags());
         }
 
         private void UpdateGraphics(Dictionary<string, int> gameState)
@@ -50,9 +47,14 @@ namespace RealTimeProject
 
         private void SocketTimer_Tick(object sender, EventArgs e)
         {
+            if (recvEchoTask.IsCompleted)
+            {
+                Console.WriteLine(DateTime.Now.ToString("mm.ss.fff") + "| " + "sent echo");
+                serverEcho.Send(new byte[1]);
+                recvEchoTask = serverEcho.ReceiveAsync(new byte[1], new SocketFlags());
+            }
             if (recvTask.IsCompleted)
             {
-                serverEcho.Send(new byte[] { (byte)'\0' });
                 //Console.WriteLine("[{0}]", string.Join(", ", buffer));
                 string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0')[..recvTask.Result];
                 while (data[data.Length - 1] != '}')
@@ -89,12 +91,12 @@ namespace RealTimeProject
 
         private void Graphics_KeyDown(object sender, KeyEventArgs e)
         {
-            Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
             if (e.KeyCode == Keys.Right)
             {
                 if (gridMovement)
                 {
                     server.Send(Encoding.Latin1.GetBytes("MoveRight,"));
+                    Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
                     Console.WriteLine("Sent MoveRight");
                 }
                 else
@@ -105,6 +107,7 @@ namespace RealTimeProject
                 if (gridMovement)
                 {
                     server.Send(Encoding.Latin1.GetBytes("MoveLeft,"));
+                    Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
                     Console.WriteLine("Sent MoveLeft");
                 }
                 else
@@ -113,7 +116,8 @@ namespace RealTimeProject
             else if(e.KeyCode == Keys.Space)
             {
                 server.Send(Encoding.Latin1.GetBytes("Shoot,"));
-                
+                Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
+                Console.WriteLine("Sent Shoot");
                 //client simulation
                 if (thisPlayer == 1)
                 {
@@ -134,12 +138,14 @@ namespace RealTimeProject
             {
                 server.Send(Encoding.Latin1.GetBytes("Grid,"));
                 gridMovement = !gridMovement;
+                Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
                 Console.WriteLine("Sent Grid");
 
             }
             else if (e.KeyCode == Keys.L)
             {
                 server.Send(Encoding.Latin1.GetBytes("LagComp,"));
+                Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
                 Console.WriteLine("Sent LagComp");
             }
 
