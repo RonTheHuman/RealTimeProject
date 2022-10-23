@@ -17,6 +17,7 @@ namespace RealTimeProject
         byte[] buffer = new byte[64];
         Task<int> recvTask;
         Socket server;
+        Socket serverEcho;
         public Graphics()
         {
             InitializeComponent();
@@ -25,14 +26,18 @@ namespace RealTimeProject
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress address = ipHost.AddressList[1];
-            //address = IPAddress.Parse("172.16.2.167");
-            address = IPAddress.Parse("10.100.102.20");
+            address = IPAddress.Parse("172.16.2.167");
+            //address = IPAddress.Parse("10.100.102.20");
 
             server = new Socket(SocketType.Stream, ProtocolType.Tcp);
             server.Connect(new IPEndPoint(address, 12345));
+            serverEcho = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            serverEcho.Connect(new IPEndPoint(address, 12346));
+            Console.WriteLine("a");
             server.Receive(buffer);
+            Console.WriteLine("b");
             thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer));
-            server.Send(new byte[] { (byte)'\0' });
+            serverEcho.Send(new byte[] { (byte)'\0' });
             recvTask = server.ReceiveAsync(buffer, new SocketFlags());
         }
 
@@ -47,7 +52,7 @@ namespace RealTimeProject
         {
             if (recvTask.IsCompleted)
             {
-                server.Send(new byte[] { (byte)'\0' });
+                serverEcho.Send(new byte[] { (byte)'\0' });
                 //Console.WriteLine("[{0}]", string.Join(", ", buffer));
                 string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0')[..recvTask.Result];
                 while (data[data.Length - 1] != '}')

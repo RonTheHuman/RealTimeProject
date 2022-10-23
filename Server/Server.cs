@@ -20,9 +20,14 @@ namespace RealTimeProject
             { new HistoryData
                 (DateTime.Now, "",
                 new GameState{["p1x"] = 50, ["p2x"] = 700, ["p1score"] = 0, ["p2score"] = 0})};
-        static Socket clientSock1;
-        static Socket clientSock2 = null;
+        static Socket client1Sock, client1SockEcho, client2Sock, client2SockEcho;
         static TimeSpan[] pRTTs = new TimeSpan[] {TimeSpan.Zero, TimeSpan.Zero};
+        static Action<Socket, TimeSpan[], int> getRTT = (Socket sock, TimeSpan[] pRTTs, int i) =>
+        {
+            DateTime sendTime = DateTime.Now;
+            sock.Receive(new byte[0]);
+            pRTTs[i] = DateTime.Now - sendTime;
+        };
         //commands start with the player number. ex: "1Shoot"
         static GameState ExecuteCommand(string command, GameState prevGameState)
         {
@@ -47,25 +52,6 @@ namespace RealTimeProject
             }
             return nextGameState;
         }
-        //static void ExecuteCommands(string[] commands, int player, DateTime time)
-        //{
-            
-        //    foreach (string command in commands)
-        //    {
-                
-        //        }
-        //        //gameHistory.Add(new HistoryData(), command, newGameState));
-
-        //        string printMsg = "";
-        //        foreach (HistoryData tgs in gameHistory.Skip(gameHistory.Count - 10))
-        //        {
-        //            printMsg += string.Format("{0}|{1}\n", tgs.Item1.ToString("mm.ss.fff"), JsonSerializer.Serialize(tgs.Item3));
-        //        }
-        //        //printMsg += gameStateHistory.Count;
-        //        Console.WriteLine(printMsg);
-
-        //    }
-        //}
 
         async static void ManagePlayer(Socket sock, int player, DateTime time)
         {
@@ -145,20 +131,22 @@ namespace RealTimeProject
             byte[] sendData = Encoding.Latin1.GetBytes(gameStateString);
 
             DateTime sendTime;
-            if (clientSock2 != null)
+            if (client2Sock != null)
             { 
-                clientSock2.Send(sendData);
-                sendTime = DateTime.Now;
-                clientSock2.Receive(new byte[1]);
-                pRTTs[1] = DateTime.Now - sendTime;
+                client2Sock.Send(sendData);
+                Task.Factory.StartNew(() => getRTT(client2SockEcho, pRTTs, 1));
+                //sendTime = DateTime.Now;
+                //clientSock2.Receive(new byte[0]);
+                //pRTTs[1] = DateTime.Now - sendTime;
             }
 
             await Task.Delay(simLag);
 
-            clientSock1.Send(sendData);
-            sendTime = DateTime.Now;
-            clientSock1.Receive(new byte[1]);
-            pRTTs[0] = DateTime.Now - sendTime;
+            client1Sock.Send(sendData);
+            Task.Factory.StartNew(() => getRTT(client1SockEcho, pRTTs, 0));
+            //sendTime = DateTime.Now;
+            //clientSock1.Receive(new byte[0]);
+            //pRTTs[0] = DateTime.Now - sendTime;
 
             Console.WriteLine("p1 rtt: " + pRTTs[0].TotalMilliseconds + ", p2 rtt: " + pRTTs[1].TotalMilliseconds + ", comp: " + compensateLag);
         }
@@ -167,34 +155,35 @@ namespace RealTimeProject
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress address = ipHost.AddressList[1];
-            //address = IPAddress.Parse("172.16.2.167");
-            address = IPAddress.Parse("10.100.102.20");
+            address = IPAddress.Parse("172.16.2.167");
+            //address = IPAddress.Parse("10.100.102.20");
             Console.WriteLine(address);
 
             Socket serverSock = new Socket(SocketType.Stream, ProtocolType.Tcp);
             serverSock.Bind(new IPEndPoint(address, 12345));
+            Socket serverSockEcho = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            serverSockEcho.Bind(new IPEndPoint(address, 12346));
             Console.WriteLine("Binded Successfully");
             serverSock.Listen(10);
+            serverSockEcho.Listen(10);
 
             Console.WriteLine("Waiting for first player");
-            clientSock1 = serverSock.Accept();
-            Console.WriteLine("First player " + clientSock1.RemoteEndPoint + " entered");
+            client1Sock = serverSock.Accept();
+            client1SockEcho = serverSockEcho.Accept();
+            Console.WriteLine("First player " + client1Sock.RemoteEndPoint + " entered");
 
-            clientSock1.Send(Encoding.Latin1.GetBytes("1"));
-            DateTime sendTime = DateTime.Now;
-            clientSock1.Receive(new byte[1]);
-            pRTTs[0] = DateTime.Now - sendTime;
+            client1Sock.Send(Encoding.Latin1.GetBytes("1"));
+            Task.Factory.StartNew(() => getRTT(client1SockEcho, pRTTs, 0));
 
             if (twoPlayers)
             {
                 Console.WriteLine("Waiting for second player");
-                clientSock2 = serverSock.Accept();
-                Console.WriteLine("Second player " + clientSock1.RemoteEndPoint + " entered");
+                client2Sock = serverSock.Accept();
+                client2SockEcho = serverSockEcho.Accept();
+                Console.WriteLine("Second player " + client1Sock.RemoteEndPoint + " entered");
 
-                clientSock2.Send(Encoding.Latin1.GetBytes("2"));
-                sendTime = DateTime.Now;
-                clientSock2.Receive(new byte[1]);
-                pRTTs[1] = DateTime.Now - sendTime;
+                client2Sock.Send(Encoding.Latin1.GetBytes("2"));
+                Task.Factory.StartNew(() => getRTT(client2SockEcho, pRTTs, 1));
             }
 
             Console.WriteLine(pRTTs[0].TotalMilliseconds + ", " + pRTTs[1].TotalMilliseconds);
@@ -203,17 +192,17 @@ namespace RealTimeProject
             {
                 //Thread.Sleep(200);
                 // Get player commands and execute them
-                if (clientSock1.Poll(1, SelectMode.SelectRead))
+                if (client1Sock.Poll(1, SelectMode.SelectRead))
                 {
                     var manageStart = DateTime.Now;
-                    ManagePlayer(clientSock1, 1, DateTime.Now - (pRTTs[0] / 2) * Convert.ToByte(compensateLag));
+                    ManagePlayer(client1Sock, 1, DateTime.Now - (pRTTs[0] / 2) * Convert.ToByte(compensateLag));
                     Console.WriteLine((DateTime.Now - manageStart).TotalMilliseconds + " ms to manage messages");
                 }
-                if (clientSock2 != null)
+                if (client2Sock != null)
                 {
-                    if (clientSock2.Poll(1, SelectMode.SelectRead))
+                    if (client2Sock.Poll(1, SelectMode.SelectRead))
                     {
-                        ManagePlayer(clientSock2, 2, DateTime.Now - (pRTTs[1] / 2) * Convert.ToByte(compensateLag));
+                        ManagePlayer(client2Sock, 2, DateTime.Now - (pRTTs[1] / 2) * Convert.ToByte(compensateLag));
                     }
                 }
             }
