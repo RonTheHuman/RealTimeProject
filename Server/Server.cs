@@ -15,11 +15,21 @@ namespace RealTimeProject
 
         static int speed = 50;
         static bool compensateLag = true;
-        static List<HistoryData> gameHistory = 
+        static List<HistoryData> gameHistory =
             new List<HistoryData>
             { new HistoryData
                 (DateTime.Now, "",
-                new GameState{["p1x"] = 50, ["p2x"] = 700, ["p1score"] = 0, ["p2score"] = 0})};
+                new GameState{["p1x"] = 50, ["p2x"] = 50, ["p1score"] = 0, ["p2score"] = 0})
+            };
+        //static List<HistoryData> gameHistory = 
+        //    new List<HistoryData> {
+        //    new HistoryData
+        //        (DateTime.Now, "",
+        //        new GameState{["p1x"] = 50, ["p2x"] = 50, ["p1score"] = 0, ["p2score"] = 0}),
+        //    new HistoryData
+        //        (DateTime.Now + new TimeSpan(0, 0, 0, 2), "2Shoot",
+        //        new GameState{["p1x"] = 50, ["p2x"] = 50, ["p1score"] = 0, ["p2score"] = 1}),
+        //};
         static Socket client1Sock, client1SockEcho, client2Sock, client2SockEcho;
         static TimeSpan[] pRTTs = new TimeSpan[] {TimeSpan.Zero, TimeSpan.Zero};
         static Action<Socket, TimeSpan[], int> getRTT = (Socket sock, TimeSpan[] pRTTs, int i) =>
@@ -66,12 +76,12 @@ namespace RealTimeProject
             if (player == 1)
                 await Task.Delay(simLag);
 
-            string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0');
+           string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0');
            if (data == "")
-            {
+           {
                 return; //a bit of a hack but whatever
-            }
-            Console.WriteLine("p" + player + ": " + data);
+           }
+            Console.WriteLine("\n\nfrom p" + player + ": " + data);
             string[] commands = data.Split(',', StringSplitOptions.RemoveEmptyEntries);
             //first handle commands that don't change gamestate
             foreach (string command in commands)
@@ -108,17 +118,18 @@ namespace RealTimeProject
             }
             else
             {
+                Console.WriteLine("redoing needed");
                 prevGameState = new GameState(gameHistory[insertIndex - 1].Item3);
-                for (int i = insertIndex; i < commands.Length; i++)
+                for (int i = insertIndex; i < insertIndex + commands.Length; i++)
                 {
-                    prevGameState = ExecuteCommand(player + commands[i], prevGameState);
+                    prevGameState = ExecuteCommand(player + commands[i - insertIndex], prevGameState);
                     gameHistory.Insert(i, new HistoryData(time, player + commands[0], prevGameState));
                 }
                 for (int i = insertIndex + commands.Length; i < gameHistory.Count; i++)
                 {
                     string commandToRedo = gameHistory[i].Item2;
                     GameState updatedGameState = ExecuteCommand(commandToRedo, gameHistory[i - 1].Item3);
-                    gameHistory.Insert(i, new HistoryData(time, commandToRedo, updatedGameState));
+                    gameHistory[i] =  new HistoryData(time, commandToRedo, updatedGameState);
                 }
             }
 
@@ -138,12 +149,12 @@ namespace RealTimeProject
             Task.Factory.StartNew(() => getRTT(client1SockEcho, pRTTs, 0));
             client1Sock.Send(sendData);
 
-            string printMsg = "";
+            string printMsg = "New history:\n";
             foreach (HistoryData tgs in gameHistory.Skip(gameHistory.Count - 10))
             {
                 printMsg += string.Format("{0}|{1}\n", tgs.Item1.ToString("mm.ss.fff"), JsonSerializer.Serialize(tgs.Item3));
             }
-            Console.WriteLine(printMsg.Trim('\n'));
+            Console.WriteLine(printMsg);
         }
 
         static void Main(string[] args)
@@ -152,7 +163,7 @@ namespace RealTimeProject
             IPAddress address = ipHost.AddressList[1];
             //address = IPAddress.Parse("172.16.2.167");
             address = IPAddress.Parse("10.100.102.20");
-            Console.WriteLine(address);
+            //Console.WriteLine(address);
 
             Socket serverSock = new Socket(SocketType.Stream, ProtocolType.Tcp);
             serverSock.Bind(new IPEndPoint(address, 12345));
@@ -194,9 +205,9 @@ namespace RealTimeProject
                 if (client1Sock.Poll(1, SelectMode.SelectRead))
                 {
                     var manageStart = DateTime.Now;
-                    Console.WriteLine("\nmanageStart: " + DateTime.Now.ToString("mm.ss.fff"));
+                    //Console.WriteLine("\nmanageStart: " + DateTime.Now.ToString("mm.ss.fff"));
                     ManagePlayer(client1Sock, 1, DateTime.Now - (pRTTs[0] / 2) * Convert.ToByte(compensateLag));
-                    Console.WriteLine("manageEnd: " + DateTime.Now.ToString("mm.ss.fff") + ", " + (DateTime.Now - manageStart).TotalMilliseconds + " ms to manage messages");
+                    //Console.WriteLine("manageEnd: " + DateTime.Now.ToString("mm.ss.fff") + ", " + (DateTime.Now - manageStart).TotalMilliseconds + " ms to manage messages");
                 }
                 if (client2Sock != null)
                 {

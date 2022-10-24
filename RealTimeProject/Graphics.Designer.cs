@@ -59,7 +59,7 @@
             // 
             this.Player2Label.BackColor = System.Drawing.Color.Red;
             this.Player2Label.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.Player2Label.Location = new System.Drawing.Point(700, 150);
+            this.Player2Label.Location = new System.Drawing.Point(50, 150);
             this.Player2Label.Name = "Player2Label";
             this.Player2Label.Size = new System.Drawing.Size(50, 50);
             this.Player2Label.TabIndex = 1;
@@ -87,10 +87,11 @@
             // ScoreLabel
             // 
             this.ScoreLabel.AutoSize = true;
+            this.ScoreLabel.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.ScoreLabel.ForeColor = System.Drawing.Color.Black;
-            this.ScoreLabel.Location = new System.Drawing.Point(348, 9);
+            this.ScoreLabel.Location = new System.Drawing.Point(334, 13);
             this.ScoreLabel.Name = "ScoreLabel";
-            this.ScoreLabel.Size = new System.Drawing.Size(73, 30);
+            this.ScoreLabel.Size = new System.Drawing.Size(97, 42);
             this.ScoreLabel.TabIndex = 4;
             this.ScoreLabel.Text = "Blue score: 0\r\nRed score: 0";
             // 

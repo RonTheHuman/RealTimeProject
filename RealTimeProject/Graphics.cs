@@ -27,7 +27,7 @@ namespace RealTimeProject
             IPAddress address = ipHost.AddressList[1];
             //address = IPAddress.Parse("172.16.2.167");
             address = IPAddress.Parse("10.100.102.20");
-
+            Thread.Sleep(2);
             server = new Socket(SocketType.Stream, ProtocolType.Tcp);
             server.Connect(new IPEndPoint(address, 12345));
             serverEcho = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -36,6 +36,7 @@ namespace RealTimeProject
             thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer));
             recvTask = server.ReceiveAsync(buffer, new SocketFlags());
             recvEchoTask = serverEcho.ReceiveAsync(new byte[1], new SocketFlags());
+            server.Send(Encoding.Latin1.GetBytes("MoveRight,"));
         }
 
         private void UpdateGraphics(Dictionary<string, int> gameState)
@@ -49,7 +50,7 @@ namespace RealTimeProject
         {
             if (recvEchoTask.IsCompleted)
             {
-                Console.WriteLine(DateTime.Now.ToString("mm.ss.fff") + "| " + "sent echo");
+                Console.WriteLine(DateTime.Now.ToString("mm.ss.fff") + "| " + "[sent echo]");
                 serverEcho.Send(new byte[1]);
                 recvEchoTask = serverEcho.ReceiveAsync(new byte[1], new SocketFlags());
             }
@@ -78,7 +79,7 @@ namespace RealTimeProject
             {
                 Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
                 server.Send(Encoding.Latin1.GetBytes("MoveLeft,"));
-                Console.WriteLine("Sent MoveRight");
+                Console.WriteLine("Sent MoveLeft");
             }
             if (bulletTimeout.IsCompleted)
             {
