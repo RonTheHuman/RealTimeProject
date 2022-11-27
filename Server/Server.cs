@@ -9,8 +9,8 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        const int bufferSize = 1024;
         const bool twoPlayers = false;
+        const int bufferSize = 1024;
         const int simLag = 0;
 
         static int speed = 50;
@@ -77,12 +77,9 @@ namespace RealTimeProject
                 await Task.Delay(simLag);
 
            string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0');
-           if (data == "")
-           {
-                return; //a bit of a hack but whatever
-           }
             Console.WriteLine("\n\nfrom p" + player + ": " + data);
             string[] commands = data.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
             //first handle commands that don't change gamestate
             foreach (string command in commands)
             {
@@ -100,6 +97,7 @@ namespace RealTimeProject
                 }
             }
 
+            //lag compensation
             int insertIndex = gameHistory.Count;
             while (time <= gameHistory[insertIndex - 1].Item1)
             {
@@ -150,21 +148,23 @@ namespace RealTimeProject
             client1Sock.Send(sendData);
 
             string printMsg = "New history:\n";
-            foreach (HistoryData tgs in gameHistory.Skip(gameHistory.Count - 10))
+            foreach (HistoryData hd in gameHistory.Skip(gameHistory.Count - 10))
             {
-                printMsg += string.Format("{0}|{1}\n", tgs.Item1.ToString("mm.ss.fff"), JsonSerializer.Serialize(tgs.Item3));
+                printMsg += string.Format("{0}|{1}\n", hd.Item1.ToString("mm.ss.fff"), JsonSerializer.Serialize(hd.Item3));
             }
             Console.WriteLine(printMsg);
         }
 
         static void Main(string[] args)
         {
+            //get address, either auto or home or school
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress address = ipHost.AddressList[1];
-            //address = IPAddress.Parse("172.16.2.167");
-            address = IPAddress.Parse("10.100.102.20");
+            address = IPAddress.Parse("172.16.2.167");
+            //address = IPAddress.Parse("10.100.102.20");
             //Console.WriteLine(address);
 
+            //create data and echo socket
             Socket serverSock = new Socket(SocketType.Stream, ProtocolType.Tcp);
             serverSock.Bind(new IPEndPoint(address, 12345));
             Socket serverSockEcho = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -191,17 +191,12 @@ namespace RealTimeProject
                 Task.Factory.StartNew(() => getRTT(client2SockEcho, pRTTs, 1));
                 client2Sock.Send(Encoding.Latin1.GetBytes("2"));
             }
-
             //Console.WriteLine("p1 rtt: " + pRTTs[0].TotalMilliseconds + ", p2 rtt: " + pRTTs[1].TotalMilliseconds + ", comp: " + compensateLag);
 
+            // If player sent message, manage it
             while (true)
             {
                 //Thread.Sleep(200);
-                // Get player commands and execute them
-                //if (gameHistory.Count < 4)
-                //{
-                //    Console.WriteLine("while loop: " + DateTime.Now.ToString("mm.ss.fff"));
-                //}
                 if (client1Sock.Poll(1, SelectMode.SelectRead))
                 {
                     var manageStart = DateTime.Now;

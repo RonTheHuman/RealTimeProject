@@ -25,8 +25,8 @@ namespace RealTimeProject
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress address = ipHost.AddressList[1];
-            //address = IPAddress.Parse("172.16.2.167");
-            address = IPAddress.Parse("10.100.102.20");
+            address = IPAddress.Parse("172.16.2.167");
+            //address = IPAddress.Parse("10.100.102.20");
             Thread.Sleep(2);
             server = new Socket(SocketType.Stream, ProtocolType.Tcp);
             server.Connect(new IPEndPoint(address, 12345));

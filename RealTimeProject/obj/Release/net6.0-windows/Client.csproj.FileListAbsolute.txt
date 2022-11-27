@@ -1,0 +1,34 @@
+E:\School Programming\RealTimeProject\RealTimeProject\bin\Release\net6.0-windows\Client.exe
+E:\School Programming\RealTimeProject\RealTimeProject\bin\Release\net6.0-windows\Client.deps.json
+E:\School Programming\RealTimeProject\RealTimeProject\bin\Release\net6.0-windows\Client.runtimeconfig.json
+E:\School Programming\RealTimeProject\RealTimeProject\bin\Release\net6.0-windows\Client.dll
+E:\School Programming\RealTimeProject\RealTimeProject\bin\Release\net6.0-windows\Client.pdb
+E:\School Programming\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.csproj.AssemblyReference.cache
+E:\School Programming\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\RealTimeProject.Graphics.resources
+E:\School Programming\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.csproj.GenerateResource.cache
+E:\School Programming\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.GeneratedMSBuildEditorConfig.editorconfig
+E:\School Programming\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.AssemblyInfoInputs.cache
+E:\School Programming\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.AssemblyInfo.cs
+E:\School Programming\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.csproj.CoreCompileInputs.cache
+E:\School Programming\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.dll
+E:\School Programming\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\refint\Client.dll
+E:\School Programming\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.pdb
+E:\School Programming\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.genruntimeconfig.cache
+E:\School Programming\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\ref\Client.dll
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\bin\Release\net6.0-windows\Client.exe
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\bin\Release\net6.0-windows\Client.deps.json
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\bin\Release\net6.0-windows\Client.runtimeconfig.json
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\bin\Release\net6.0-windows\Client.dll
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\bin\Release\net6.0-windows\Client.pdb
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.csproj.AssemblyReference.cache
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\RealTimeProject.Graphics.resources
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.csproj.GenerateResource.cache
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.AssemblyInfoInputs.cache
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.AssemblyInfo.cs
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.csproj.CoreCompileInputs.cache
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.dll
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\refint\Client.dll
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.pdb
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\Client.genruntimeconfig.cache
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Release\net6.0-windows\ref\Client.dll
