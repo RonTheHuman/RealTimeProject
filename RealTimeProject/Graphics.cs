@@ -3,16 +3,21 @@ using System.Net;
 using System.Windows.Input;
 using System.Text;
 using System.Text.Json;
+using GameState = System.Collections.Generic.Dictionary<string, int>;
 
 namespace RealTimeProject
 {
     public partial class Graphics : Form
     {
-        bool gridMovement = true;
+        bool gridMovement = false;
         bool rightPressed = false;
         bool leftPressed = false;
         Task bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(1));
         int thisPlayer;
+        GameState recvdGameState, simGameState;
+        List<string> unackCommands = new List<string>();
+        byte seqNum = 0;
+        byte lastAckNum = 0;
 
         byte[] buffer = new byte[1024];
         Task<int> recvTask, recvEchoTask;
@@ -25,8 +30,8 @@ namespace RealTimeProject
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress address = ipHost.AddressList[1];
-            address = IPAddress.Parse("172.16.2.167");
-            //address = IPAddress.Parse("10.100.102.20");
+            //address = IPAddress.Parse("172.16.2.167");
+            address = IPAddress.Parse("10.100.102.20");
             Thread.Sleep(2);
             server = new Socket(SocketType.Stream, ProtocolType.Tcp);
             server.Connect(new IPEndPoint(address, 12345));
@@ -39,7 +44,7 @@ namespace RealTimeProject
             server.Send(Encoding.Latin1.GetBytes("MoveRight,"));
         }
 
-        private void UpdateGraphics(Dictionary<string, int> gameState)
+        private void UpdateGraphics(GameState gameState)
         {
             Player1Label.Location = new Point(gameState["p1x"], Player1Label.Location.Y);
             Player2Label.Location = new Point(gameState["p2x"], Player2Label.Location.Y);
@@ -54,31 +59,43 @@ namespace RealTimeProject
                 serverEcho.Send(new byte[1]);
                 recvEchoTask = serverEcho.ReceiveAsync(new byte[1], new SocketFlags());
             }
+
             if (recvTask.IsCompleted)
             {
                 //Console.WriteLine("[{0}]", string.Join(", ", buffer));
+                lastAckNum = buffer[thisPlayer - 1];
+                Console.WriteLine(lastAckNum);
                 string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0')[..recvTask.Result];
+                //Console.WriteLine("Data:" + data);
                 while (data[data.Length - 1] != '}')
                 {
                     recvTask = server.ReceiveAsync(buffer, new SocketFlags());
                     data += Encoding.Latin1.GetString(buffer).TrimEnd('\0')[..recvTask.Result];
                 }
                 data = data.Substring(data.LastIndexOf('{'));
-                //Console.WriteLine("Data:" + data);
-                UpdateGraphics(JsonSerializer.Deserialize<Dictionary<string, int>>(data));
+                Console.WriteLine("Data:" + data);
+                recvdGameState = JsonSerializer.Deserialize<GameState>(data);
+                UpdateGraphics(recvdGameState);
 
                 recvTask = server.ReceiveAsync(buffer, new SocketFlags());
             }
+            List<byte> toSend = new List<byte>();
             if (rightPressed)
             {
+                toSend.Add(seqNum);
+                seqNum++;
+                toSend.AddRange(Encoding.Latin1.GetBytes("MoveRight,"));
+                server.Send(toSend.ToArray());
                 Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
-                server.Send(Encoding.Latin1.GetBytes("MoveRight,"));
                 Console.WriteLine("Sent MoveRight");
             }
             if (leftPressed)
             {
+                toSend.Add(seqNum);
+                seqNum++;
+                toSend.AddRange(Encoding.Latin1.GetBytes("MoveLeft,"));
+                server.Send(toSend.ToArray());
                 Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
-                server.Send(Encoding.Latin1.GetBytes("MoveLeft,"));
                 Console.WriteLine("Sent MoveLeft");
             }
             if (bulletTimeout.IsCompleted)
@@ -114,9 +131,14 @@ namespace RealTimeProject
                 else
                     leftPressed = true;
             }
+
             else if(e.KeyCode == Keys.Space)
             {
-                server.Send(Encoding.Latin1.GetBytes("Shoot,"));
+                List<byte> toSend = new List<byte>(1);
+                toSend.Add(seqNum);
+                seqNum++;
+                toSend.AddRange(Encoding.Latin1.GetBytes("MoveRight,"));
+                server.Send(toSend.ToArray());
                 Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
                 Console.WriteLine("Sent Shoot");
                 //client simulation

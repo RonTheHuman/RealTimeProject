@@ -3,7 +3,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using GameState = System.Collections.Generic.Dictionary<string, int>;
-using HistoryData = System.Tuple<System.DateTime, string, System.Collections.Generic.Dictionary<string, int>>;
 
 namespace RealTimeProject
 {
@@ -13,7 +12,7 @@ namespace RealTimeProject
         const int bufferSize = 1024;
         const int simLag = 0;
 
-        static int speed = 50;
+        static int speed = 5;
         static bool compensateLag = true;
         static List<HistoryData> gameHistory =
             new List<HistoryData>
@@ -30,6 +29,7 @@ namespace RealTimeProject
         //        (DateTime.Now + new TimeSpan(0, 0, 0, 2), "2Shoot",
         //        new GameState{["p1x"] = 50, ["p2x"] = 50, ["p1score"] = 0, ["p2score"] = 1}),
         //};
+        static byte[] seqNums = new byte[2];
         static Socket client1Sock, client1SockEcho, client2Sock, client2SockEcho;
         static TimeSpan[] pRTTs = new TimeSpan[] {TimeSpan.Zero, TimeSpan.Zero};
         static Action<Socket, TimeSpan[], int> getRTT = (Socket sock, TimeSpan[] pRTTs, int i) =>
@@ -79,11 +79,12 @@ namespace RealTimeProject
            string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0');
             Console.WriteLine("\n\nfrom p" + player + ": " + data);
             string[] commands = data.Split(',', StringSplitOptions.RemoveEmptyEntries);
-
-            //first handle commands that don't change gamestate
-            foreach (string command in commands)
+            seqNums[player - 1] = (byte)commands[commands.Length - 1][0];
+            //first handle commands that don't change gamestate, remove sequence num from front after saving latest
+            for (int i = 0; i < commands.Length; i++)
             {
-                switch (command)
+                commands[i] = commands[i][1..];
+                switch (commands[i])
                 {
                     case "Grid":
                         if (speed == 50)
@@ -95,11 +96,15 @@ namespace RealTimeProject
                         compensateLag = !compensateLag;
                         break;
                 }
+
+            }
+            foreach (string command in commands)
+            {
             }
 
             //lag compensation
             int insertIndex = gameHistory.Count;
-            while (time <= gameHistory[insertIndex - 1].Item1)
+            while (time <= gameHistory[insertIndex - 1].time)
             {
                 insertIndex--;
             }
@@ -107,17 +112,17 @@ namespace RealTimeProject
             if (insertIndex == gameHistory.Count)
             {
                 Console.WriteLine("no redoing needed");
-                prevGameState = gameHistory.Last().Item3;
+                prevGameState = gameHistory.Last().state;
                 foreach (string command in commands)
                 {
                     prevGameState = ExecuteCommand(player + command, prevGameState);
-                    gameHistory.Add(new HistoryData(time, player + "" + command, prevGameState));
+                    gameHistory.Add(new HistoryData(time, player + command, prevGameState));
                 }
             }
             else
             {
                 Console.WriteLine("redoing needed");
-                prevGameState = new GameState(gameHistory[insertIndex - 1].Item3);
+                prevGameState = new GameState(gameHistory[insertIndex - 1].state);
                 for (int i = insertIndex; i < insertIndex + commands.Length; i++)
                 {
                     prevGameState = ExecuteCommand(player + commands[i - insertIndex], prevGameState);
@@ -125,32 +130,35 @@ namespace RealTimeProject
                 }
                 for (int i = insertIndex + commands.Length; i < gameHistory.Count; i++)
                 {
-                    string commandToRedo = gameHistory[i].Item2;
-                    GameState updatedGameState = ExecuteCommand(commandToRedo, gameHistory[i - 1].Item3);
+                    string commandToRedo = gameHistory[i].command;
+                    GameState updatedGameState = ExecuteCommand(commandToRedo, gameHistory[i - 1].state);
                     gameHistory[i] =  new HistoryData(time, commandToRedo, updatedGameState);
                 }
             }
 
-            //send update to both
-            string gameStateString = JsonSerializer.Serialize(gameHistory.Last().Item3);
-            byte[] sendData = Encoding.Latin1.GetBytes(gameStateString);
+            //send update to both, add sequence numbers to front
+            string gameStateString = JsonSerializer.Serialize(gameHistory.Last().state);
+            List<byte> sendData = new List<byte>();
+            sendData.AddRange(seqNums);
+            sendData.AddRange(Encoding.Latin1.GetBytes(gameStateString));
+
 
             DateTime sendTime;
             if (client2Sock != null)
             { 
                 Task.Factory.StartNew(() => getRTT(client2SockEcho, pRTTs, 1));
-                client2Sock.Send(sendData);
+                client2Sock.Send(sendData.ToArray());
             }
 
             await Task.Delay(simLag);
 
             Task.Factory.StartNew(() => getRTT(client1SockEcho, pRTTs, 0));
-            client1Sock.Send(sendData);
+            client1Sock.Send(sendData.ToArray());
 
             string printMsg = "New history:\n";
             foreach (HistoryData hd in gameHistory.Skip(gameHistory.Count - 10))
             {
-                printMsg += string.Format("{0}|{1}\n", hd.Item1.ToString("mm.ss.fff"), JsonSerializer.Serialize(hd.Item3));
+                printMsg += string.Format("{0}|{1}\n", hd.time.ToString("mm.ss.fff"), JsonSerializer.Serialize(hd.state));
             }
             Console.WriteLine(printMsg);
         }
@@ -160,8 +168,8 @@ namespace RealTimeProject
             //get address, either auto or home or school
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress address = ipHost.AddressList[1];
-            address = IPAddress.Parse("172.16.2.167");
-            //address = IPAddress.Parse("10.100.102.20");
+            //address = IPAddress.Parse("172.16.2.167");
+            address = IPAddress.Parse("10.100.102.20");
             //Console.WriteLine(address);
 
             //create data and echo socket
