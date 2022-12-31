@@ -53,18 +53,18 @@
             this.Player1Label.Size = new System.Drawing.Size(50, 50);
             this.Player1Label.TabIndex = 0;
             this.Player1Label.Text = "O";
-            this.Player1Label.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.Player1Label.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // Player2Label
             // 
             this.Player2Label.BackColor = System.Drawing.Color.Red;
             this.Player2Label.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.Player2Label.Location = new System.Drawing.Point(50, 150);
+            this.Player2Label.Location = new System.Drawing.Point(660, 250);
             this.Player2Label.Name = "Player2Label";
             this.Player2Label.Size = new System.Drawing.Size(50, 50);
             this.Player2Label.TabIndex = 1;
             this.Player2Label.Text = "O";
-            this.Player2Label.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.Player2Label.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // Bullet1Label
             // 
