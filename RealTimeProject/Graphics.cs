@@ -23,20 +23,29 @@ namespace RealTimeProject
         }
         private void Graphics_Load(object sender, EventArgs e)
         {
-            IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress address = ipHost.AddressList[1];
-            address = IPAddress.Parse("172.16.2.167");
-            //address = IPAddress.Parse("10.100.102.20");
-            Thread.Sleep(2);
-            server = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            server.Connect(new IPEndPoint(address, 12345));
-            serverEcho = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            serverEcho.Connect(new IPEndPoint(address, 12346));
-            server.Receive(buffer);
-            thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer));
-            recvTask = server.ReceiveAsync(buffer, new SocketFlags());
-            recvEchoTask = serverEcho.ReceiveAsync(new byte[1], new SocketFlags());
-            server.Send(Encoding.Latin1.GetBytes("MoveRight,"));
+            //IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
+            //IPAddress serverAddress = ipHost.AddressList[1];
+            Console.WriteLine("test0");
+            int sPort = 12346, cPort = 12345;
+            var sAddress = IPAddress.Parse("10.100.102.20");
+            var cAddress = IPAddress.Parse("10.100.102.20");
+            //address = IPAddress.Parse("172.16.2.167");
+            var clientEP = new IPEndPoint(cAddress, cPort);
+            var serverEP = new IPEndPoint(sAddress, sPort);
+            EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
+            //Thread.Sleep(2);
+            //server = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            //server.Connect(new IPEndPoint(address, 12345));
+            //serverEcho = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            //serverEcho.Connect(new IPEndPoint(address, 12346));
+            //server.Receive(buffer);
+            Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
+            clientSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            clientSock.Bind(clientEP);
+            clientSock.SendTo(new byte[] { (byte)'a' }, serverEP);
+            clientSock.ReceiveFrom(buffer, ref recieveEP);
+            thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0'));
+            Console.WriteLine("You are player " + thisPlayer);
         }
 
         private void UpdateGraphics(Dictionary<string, int> gameState)

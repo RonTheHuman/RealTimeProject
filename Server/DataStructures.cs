@@ -26,10 +26,15 @@ namespace RealTimeProject
 
         public GameState(GameState gs)
         {
-            positions = gs.positions;
-            points = gs.points;
-            blockFrames = gs.blockFrames;
-            dirs = gs.dirs;
+            int players = gs.positions.Length;
+            positions = new int[players];
+            points = new int[players];
+            blockFrames = new int[players];
+            dirs = new char[players];
+            gs.positions.CopyTo(positions, 0);
+            gs.points.CopyTo(points, 0);
+            gs.blockFrames.CopyTo(blockFrames, 0);
+            gs.dirs.CopyTo(dirs, 0);
         }
     }
 

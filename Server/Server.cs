@@ -19,10 +19,6 @@ namespace RealTimeProject
             new List<Frame>
             { new Frame(new string[] {"0000", "0000"}, new GameState(new int[] {0, 0}, new int[] {0, 0}, new int[] {0, 0}, new char[] {'r', 'l'}))};
 
-        static Socket RecieveSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
-        static byte[] buffer = new byte[bufferSize];
-        static IPEndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
-        static Dictionary<string, int> playerIPs = new Dictionary<string, int>();
         //static TimeSpan[] pRTTs = new TimeSpan[] {TimeSpan.Zero, TimeSpan.Zero};
         //static Action<Socket, TimeSpan[], int> getRTT = (Socket sock, TimeSpan[] pRTTs, int i) =>
         //{
@@ -37,27 +33,27 @@ namespace RealTimeProject
         //commands start with the player number. ex: "1Shoot"
         static GameState GameLoop(GameState state, string[] inputs, bool grid)
         {
-            int speed = 5;
+            int speed = 5, blockDur = 20, blockCooldown = 300;
             if (grid) speed = 50;
             var nextState = new GameState(state);
             for (int i = 0; i < inputs.Length; i++)
             {
                 if (inputs[i][0] == '1')    //right
                 {
-                    nextState.positions[i] -= 50;
+                    nextState.positions[i] -= speed;
                 }
                 if (inputs[i][1] == '1')    //left
                 {
-                    nextState.positions[i] += 50;
+                    nextState.positions[i] += speed;
                 }
                 if (inputs[i][2] == '1')    //block
                 {
-                    if (state.blockFrames[i] == -300)
+                    if (state.blockFrames[i] == -blockCooldown)
                     {
-                        nextState.blockFrames[i] = 20;
+                        nextState.blockFrames[i] = blockDur;
                     }
                 }
-                if (state.blockFrames[i] > -300)
+                if (state.blockFrames[i] > -blockCooldown)
                 {
                     nextState.blockFrames[i] -= 1;
                 }
@@ -93,7 +89,7 @@ namespace RealTimeProject
             }
             return nextState;
         }
-
+        /*
         async static void ManagePlayer(Socket sock, int player, DateTime time)
         {
             //get data
@@ -181,21 +177,42 @@ namespace RealTimeProject
                 printMsg += string.Format("{0}|{1}\n", tgs.Item1.ToString("mm.ss.fff"), JsonSerializer.Serialize(tgs.Item3));
             }
             Console.WriteLine(printMsg);
-        }
+        }*/
 
         static void Main(string[] args)
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress address = ipHost.AddressList[1];
+            IPAddress sAddress = ipHost.AddressList[1];
             //address = IPAddress.Parse("172.16.2.167");
-            address = IPAddress.Parse("10.100.102.20");
+            sAddress = IPAddress.Parse("10.100.102.20");
             //Console.WriteLine(address);
-            RecieveSock.Bind(new IPEndPoint(address, 12345));
-            RecieveSock.ReceiveFrom(buffer, ref clientEP);
 
-            Console.WriteLine("Waiting for first player");
-            Console.WriteLine("First player " + client1Sock.RemoteEndPoint + " entered");
+            int cPort = 12345, sPort = 12346;
+            Socket serverSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
+            serverSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            byte[] buffer = new byte[bufferSize];
+            EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
+            Dictionary<IPEndPoint, int> playerIPs = new Dictionary<IPEndPoint, int>();
 
+            serverSock.Bind(new IPEndPoint(sAddress, sPort));
+            for (int i = 0; i < pCount; i++)
+            {
+                Console.WriteLine("Waiting for player " + (i+1));
+                serverSock.ReceiveFrom(buffer, ref clientEP);
+                string clientIPStr = clientEP.ToString();
+                //clientIPStr = clientIPStr.Remove(clientIPStr.IndexOf(':'));
+                Console.WriteLine(clientIPStr + " entered");
+                //var test = clientEP.Serialize();
+                //Console.WriteLine(test);
+                playerIPs[new IPEndPoint(IPAddress.Parse(clientIPStr), cPort)] = i + 1;
+            }
+            foreach (var ip in playerIPs.Keys)
+            {
+                serverSock.SendTo(Encoding.Latin1.GetBytes(playerIPs[ip].ToString()), ip);
+            }
+            
+
+            /*
             Task.Factory.StartNew(() => getRTT(client1SockEcho, pRTTs, 0));
             client1Sock.Send(Encoding.Latin1.GetBytes("1"));
 
@@ -234,7 +251,7 @@ namespace RealTimeProject
                         ManagePlayer(client2Sock, 2, DateTime.Now - (pRTTs[1] / 2) * Convert.ToByte(compensateLag));
                     }
                 }
-            }
+            }*/
         }
     }
 }
