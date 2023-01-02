@@ -8,15 +8,12 @@ namespace RealTimeProject
 {
     public partial class Graphics : Form
     {
-        bool gridMovement = true;
-        bool rightPressed = false;
-        bool leftPressed = false;
-        Task bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(1));
-        int thisPlayer;
+        int right = 0, left = 0, block = 0, attack = 0, thisPlayer, fNum = 1, frameMS = 500;
+        Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
+        EndPoint serverEP;
+        //Task bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(1));
          
         byte[] buffer = new byte[1024];
-        Task<int> recvTask, recvEchoTask;
-        Socket server, serverEcho;
         public Graphics()
         {
             InitializeComponent();
@@ -25,27 +22,22 @@ namespace RealTimeProject
         {
             //IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             //IPAddress serverAddress = ipHost.AddressList[1];
-            Console.WriteLine("test0");
             int sPort = 12346, cPort = 12345;
             var sAddress = IPAddress.Parse("10.100.102.20");
             var cAddress = IPAddress.Parse("10.100.102.20");
             //address = IPAddress.Parse("172.16.2.167");
-            var clientEP = new IPEndPoint(cAddress, cPort);
-            var serverEP = new IPEndPoint(sAddress, sPort);
+            EndPoint clientEP = new IPEndPoint(cAddress, cPort);
+            serverEP = new IPEndPoint(sAddress, sPort);
             EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
-            //Thread.Sleep(2);
-            //server = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            //server.Connect(new IPEndPoint(address, 12345));
-            //serverEcho = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            //serverEcho.Connect(new IPEndPoint(address, 12346));
-            //server.Receive(buffer);
-            Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
+
             clientSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             clientSock.Bind(clientEP);
             clientSock.SendTo(new byte[] { (byte)'a' }, serverEP);
             clientSock.ReceiveFrom(buffer, ref recieveEP);
             thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0'));
             Console.WriteLine("You are player " + thisPlayer);
+            GameLoopTimer.Enabled = true;
+            GameLoopTimer.Interval = frameMS;
         }
 
         private void UpdateGraphics(Dictionary<string, int> gameState)
@@ -55,121 +47,47 @@ namespace RealTimeProject
             ScoreLabel.Text = "Blue score: " + gameState["p1score"] + "\nRed score: " + gameState["p2score"];
         }
 
-        private void SocketTimer_Tick(object sender, EventArgs e)
+        private void GameLoopTimer_Tick(object sender, EventArgs e)
         {
-            if (recvEchoTask.IsCompleted)
-            {
-                Console.WriteLine(DateTime.Now.ToString("mm.ss.fff") + "| " + "[sent echo]");
-                serverEcho.Send(new byte[1]);
-                recvEchoTask = serverEcho.ReceiveAsync(new byte[1], new SocketFlags());
-            }
-            if (recvTask.IsCompleted)
-            {
-                //Console.WriteLine("[{0}]", string.Join(", ", buffer));
-                string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0')[..recvTask.Result];
-                while (data[data.Length - 1] != '}')
-                {
-                    recvTask = server.ReceiveAsync(buffer, new SocketFlags());
-                    data += Encoding.Latin1.GetString(buffer).TrimEnd('\0')[..recvTask.Result];
-                }
-                data = data.Substring(data.LastIndexOf('{'));
-                //Console.WriteLine("Data:" + data);
-                UpdateGraphics(JsonSerializer.Deserialize<Dictionary<string, int>>(data));
-
-                recvTask = server.ReceiveAsync(buffer, new SocketFlags());
-            }
-            if (rightPressed)
-            {
-                Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
-                server.Send(Encoding.Latin1.GetBytes("MoveRight,"));
-                Console.WriteLine("Sent MoveRight");
-            }
-            if (leftPressed)
-            {
-                Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
-                server.Send(Encoding.Latin1.GetBytes("MoveLeft,"));
-                Console.WriteLine("Sent MoveLeft");
-            }
-            if (bulletTimeout.IsCompleted)
-            {
-                if (thisPlayer == 1)
-                    Bullet1Label.Visible = false;
-                else
-                    Bullet2Label.Visible = false;
-            }
+            clientSock.SendTo(Encoding.Latin1.GetBytes("" + fNum + right + left + block + attack), serverEP);
+            fNum++;
         }
 
         private void Graphics_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Right)
+            switch (e.KeyCode)
             {
-                if (gridMovement)
-                {
-                    server.Send(Encoding.Latin1.GetBytes("MoveRight,"));
-                    Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
-                    Console.WriteLine("Sent MoveRight");
-                }
-                else
-                    rightPressed = true;
+                case Keys.Right:
+                    right = 1;
+                    break;
+                case Keys.Left:
+                    left = 1;
+                    break;
+                case Keys.Z:
+                    block = 1;
+                    break;
+                case Keys.X:
+                    attack = 1;
+                    break;
             }
-            else if (e.KeyCode == Keys.Left)
-            {
-                if (gridMovement)
-                {
-                    server.Send(Encoding.Latin1.GetBytes("MoveLeft,"));
-                    Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
-                    Console.WriteLine("Sent MoveLeft");
-                }
-                else
-                    leftPressed = true;
-            }
-            else if(e.KeyCode == Keys.Space)
-            {
-                server.Send(Encoding.Latin1.GetBytes("Shoot,"));
-                Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
-                Console.WriteLine("Sent Shoot");
-                //client simulation
-                if (thisPlayer == 1)
-                {
-                    Bullet1Label.Location = new Point(Player1Label.Location.X + 18, Bullet1Label.Location.Y);
-                    Bullet1Label.Visible = true;
-                }
-                if (thisPlayer == 2)
-                {
-                    Bullet2Label.Location = new Point(Player2Label.Location.X + 18, Bullet2Label.Location.Y);
-                    Bullet2Label.Visible = true;
-                }
-                if (bulletTimeout.IsCompleted)
-                {
-                    bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(90));
-                }
-            }
-            else if(e.KeyCode == Keys.G)
-            {
-                server.Send(Encoding.Latin1.GetBytes("Grid,"));
-                gridMovement = !gridMovement;
-                Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
-                Console.WriteLine("Sent Grid");
-
-            }
-            else if (e.KeyCode == Keys.L)
-            {
-                server.Send(Encoding.Latin1.GetBytes("LagComp,"));
-                Console.Write(DateTime.Now.ToString("mm.ss.fff") + "| ");
-                Console.WriteLine("Sent LagComp");
-            }
-
         }
 
         private void Graphics_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Right)
+            switch (e.KeyCode)
             {
-                rightPressed = false;
-            }
-            if (e.KeyCode == Keys.Left)
-            {
-                leftPressed = false;
+                case Keys.Right:
+                    right = 0;
+                    break;
+                case Keys.Left:
+                    left = 0;
+                    break;
+                case Keys.Z:
+                    block = 0;
+                    break;
+                case Keys.X:
+                    attack = 0;
+                    break;
             }
         }
 

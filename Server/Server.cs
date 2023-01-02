@@ -8,15 +8,12 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        const int bufferSize = 1024;
-        const int pCount = 1;
+        const int bufferSize = 1024, pCount = 1, frameMS = 500;
         static bool grid = false;
         static bool compensateLag = true;
         //const int simLag = 0;
 
-        static List<Frame> history =
-            new List<Frame>
-            { new Frame(new string[] {"0000", "0000"}, new GameState(new int[] {0, 0}, new int[] {0, 0}, new int[] {0, 0}, new char[] {'r', 'l'}))};
+        static List<Frame> history = new List<Frame> ();
         static int curFNum = 1, hSFNum = 0; //current frame number, history start frame number
         static Socket serverSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
         static Dictionary<IPEndPoint, int> playerIPs = new Dictionary<IPEndPoint, int>();
@@ -206,11 +203,13 @@ namespace RealTimeProject
             List<string> packets = new List<string>();
             while (serverSock.Poll(1, SelectMode.SelectRead))
             {
+                Console.WriteLine("Recieved packet");
                 byte[] buffer = new byte[1024];
                 EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
                 serverSock.ReceiveFrom(buffer, ref clientEP); 
-                packets.Append(playerIPs[(IPEndPoint)clientEP].ToString() + Encoding.Latin1.GetString(buffer));
+                packets.Add(playerIPs[(IPEndPoint)clientEP].ToString() + Encoding.Latin1.GetString(buffer));
             }
+            if (packets.Count == 0) { Console.WriteLine("no user inputs recieved"); }
             //now each packet has (in this order): pnum, fnum, right, left, block, attack
             string[] latestInputs = new string[pCount];
             for (int i = 0; i < packets.Count; i++)
@@ -254,7 +253,6 @@ namespace RealTimeProject
             //address = IPAddress.Parse("172.16.2.167");
             sAddress = IPAddress.Parse("10.100.102.20");
             //Console.WriteLine(address);
-
             int cPort = 12345, sPort = 12346;
             serverSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             byte[] buffer = new byte[bufferSize];
@@ -276,10 +274,12 @@ namespace RealTimeProject
             {
                 serverSock.SendTo(Encoding.Latin1.GetBytes(playerIPs[ip].ToString()), ip);
             }
-            System.Timers.Timer gameLoop = new System.Timers.Timer(16);
-            gameLoop.Elapsed += GameLoop;
+
+            history.Add(new Frame(new string[] {"0000"}, new GameState(new int[] {0}, new int[] {0}, new int[] {-300}, new char[] {'r'})));
+            System.Timers.Timer gameLoopTimer = new System.Timers.Timer(frameMS);
+            gameLoopTimer.Elapsed += GameLoop;
             serverSock.Poll(-1, SelectMode.SelectRead);
-            gameLoop.Start();
+            gameLoopTimer.Start();
             Console.ReadKey();
             
 

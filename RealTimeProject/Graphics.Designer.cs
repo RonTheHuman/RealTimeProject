@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.SocketTimer = new System.Windows.Forms.Timer(this.components);
+            this.GameLoopTimer = new System.Windows.Forms.Timer(this.components);
             this.Player1Label = new System.Windows.Forms.Label();
             this.Player2Label = new System.Windows.Forms.Label();
             this.Bullet1Label = new System.Windows.Forms.Label();
@@ -39,10 +39,10 @@
             this.TimeTimer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
-            // SocketTimer
+            // GameLoopTimer
             // 
-            this.SocketTimer.Interval = 17;
-            this.SocketTimer.Tick += new System.EventHandler(this.SocketTimer_Tick);
+            this.GameLoopTimer.Interval = 17;
+            this.GameLoopTimer.Tick += new System.EventHandler(this.GameLoopTimer_Tick);
             // 
             // Player1Label
             // 
@@ -133,7 +133,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Timer SocketTimer;
+        private System.Windows.Forms.Timer GameLoopTimer;
         private Label Player1Label;
         private Label Player2Label;
         private Label Bullet1Label;

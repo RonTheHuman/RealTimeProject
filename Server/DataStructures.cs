@@ -44,9 +44,9 @@ namespace RealTimeProject
             {
                 s += "p" + (i + 1) + ": (";
                 s += "x = " + positions[i];
-                s += "points = " + points[i];
-                s += "bframes = " + blockFrames[i];
-                s += "dir = " + dirs[i];
+                s += ", points = " + points[i];
+                s += ", bframes = " + blockFrames[i];
+                s += ", dir = " + dirs[i];
                 s += "), ";
             }
             s.Remove(s.Length - 2);
@@ -72,8 +72,8 @@ namespace RealTimeProject
             {
                 s += input + ", ";
             }
-            s.Remove(s.Length - 2);
-            s += "] ";
+            s = s.Remove(s.Length - 2);
+            s += "], ";
             s += "state: " + state.ToString();
             return s;
         }
