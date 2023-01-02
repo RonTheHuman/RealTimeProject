@@ -8,7 +8,7 @@ namespace RealTimeProject
 {
     public partial class Graphics : Form
     {
-        int right = 0, left = 0, block = 0, attack = 0, thisPlayer, fNum = 1, frameMS = 500;
+        int right = 0, left = 0, block = 0, attack = 0, thisPlayer, fNum = 1, frameMS = 16;
         Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
         EndPoint serverEP;
         //Task bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(1));
@@ -40,7 +40,7 @@ namespace RealTimeProject
             GameLoopTimer.Interval = frameMS;
         }
 
-        private void UpdateGraphics(Dictionary<string, int> gameState)
+        private void Draw(Dictionary<string, int> gameState)
         {
             Player1Label.Location = new Point(gameState["p1x"], Player1Label.Location.Y);
             Player2Label.Location = new Point(gameState["p2x"], Player2Label.Location.Y);
@@ -49,7 +49,7 @@ namespace RealTimeProject
 
         private void GameLoopTimer_Tick(object sender, EventArgs e)
         {
-            clientSock.SendTo(Encoding.Latin1.GetBytes("" + fNum + right + left + block + attack), serverEP);
+            clientSock.SendTo(Encoding.Latin1.GetBytes("" + right + left + block + attack + fNum), serverEP);
             fNum++;
         }
 

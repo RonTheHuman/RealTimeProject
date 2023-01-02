@@ -8,7 +8,7 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        const int bufferSize = 1024, pCount = 1, frameMS = 500;
+        const int bufferSize = 1024, pCount = 1, frameMS = 16;
         static bool grid = false;
         static bool compensateLag = true;
         //const int simLag = 0;
@@ -41,12 +41,12 @@ namespace RealTimeProject
             {
                 if (inputs[i][0] == '1')    //right
                 {
-                    nextState.positions[i] -= speed;
+                    nextState.positions[i] += speed;
                     nextState.dirs[i] = 'r';
                 }
                 if (inputs[i][1] == '1')    //left
                 {
-                    nextState.positions[i] += speed;
+                    nextState.positions[i] -= speed;
                     nextState.dirs[i] = 'l';
                 }
                 if (inputs[i][2] == '1')    //block
@@ -198,25 +198,26 @@ namespace RealTimeProject
         }
 
 
-        static void GameLoop(object source, System.Timers.ElapsedEventArgs e)
+        static void GameLoop(object? source, ElapsedEventArgs? e)
         {
+            DateTime startTime = DateTime.Now;
             List<string> packets = new List<string>();
             while (serverSock.Poll(1, SelectMode.SelectRead))
             {
-                Console.WriteLine("Recieved packet");
                 byte[] buffer = new byte[1024];
                 EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
                 serverSock.ReceiveFrom(buffer, ref clientEP); 
                 packets.Add(playerIPs[(IPEndPoint)clientEP].ToString() + Encoding.Latin1.GetString(buffer));
+                Console.WriteLine("Recieved " + packets.Last() + ", current frame " + curFNum);
             }
             if (packets.Count == 0) { Console.WriteLine("no user inputs recieved"); }
-            //now each packet has (in this order): pnum, fnum, right, left, block, attack
+            //now each packet has (in this order): pnum, right, left, block, attack, fNum
             string[] latestInputs = new string[pCount];
             for (int i = 0; i < packets.Count; i++)
             {
-                if (packets[i][1] == curFNum)
+                if (int.Parse(packets[i][5..]) == curFNum)
                 {
-                    latestInputs[int.Parse("" + packets[i][0]) - 1] = packets[i][2..];
+                    latestInputs[int.Parse("" + packets[i][0]) - 1] = packets[i][1..5];
                     packets.RemoveAt(i);
                     i--;
                 }
@@ -231,17 +232,30 @@ namespace RealTimeProject
             history.Add(new Frame(latestInputs, NextState(history.Last().state, latestInputs, grid)));
             for (int i = 0; i < packets.Count; i++)
             {
-                Rollback(packets[i][2..], int.Parse("" + packets[i][1]), int.Parse("" + packets[i][0]));
+                if (int.Parse(packets[i][5..]) < curFNum)
+                {
+                    Console.WriteLine("Rollbacking");
+                    Rollback(packets[i][1..5], int.Parse("" + packets[i][5..]), int.Parse("" + packets[i][0]));
+                }
             }
+            foreach (var ip in playerIPs.Keys)
+            {
+                //serverSock.SendToAsync(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(history.Last())), SocketFlags.None, ip);
+                serverSock.SendTo(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(history.Last())), ip);
+            }
+            curFNum++;
+            /*
             if (history.Count >= 200)
             {
                 history.RemoveRange(0, 100);
-            }
+                hSFNum += 100;
+            }*/
             string printMsg = "History:\n";
             foreach (var f in history.Skip(history.Count - 10))
             {
                 printMsg += f.ToString() + "\n";
             }
+            printMsg += "\ntook" + (DateTime.Now - startTime).TotalMilliseconds + " ms";
             Console.WriteLine(printMsg);
         }
 
@@ -280,6 +294,7 @@ namespace RealTimeProject
             gameLoopTimer.Elapsed += GameLoop;
             serverSock.Poll(-1, SelectMode.SelectRead);
             gameLoopTimer.Start();
+            //GameLoop(null, null);
             Console.ReadKey();
             
 
