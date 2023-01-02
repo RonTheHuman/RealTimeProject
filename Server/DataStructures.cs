@@ -36,6 +36,22 @@ namespace RealTimeProject
             gs.blockFrames.CopyTo(blockFrames, 0);
             gs.dirs.CopyTo(dirs, 0);
         }
+
+        public override string ToString()
+        {
+            string s = "";
+            for (int i = 0; i < positions.Length; i++)
+            {
+                s += "p" + (i + 1) + ": (";
+                s += "x = " + positions[i];
+                s += "points = " + points[i];
+                s += "bframes = " + blockFrames[i];
+                s += "dir = " + dirs[i];
+                s += "), ";
+            }
+            s.Remove(s.Length - 2);
+            return s;
+        }
     }
 
     public struct Frame {
@@ -46,6 +62,20 @@ namespace RealTimeProject
         {
             this.inputs = inputs;
             this.state = state;
+        }
+
+        public override string ToString()
+        {
+            string s = "";
+            s += "inputs: [";
+            foreach (string input in inputs)
+            {
+                s += input + ", ";
+            }
+            s.Remove(s.Length - 2);
+            s += "] ";
+            s += "state: " + state.ToString();
+            return s;
         }
     }
 }

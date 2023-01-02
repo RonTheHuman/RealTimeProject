@@ -41,7 +41,6 @@
             // 
             // SocketTimer
             // 
-            this.SocketTimer.Enabled = true;
             this.SocketTimer.Interval = 17;
             this.SocketTimer.Tick += new System.EventHandler(this.SocketTimer_Tick);
             // 
