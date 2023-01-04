@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections.Concurrent;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
@@ -8,13 +9,13 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        const int bufferSize = 1024, pCount = 1, frameMS = 16;
+        const int bufferSize = 1024, pCount = 1, frameMS = 17;
         static bool grid = false;
         static bool compensateLag = true;
         //const int simLag = 0;
 
         static List<Frame> history = new List<Frame> ();
-        static int curFNum = 1, hSFNum = 0; //current frame number, history start frame number
+        static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
         static Socket serverSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
         static Dictionary<IPEndPoint, int> playerIPs = new Dictionary<IPEndPoint, int>();
 
@@ -32,6 +33,30 @@ namespace RealTimeProject
         //    Console.WriteLine("[p" + (i+1) + " rtt: " + pRTTs[0].TotalMilliseconds +  ", comp: " + compensateLag + "]");
         //};
         //commands start with the player number. ex: "1Shoot"
+
+
+        public static class NBConsole
+        {
+            private static BlockingCollection<string> m_Queue = new BlockingCollection<string>();
+
+            static NBConsole()
+            {
+                var thread = new Thread(
+                  () =>
+                  {
+                      while (true) Console.WriteLine(m_Queue.Take());
+                  });
+                thread.IsBackground = true;
+                thread.Start();
+            }
+
+            public static void WriteLine(string value)
+            {
+                m_Queue.Add(value);
+            }
+        }
+
+
         static GameState NextState(GameState state, string[] inputs, bool grid)
         {
             int speed = 5, blockDur = 20, blockCooldown = 300;
@@ -198,19 +223,21 @@ namespace RealTimeProject
         }
 
 
-        static void GameLoop(object? source, ElapsedEventArgs? e)
+        static TimeSpan GameLoop(DateTime st)
         {
-            DateTime startTime = DateTime.Now;
+            curFNum++;
+            //NBConsole.WriteLine("Started at " + st.Millisecond);
             List<string> packets = new List<string>();
             while (serverSock.Poll(1, SelectMode.SelectRead))
             {
                 byte[] buffer = new byte[1024];
                 EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
-                serverSock.ReceiveFrom(buffer, ref clientEP); 
+                serverSock.ReceiveFrom(buffer, ref clientEP);
                 packets.Add(playerIPs[(IPEndPoint)clientEP].ToString() + Encoding.Latin1.GetString(buffer));
-                Console.WriteLine("Recieved " + packets.Last() + ", current frame " + curFNum);
+                NBConsole.WriteLine("Recieved " + packets.Last() + ", current frame " + curFNum + "| " + st.Millisecond);
             }
-            if (packets.Count == 0) { Console.WriteLine("no user inputs recieved"); }
+            if (packets.Count == 0) { NBConsole.WriteLine("no user inputs recieved" + "| " + st.Millisecond); }
+            else { NBConsole.WriteLine("got " + packets.Count + " packets" + "| " + st.Millisecond); }
             //now each packet has (in this order): pnum, right, left, block, attack, fNum
             string[] latestInputs = new string[pCount];
             for (int i = 0; i < packets.Count; i++)
@@ -232,9 +259,9 @@ namespace RealTimeProject
             history.Add(new Frame(latestInputs, NextState(history.Last().state, latestInputs, grid)));
             for (int i = 0; i < packets.Count; i++)
             {
-                if (int.Parse(packets[i][5..]) < curFNum)
+                if (int.Parse(packets[i][5..]) < curFNum || true)
                 {
-                    Console.WriteLine("Rollbacking");
+                    NBConsole.WriteLine("Rollbacking" + "| " + st.Millisecond);
                     Rollback(packets[i][1..5], int.Parse("" + packets[i][5..]), int.Parse("" + packets[i][0]));
                 }
             }
@@ -243,20 +270,22 @@ namespace RealTimeProject
                 //serverSock.SendToAsync(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(history.Last())), SocketFlags.None, ip);
                 serverSock.SendTo(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(history.Last())), ip);
             }
-            curFNum++;
-            /*
-            if (history.Count >= 200)
-            {
-                history.RemoveRange(0, 100);
-                hSFNum += 100;
-            }*/
+
+            //if (history.Count >= 200)
+            //{
+            //    history.RemoveRange(0, 100);
+            //    hSFNum += 100;
+            //}
+            
             string printMsg = "History:\n";
-            foreach (var f in history.Skip(history.Count - 10))
+            foreach (var f in history.Skip(history.Count - 20))
             {
                 printMsg += f.ToString() + "\n";
             }
-            printMsg += "\ntook" + (DateTime.Now - startTime).TotalMilliseconds + " ms";
-            Console.WriteLine(printMsg);
+            TimeSpan duration = (DateTime.Now - st);
+            //printMsg += "took" + duration.TotalMilliseconds + " ms" + "| " + st.Millisecond;
+            NBConsole.WriteLine(printMsg);
+            return duration;
         }
 
 
@@ -275,7 +304,7 @@ namespace RealTimeProject
             serverSock.Bind(new IPEndPoint(sAddress, sPort));
             for (int i = 0; i < pCount; i++)
             {
-                Console.WriteLine("Waiting for player " + (i+1));
+                Console.WriteLine("Waiting for player " + (i + 1));
                 serverSock.ReceiveFrom(buffer, ref clientEP);
                 string clientIPStr = clientEP.ToString();
                 //clientIPStr = clientIPStr.Remove(clientIPStr.IndexOf(':'));
@@ -289,17 +318,23 @@ namespace RealTimeProject
                 serverSock.SendTo(Encoding.Latin1.GetBytes(playerIPs[ip].ToString()), ip);
             }
 
-            history.Add(new Frame(new string[] {"0000"}, new GameState(new int[] {0}, new int[] {0}, new int[] {-300}, new char[] {'r'})));
-            System.Timers.Timer gameLoopTimer = new System.Timers.Timer(frameMS);
-            gameLoopTimer.Elapsed += GameLoop;
-            serverSock.Poll(-1, SelectMode.SelectRead);
-            gameLoopTimer.Start();
-            //GameLoop(null, null);
-            Console.ReadKey();
-            
+            history.Add(new Frame(new string[] { "0000" }, new GameState(new int[] { 0 }, new int[] { 0 }, new int[] { -300 }, new char[] { 'r' })));
+            //System.Timers.Timer gameLoopTimer = new System.Timers.Timer(frameMS);
+            //gameLoopTimer.Elapsed += GameLoop;
+            //serverSock.Poll(-1, SelectMode.SelectRead);
+            while (true)
+            {
+                TimeSpan duration = GameLoop(DateTime.Now);
+                NBConsole.WriteLine("took " + duration.TotalMilliseconds + " ms");
+                if (frameMS - duration.TotalMilliseconds > 0)
+                {
+                    Thread.Sleep(frameMS - (int)duration.TotalMilliseconds);
+                }
+            }
 
-            /*
-            Task.Factory.StartNew(() => getRTT(client1SockEcho, pRTTs, 0));
+
+            
+            /*Task.Factory.StartNew(() => getRTT(client1SockEcho, pRTTs, 0));
             client1Sock.Send(Encoding.Latin1.GetBytes("1"));
 
             if (twoPlayers)

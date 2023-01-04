@@ -8,7 +8,7 @@ namespace RealTimeProject
 {
     public partial class Graphics : Form
     {
-        int right = 0, left = 0, block = 0, attack = 0, thisPlayer, fNum = 1, frameMS = 16;
+        int right = 0, left = 0, block = 0, attack = 0, thisPlayer, fNum = 1, frameMS = 17;
         Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
         EndPoint serverEP;
         //Task bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(1));
@@ -36,8 +36,8 @@ namespace RealTimeProject
             clientSock.ReceiveFrom(buffer, ref recieveEP);
             thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0'));
             Console.WriteLine("You are player " + thisPlayer);
-            GameLoopTimer.Enabled = true;
             GameLoopTimer.Interval = frameMS;
+            GameLoopTimer.Enabled = true;
         }
 
         private void Draw(Dictionary<string, int> gameState)
@@ -49,7 +49,7 @@ namespace RealTimeProject
 
         private void GameLoopTimer_Tick(object sender, EventArgs e)
         {
-            clientSock.SendTo(Encoding.Latin1.GetBytes("" + right + left + block + attack + fNum), serverEP);
+            clientSock.SendToAsync(Encoding.Latin1.GetBytes("" + right + left + block + attack + fNum), SocketFlags.None, serverEP);
             fNum++;
         }
 
