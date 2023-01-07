@@ -16,6 +16,7 @@ namespace RealTimeProject
 
         static List<Frame> history = new List<Frame> ();
         static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
+        static int[] playerLRFNum = new int[pCount]; //last recieved frame num for each player
         static Socket serverSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
         static Dictionary<IPEndPoint, int> playerIPs = new Dictionary<IPEndPoint, int>();
 
@@ -57,157 +58,6 @@ namespace RealTimeProject
         }
 
 
-        static GameState NextState(GameState state, string[] inputs, bool grid)
-        {
-            int speed = 5, blockDur = 20, blockCooldown = 300;
-            if (grid) speed = 50;
-            var nextState = new GameState(state);
-            for (int i = 0; i < inputs.Length; i++)
-            {
-                if (inputs[i][0] == '1')    //right
-                {
-                    nextState.positions[i] += speed;
-                    nextState.dirs[i] = 'r';
-                }
-                if (inputs[i][1] == '1')    //left
-                {
-                    nextState.positions[i] -= speed;
-                    nextState.dirs[i] = 'l';
-                }
-                if (inputs[i][2] == '1')    //block
-                {
-                    if (state.blockFrames[i] == -blockCooldown)
-                    {
-                        nextState.blockFrames[i] = blockDur;
-                    }
-                }
-                if (state.blockFrames[i] > -blockCooldown)
-                {
-                    nextState.blockFrames[i] -= 1;
-                }
-                if (inputs[i][3] == '1')    //attack
-                {
-                    if (nextState.dirs[i] == 'r')
-                    {
-                        for (int j = 0; j < inputs.Length; j++)
-                        {
-                            if (j != i && state.blockFrames[j] <= 0)
-                            {
-                                if (state.positions[i] + 50 < state.positions[j] && state.positions[j] < state.positions[i] + 150)
-                                {
-                                    nextState.points[i] += 1;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        for (int j = 0; j < inputs.Length; j++)
-                        {
-                            if (j != i && state.blockFrames[j] <= 0)
-                            {
-                                if (state.positions[i] - 100 < state.positions[j] && state.positions[j] < state.positions[i])
-                                {
-                                    nextState.points[i] += 1;
-                                }
-                            }
-                        }
-                    }
-                }   
-            }
-            return nextState;
-        }
-        /*
-        async static void ManagePlayer(Socket sock, int player, DateTime time)
-        {
-            //get data
-            sock.Receive(buffer);
-
-            if (player == 1)
-                await Task.Delay(simLag);
-
-           string data = Encoding.Latin1.GetString(buffer).TrimEnd('\0');
-           if (data == "")
-           {
-                return; //a bit of a hack but whatever
-           }
-            Console.WriteLine("\n\nfrom p" + player + ": " + data);
-            string[] commands = data.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            //first handle commands that don't change gamestate
-            foreach (string command in commands)
-            {
-                switch (command)
-                {
-                    case "Grid":
-                        if (speed == 50)
-                            speed = 5;
-                        else
-                            speed = 50;
-                        break;
-                    case "LagComp":
-                        compensateLag = !compensateLag;
-                        break;
-                }
-            }
-
-            int insertIndex = History.Count;
-            while (time <= History[insertIndex - 1].Item1)
-            {
-                insertIndex--;
-            }
-            GameState prevGameState;
-            if (insertIndex == History.Count)
-            {
-                Console.WriteLine("no redoing needed");
-                prevGameState = History.Last().Item3;
-                foreach (string command in commands)
-                {
-                    prevGameState = ExecuteCommand(player + command, prevGameState);
-                    History.Add(new HistoryData(time, player + "" + command, prevGameState));
-                }
-            }
-            else
-            {
-                Console.WriteLine("redoing needed");
-                prevGameState = new GameState(History[insertIndex - 1].Item3);
-                for (int i = insertIndex; i < insertIndex + commands.Length; i++)
-                {
-                    prevGameState = ExecuteCommand(player + commands[i - insertIndex], prevGameState);
-                    History.Insert(i, new HistoryData(time, player + commands[0], prevGameState));
-                }
-                for (int i = insertIndex + commands.Length; i < History.Count; i++)
-                {
-                    string commandToRedo = History[i].Item2;
-                    GameState updatedGameState = ExecuteCommand(commandToRedo, History[i - 1].Item3);
-                    History[i] =  new HistoryData(time, commandToRedo, updatedGameState);
-                }
-            }
-
-            //send update to both
-            string gameStateString = JsonSerializer.Serialize(History.Last().Item3);
-            byte[] sendData = Encoding.Latin1.GetBytes(gameStateString);
-
-            DateTime sendTime;
-            if (client2Sock != null)
-            { 
-                Task.Factory.StartNew(() => getRTT(client2SockEcho, pRTTs, 1));
-                client2Sock.Send(sendData);
-            }
-
-            await Task.Delay(simLag);
-
-            Task.Factory.StartNew(() => getRTT(client1SockEcho, pRTTs, 0));
-            client1Sock.Send(sendData);
-
-            string printMsg = "New history:\n";
-            foreach (HistoryData tgs in History.Skip(History.Count - 10))
-            {
-                printMsg += string.Format("{0}|{1}\n", tgs.Item1.ToString("mm.ss.fff"), JsonSerializer.Serialize(tgs.Item3));
-            }
-            Console.WriteLine(printMsg);
-        }*/
-
-
         static void Rollback(string input, int fNum, int player)
         {
             if (history[fNum].inputs[player - 1] != input)
@@ -216,7 +66,7 @@ namespace RealTimeProject
                 {
                     Frame temp = history[i];
                     temp.inputs[player - 1] = input;
-                    temp.state = NextState(history[i - 1].state, history[i].inputs, grid);
+                    temp.state = CommonCode.NextState(history[i - 1].state, history[i].inputs, grid);
                     history[i] = temp;
                 }
             }
@@ -238,15 +88,22 @@ namespace RealTimeProject
             }
             if (packets.Count == 0) { NBConsole.WriteLine("no user inputs recieved" + "| " + st.Millisecond); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets" + "| " + st.Millisecond); }
+
             //now each packet has (in this order): pnum, right, left, block, attack, fNum
             string[] latestInputs = new string[pCount];
+            int packetPlayer, packetFrame;
+            string packetInput;
             for (int i = 0; i < packets.Count; i++)
             {
-                if (int.Parse(packets[i][5..]) == curFNum)
+                packetPlayer = int.Parse("" + packets[i][0]);
+                packetInput = packets[i][1..5];
+                packetFrame = int.Parse(packets[i][5..]);
+                if (packetFrame == curFNum)
                 {
-                    latestInputs[int.Parse("" + packets[i][0]) - 1] = packets[i][1..5];
+                    latestInputs[packetPlayer - 1] = packetInput;
                     packets.RemoveAt(i);
                     i--;
+                    playerLRFNum[packetPlayer - 1] = curFNum;
                 }
             }
             for (int i = 0; i < pCount; i++)
@@ -256,19 +113,37 @@ namespace RealTimeProject
                     latestInputs[i] = history.Last().inputs[i];
                 }
             }
-            history.Add(new Frame(latestInputs, NextState(history.Last().state, latestInputs, grid)));
+            history.Add(new Frame(latestInputs, CommonCode.NextState(history.Last().state, latestInputs, grid)));
+
             for (int i = 0; i < packets.Count; i++)
             {
-                if (int.Parse(packets[i][5..]) < curFNum || true)
+                packetPlayer = int.Parse("" + packets[i][0]);
+                packetInput = packets[i][1..5];
+                packetFrame = int.Parse(packets[i][5..]);
+                if (packetFrame < curFNum || true)
                 {
                     NBConsole.WriteLine("Rollbacking" + "| " + st.Millisecond);
-                    Rollback(packets[i][1..5], int.Parse("" + packets[i][5..]), int.Parse("" + packets[i][0]));
+                    Rollback(packetInput, packetFrame, packetPlayer);
+                }
+                if (packetFrame > playerLRFNum[packetPlayer - 1])
+                {
+                    playerLRFNum[packetPlayer - 1] = packetFrame;
                 }
             }
+
             foreach (var ip in playerIPs.Keys)
             {
                 //serverSock.SendToAsync(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(history.Last())), SocketFlags.None, ip);
-                serverSock.SendTo(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(history.Last())), ip);
+                object[] sendData = new object[6];
+                sendData[0] = playerLRFNum[playerIPs[ip] - 1];
+                sendData[1] = history.Last().inputs;
+                sendData[2] = history.Last().state.positions;
+                sendData[3] = history.Last().state.points;
+                sendData[4] = history.Last().state.blockFrames;
+                sendData[5] = history.Last().state.dirs;
+                Console.WriteLine(JsonSerializer.Serialize(sendData));
+                serverSock.SendTo(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(sendData)), ip);
+                //Console.WriteLine("last recieved fNum from player " + playerIPs[ip] + ", " + playerLRFNum[playerIPs[ip] - 1]);
             }
 
             //if (history.Count >= 200)
@@ -318,9 +193,11 @@ namespace RealTimeProject
                 serverSock.SendTo(Encoding.Latin1.GetBytes(playerIPs[ip].ToString()), ip);
             }
 
-            history.Add(new Frame(new string[] { "0000" }, new GameState(new int[] { 0 }, new int[] { 0 }, new int[] { -300 }, new char[] { 'r' })));
-            //System.Timers.Timer gameLoopTimer = new System.Timers.Timer(frameMS);
-            //gameLoopTimer.Elapsed += GameLoop;
+            if (pCount == 1)
+                history.Add(new Frame(new string[] { "0000" }, new GameState(new int[] { 0 }, new int[] { 0 }, new int[] { -300 }, new char[] { 'r' })));
+            else if (pCount == 2)
+                history.Add(new Frame(new string[] { "0000", "0000" }, new GameState(new int[] { 0, 100 }, new int[] { 0, 0 }, new int[] { -300, -300 }, new char[] { 'r', 'l' })));
+
             //serverSock.Poll(-1, SelectMode.SelectRead);
             while (true)
             {
@@ -331,48 +208,6 @@ namespace RealTimeProject
                     Thread.Sleep(frameMS - (int)duration.TotalMilliseconds);
                 }
             }
-
-
-            
-            /*Task.Factory.StartNew(() => getRTT(client1SockEcho, pRTTs, 0));
-            client1Sock.Send(Encoding.Latin1.GetBytes("1"));
-
-            if (twoPlayers)
-            {
-                Console.WriteLine("Waiting for second player");
-                client2Sock = serverSock.Accept();
-                client2SockEcho = serverSockEcho.Accept();
-                Console.WriteLine("Second player " + client1Sock.RemoteEndPoint + " entered");
-
-                Task.Factory.StartNew(() => getRTT(client2SockEcho, pRTTs, 1));
-                client2Sock.Send(Encoding.Latin1.GetBytes("2"));
-            }
-
-            //Console.WriteLine("p1 rtt: " + pRTTs[0].TotalMilliseconds + ", p2 rtt: " + pRTTs[1].TotalMilliseconds + ", comp: " + compensateLag);
-
-            while (true)
-            {
-                //Thread.Sleep(200);
-                // Get player commands and execute them
-                //if (gameHistory.Count < 4)
-                //{
-                //    Console.WriteLine("while loop: " + DateTime.Now.ToString("mm.ss.fff"));
-                //}
-                if (client1Sock.Poll(1, SelectMode.SelectRead))
-                {
-                    var manageStart = DateTime.Now;
-                    //Console.WriteLine("\nmanageStart: " + DateTime.Now.ToString("mm.ss.fff"));
-                    ManagePlayer(client1Sock, 1, DateTime.Now - (pRTTs[0] / 2) * Convert.ToByte(compensateLag));
-                    //Console.WriteLine("manageEnd: " + DateTime.Now.ToString("mm.ss.fff") + ", " + (DateTime.Now - manageStart).TotalMilliseconds + " ms to manage messages");
-                }
-                if (client2Sock != null)
-                {
-                    if (client2Sock.Poll(1, SelectMode.SelectRead))
-                    {
-                        ManagePlayer(client2Sock, 2, DateTime.Now - (pRTTs[1] / 2) * Convert.ToByte(compensateLag));
-                    }
-                }
-            }*/
         }
     }
 }
