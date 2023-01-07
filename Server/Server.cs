@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Timers;
+using System.Buffers.Binary;
 
 namespace RealTimeProject
 {
@@ -17,6 +18,7 @@ namespace RealTimeProject
         static List<Frame> history = new List<Frame> ();
         static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
         static int[] playerLRFNum = new int[pCount]; //last recieved frame num for each player
+        static DateTime gameStartTime;
         static Socket serverSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
         static Dictionary<IPEndPoint, int> playerIPs = new Dictionary<IPEndPoint, int>();
 
@@ -128,6 +130,7 @@ namespace RealTimeProject
         {
             curFNum++;
             //NBConsole.WriteLine("Started at " + st.Millisecond);
+            // Get packets from players
             NBConsole.WriteLine("Current frame: " + curFNum);
             List<string> packets = new List<string>();
             while (serverSock.Poll(1, SelectMode.SelectRead))
@@ -145,11 +148,12 @@ namespace RealTimeProject
             string[] latestInputs = new string[pCount];
             int packetPlayer, packetFrame;
             string packetInput;
-            for (int i = 0; i < packets.Count; i++)
+            for (int i = 0; i < packets.Count; i++) //packets for current frame
             {
                 packetPlayer = int.Parse("" + packets[i][0]);
                 packetInput = packets[i][1..5];
-                packetFrame = int.Parse(packets[i][5..]);
+                packetFrame = (int)((new DateTime(BinaryPrimitives.ReadInt64BigEndian(Encoding.Latin1.GetBytes(packets[i][5..13]))) - gameStartTime).TotalMilliseconds/17);
+                NBConsole.WriteLine("" + packetFrame);
                 if (packetFrame == curFNum)
                 {
                     latestInputs[packetPlayer - 1] = packetInput;
@@ -167,11 +171,11 @@ namespace RealTimeProject
             }
             history.Add(new Frame(latestInputs, NextState(history.Last().state, latestInputs, grid)));
 
-            for (int i = 0; i < packets.Count; i++)
+            for (int i = 0; i < packets.Count; i++) //packets for past frames
             {
                 packetPlayer = int.Parse("" + packets[i][0]);
                 packetInput = packets[i][1..5];
-                packetFrame = int.Parse(packets[i][5..]);
+                packetFrame = (int)((new DateTime(BinaryPrimitives.ReadInt64BigEndian(Encoding.Latin1.GetBytes(packets[i][5..13]))) - gameStartTime).TotalMilliseconds/17);
                 if (packetFrame < curFNum || true)
                 {
                     //NBConsole.WriteLine("Rollbacking");
@@ -183,9 +187,8 @@ namespace RealTimeProject
                 }
             }
 
-            foreach (var ip in playerIPs.Keys)
+            foreach (var ip in playerIPs.Keys) //send state to players
             {
-                //serverSock.SendToAsync(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(history.Last())), SocketFlags.None, ip);
                 object[] sendData = new object[7];
                 int frameToSend = playerLRFNum[playerIPs[ip] - 1];
                 sendData[0] = frameToSend;
@@ -200,12 +203,14 @@ namespace RealTimeProject
                 //NBConsole.WriteLine("last recieved fNum from player " + playerIPs[ip] + ", " + playerLRFNum[playerIPs[ip] - 1]);
             }
 
+            //old history deletion, maybe needed?
             //if (history.Count >= 200)
             //{
             //    history.RemoveRange(0, 100);
             //    hSFNum += 100;
             //}
             
+            //print history
             string printMsg = "History:\n";
             foreach (var f in history.Skip(history.Count - 20))
             {
@@ -236,11 +241,7 @@ namespace RealTimeProject
             {
                 Console.WriteLine("Waiting for player " + (i + 1));
                 serverSock.ReceiveFrom(buffer, ref clientEP);
-                string clientIPStr = clientEP.ToString();
-                //clientIPStr = clientIPStr.Remove(clientIPStr.IndexOf(':'));
-                Console.WriteLine(clientIPStr + " entered");
-                //var test = clientEP.Serialize();
-                //Console.WriteLine(test);
+                Console.WriteLine(clientEP.ToString() + " entered");
                 playerIPs[new IPEndPoint(((IPEndPoint)clientEP).Address, ((IPEndPoint)clientEP).Port)] = i + 1;
             }
             foreach (var ip in playerIPs.Keys)
@@ -252,7 +253,7 @@ namespace RealTimeProject
                 history.Add(new Frame(new string[] { "0000" }, new GameState(new int[] { 0 }, new int[] { 0 }, new int[] { -300 }, new char[] { 'r' }, new int[] { 0 })));
             else if (pCount == 2)
                 history.Add(new Frame(new string[] { "0000", "0000" }, new GameState(new int[] { 0, 100 }, new int[] { 0, 0 }, new int[] { -300, -300 }, new char[] { 'r', 'l' }, new int[] { 0, 0 })));
-
+            gameStartTime = DateTime.Now;
             //serverSock.Poll(-1, SelectMode.SelectRead);
             while (true)
             {

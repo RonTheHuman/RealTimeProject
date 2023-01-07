@@ -3,6 +3,7 @@ using System.Net;
 using System.Windows.Input;
 using System.Text;
 using System.Text.Json;
+using System.Buffers.Binary;
 
 namespace RealTimeProject
 {
@@ -46,7 +47,7 @@ namespace RealTimeProject
             else if (pCount == 2)
                 simHistory.Add(new Frame(new string[] { "0000", "0000" }, new GameState(new int[] { 0, 100 }, new int[] { 0, 0 }, new int[] { -300, -300 }, new char[] { 'r', 'l' }, new int[] { 0, 0 })));
             GameLoopTimer.Interval = frameMS;
-            Thread.Sleep(frameMS);
+            Thread.Sleep(1000);
             GameLoopTimer.Enabled = true;
         }
 
@@ -201,7 +202,13 @@ namespace RealTimeProject
         private void GameLoopTimer_Tick(object sender, EventArgs e)
         {
             string curInput = "" + right + left + block + attack;
-            clientSock.SendToAsync(Encoding.Latin1.GetBytes(curInput + curFNum), SocketFlags.None, serverEP);
+            byte[] inputBytes = Encoding.Latin1.GetBytes(curInput);
+            byte[] timeStamp = new byte[8];
+            BinaryPrimitives.WriteInt64BigEndian(timeStamp, DateTime.Now.Ticks);
+            byte[] sendData = new byte[8 + inputBytes.Length];
+            inputBytes.CopyTo(sendData, 0);
+            timeStamp.CopyTo(sendData, inputBytes.Length);
+            clientSock.SendToAsync(sendData, SocketFlags.None, serverEP);
             string[] simInputs = new string[pCount];
             simHistory.Last().inputs.CopyTo(simInputs, 0);
             simInputs[thisPlayer - 1] = curInput;
