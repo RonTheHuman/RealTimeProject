@@ -128,6 +128,7 @@ namespace RealTimeProject
         {
             curFNum++;
             //NBConsole.WriteLine("Started at " + st.Millisecond);
+            NBConsole.WriteLine("Current frame: " + curFNum);
             List<string> packets = new List<string>();
             while (serverSock.Poll(1, SelectMode.SelectRead))
             {
@@ -135,10 +136,10 @@ namespace RealTimeProject
                 EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
                 serverSock.ReceiveFrom(buffer, ref clientEP);
                 packets.Add(playerIPs[(IPEndPoint)clientEP].ToString() + Encoding.Latin1.GetString(buffer));
-                NBConsole.WriteLine("Recieved " + packets.Last() + ", current frame " + curFNum + "| " + st.Millisecond);
+                NBConsole.WriteLine("Recieved " + packets.Last());
             }
-            if (packets.Count == 0) { NBConsole.WriteLine("no user inputs recieved" + "| " + st.Millisecond); }
-            else { NBConsole.WriteLine("got " + packets.Count + " packets" + "| " + st.Millisecond); }
+            if (packets.Count == 0) { NBConsole.WriteLine("no user inputs recieved"); }
+            else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
 
             //now each packet has (in this order): pnum, right, left, block, attack, fNum
             string[] latestInputs = new string[pCount];
@@ -173,7 +174,7 @@ namespace RealTimeProject
                 packetFrame = int.Parse(packets[i][5..]);
                 if (packetFrame < curFNum || true)
                 {
-                    NBConsole.WriteLine("Rollbacking" + "| " + st.Millisecond);
+                    //NBConsole.WriteLine("Rollbacking");
                     Rollback(packetInput, packetFrame, packetPlayer);
                 }
                 if (packetFrame > playerLRFNum[packetPlayer - 1])
@@ -194,9 +195,9 @@ namespace RealTimeProject
                 sendData[4] = history[frameToSend].state.blockFrames;
                 sendData[5] = history[frameToSend].state.dirs;
                 sendData[6] = history[frameToSend].state.attacks;
-                Console.WriteLine(JsonSerializer.Serialize(sendData));
+                NBConsole.WriteLine(JsonSerializer.Serialize(sendData));
                 serverSock.SendTo(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(sendData)), ip);
-                //Console.WriteLine("last recieved fNum from player " + playerIPs[ip] + ", " + playerLRFNum[playerIPs[ip] - 1]);
+                //NBConsole.WriteLine("last recieved fNum from player " + playerIPs[ip] + ", " + playerLRFNum[playerIPs[ip] - 1]);
             }
 
             //if (history.Count >= 200)
@@ -210,9 +211,10 @@ namespace RealTimeProject
             {
                 printMsg += f.ToString() + "\n";
             }
+            printMsg = printMsg.TrimEnd('\n');
             TimeSpan duration = (DateTime.Now - st);
             //printMsg += "took" + duration.TotalMilliseconds + " ms" + "| " + st.Millisecond;
-            NBConsole.WriteLine(printMsg);
+            //NBConsole.WriteLine(printMsg);
             return duration;
         }
 
