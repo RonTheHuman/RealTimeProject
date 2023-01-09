@@ -9,7 +9,7 @@ namespace RealTimeProject
 {
     public partial class Graphics : Form
     {
-        int right = 0, left = 0, block = 0, attack = 0, thisPlayer, curFNum = 1, recvFNum = 0, frameMS = 17, pCount = 2;
+        int right = 0, left = 0, block = 0, attack = 0, thisPlayer, curFNum = 1, recvFNum = 0, frameMS = 17, pCount = 1;
         bool grid = false;
         static List<Frame> simHistory = new List<Frame>();
         Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
@@ -28,8 +28,10 @@ namespace RealTimeProject
             int sPort = 12345;
             Console.WriteLine("Enter port for client: ");
             int cPort = int.Parse(Console.ReadLine());
-            var sAddress = IPAddress.Parse("10.100.102.20");
-            var cAddress = IPAddress.Parse("10.100.102.20");
+            //var sAddress = IPAddress.Parse("10.100.102.20");
+            var sAddress = IPAddress.Parse("192.168.68.112");
+            //var cAddress = IPAddress.Parse("10.100.102.20");
+            var cAddress = IPAddress.Parse("192.168.68.112");
             //address = IPAddress.Parse("172.16.2.167");
             EndPoint clientEP = new IPEndPoint(cAddress, cPort);
             serverEP = new IPEndPoint(sAddress, sPort);
@@ -205,9 +207,11 @@ namespace RealTimeProject
             byte[] inputBytes = Encoding.Latin1.GetBytes(curInput);
             byte[] timeStamp = new byte[8];
             BinaryPrimitives.WriteInt64BigEndian(timeStamp, DateTime.Now.Ticks);
-            byte[] sendData = new byte[8 + inputBytes.Length];
+
+            byte[] sendData = new byte[8 + 4];
             inputBytes.CopyTo(sendData, 0);
-            timeStamp.CopyTo(sendData, inputBytes.Length);
+            timeStamp.CopyTo(sendData, 4);
+            Console.WriteLine(inputBytes.Length + " | " + Convert.ToHexString(inputBytes) + " | " + Convert.ToHexString(timeStamp) + ", " + new DateTime(BinaryPrimitives.ReadInt64BigEndian(timeStamp)).ToString("mm.ss.fff") + " | " + Convert.ToHexString(sendData));
             clientSock.SendToAsync(sendData, SocketFlags.None, serverEP);
             string[] simInputs = new string[pCount];
             simHistory.Last().inputs.CopyTo(simInputs, 0);
