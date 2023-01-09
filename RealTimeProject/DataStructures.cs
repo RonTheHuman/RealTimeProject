@@ -61,12 +61,15 @@ namespace RealTimeProject
         }
     }
 
-    public class Frame {
+    public class Frame
+    {
+        public DateTime startTime;
         public string[] inputs;
         public GameState state;
-        
-        public Frame(string[] inputs, GameState state)
+
+        public Frame(DateTime startTime, string[] inputs, GameState state)
         {
+            this.startTime = startTime;
             this.inputs = inputs;
             this.state = state;
         }
@@ -75,6 +78,7 @@ namespace RealTimeProject
         public override string ToString()
         {
             string s = "";
+            s += "time: " + startTime.ToString("mm.ss.fff") + ", ";
             s += "inputs: [";
             foreach (string input in inputs)
             {

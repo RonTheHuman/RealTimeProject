@@ -123,16 +123,21 @@ namespace RealTimeProject
         }
 
 
-        static void Rollback(string input, int fNum, int player)
+        static void Rollback(string input, DateTime time, int player)
         {
-            if (history[fNum].inputs[player - 1] != input)
+            for (int i = history.Count() - 1; i >= 0; i--)
             {
-                for (int i = fNum - hSFNum; i < history.Count; i++)
+                if (history[i].startTime < time)
                 {
-                    Frame temp = history[i];
-                    temp.inputs[player - 1] = input;
-                    temp.state = NextState(history[i - 1].state, history[i].inputs, grid);
-                    history[i] = temp;
+                    if (history[i].inputs[player - 1] != input)
+                    {
+                        for (int j = i; j < history.Count; j++)
+                        {
+                            history[j].inputs[player - 1] = input;
+                            history[j].state = NextState(history[j - 1].state, history[j].inputs, grid);
+                        }
+                    }
+                    break;
                 }
             }
         }
@@ -144,8 +149,8 @@ namespace RealTimeProject
             NBConsole.WriteLine(frameStart.ToString("mm.ss.fff"));
             curFNum++;
             //NBConsole.WriteLine("Started at " + st.Millisecond);
-            // Get packets from players
-            NBConsole.WriteLine("Current frame: " + curFNum);
+
+            NBConsole.WriteLine("Current frame: " + curFNum); // get packets from players
             List<ClientPacket> packets = new List<ClientPacket>();
             while (serverSock.Poll(1, SelectMode.SelectRead))
             {
@@ -157,61 +162,51 @@ namespace RealTimeProject
             }
             if (packets.Count == 0) { NBConsole.WriteLine("no user inputs recieved"); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
+            //now each packet has (in this order): pnum, right, left, block, attack, timestamp
 
-            //now each packet has (in this order): pnum, right, left, block, attack, fNum
-            string[] latestInputs = new string[pCount];
-            int packetPlayer, packetFrame;
-            string packetInput;
-            for (int i = 0; i < packets.Count; i++) //packets for current frame
-            {
-                packetPlayer = packets[i].player;
-                packetInput = Encoding.Latin1.GetString(packets[i].data[..4]);
-                packetFrame = (int)((new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].data[4..])) - gameStartTime).TotalMilliseconds/17);
-                NBConsole.WriteLine(new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].data[4..])).ToString("mm.ss.fff") + " " + packetFrame);
-                if (packetFrame == curFNum)
-                {
-                    latestInputs[packetPlayer - 1] = packetInput;
-                    packets.RemoveAt(i);
-                    i--;
-                    playerLRFNum[packetPlayer - 1] = curFNum;
-                }
-            }
+            string[] prevInputs = new string[pCount]; // add temp extrapolated state
             for (int i = 0; i < pCount; i++)
             {
-                if (latestInputs[i] == null)
+                if (prevInputs[i] == null)
                 {
-                    latestInputs[i] = history.Last().inputs[i];
+                    prevInputs[i] = history.Last().inputs[i];
                 }
             }
-            history.Add(new Frame(latestInputs, NextState(history.Last().state, latestInputs, grid)));
+            history.Add(new Frame(frameStart, prevInputs, NextState(history.Last().state, prevInputs, grid)));
 
-            for (int i = 0; i < packets.Count; i++) //packets for past frames
+            int packetPlayer;
+            DateTime packetTime;
+            string packetInput;
+            for (int i = 0; i < packets.Count; i++) // apply inputs from packets, using general rollback
             {
                 packetPlayer = packets[i].player;
                 packetInput = Encoding.Latin1.GetString(packets[i].data[..4]);
-                packetFrame = (int)((new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].data[4..])) - gameStartTime).TotalMilliseconds / 17);
-                if (packetFrame < curFNum || true)
+                packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].data[4..]));
+                //NBConsole.WriteLine(gameStartTime.ToString("mm.ss.fff") + " " + DateTime.Now.ToString("mm.ss.fff"));
+                if (packetTime >= DateTime.Now)
                 {
+                    throw new Exception("timestamp error");
                     //NBConsole.WriteLine("Rollbacking");
-                    Rollback(packetInput, packetFrame, packetPlayer);
                 }
-                if (packetFrame > playerLRFNum[packetPlayer - 1])
-                {
-                    playerLRFNum[packetPlayer - 1] = packetFrame;
-                }
+                Rollback(packetInput, packetTime, packetPlayer);
+                //if (packetFrame > playerLRFNum[packetPlayer - 1])
+                //{
+                //    playerLRFNum[packetPlayer - 1] = packetFrame;
+                //}
             }
 
-            foreach (var ip in playerIPs.Keys) //send state to players
+            foreach (var ip in playerIPs.Keys) // send state to players
             {
                 object[] sendData = new object[7];
-                int frameToSend = playerLRFNum[playerIPs[ip] - 1];
-                sendData[0] = frameToSend;
-                sendData[1] = history[frameToSend].inputs;
-                sendData[2] = history[frameToSend].state.positions;
-                sendData[3] = history[frameToSend].state.points;
-                sendData[4] = history[frameToSend].state.blockFrames;
-                sendData[5] = history[frameToSend].state.dirs;
-                sendData[6] = history[frameToSend].state.attacks;
+                byte[] timeStamp = new byte[8];
+                BinaryPrimitives.WriteInt64BigEndian(timeStamp, DateTime.Now.Ticks); ;
+                sendData[0] = timeStamp;
+                sendData[1] = history.Last().inputs;
+                sendData[2] = history.Last().state.positions;
+                sendData[3] = history.Last().state.points;
+                sendData[4] = history.Last().state.blockFrames;
+                sendData[5] = history.Last().state.dirs;
+                sendData[6] = history.Last().state.attacks;
                 NBConsole.WriteLine(JsonSerializer.Serialize(sendData));
                 serverSock.SendTo(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(sendData)), ip);
                 //NBConsole.WriteLine("last recieved fNum from player " + playerIPs[ip] + ", " + playerLRFNum[playerIPs[ip] - 1]);
@@ -265,9 +260,9 @@ namespace RealTimeProject
             }
 
             if (pCount == 1)
-                history.Add(new Frame(new string[] { "0000" }, new GameState(new int[] { 0 }, new int[] { 0 }, new int[] { -300 }, new char[] { 'r' }, new int[] { 0 })));
+                history.Add(new Frame(DateTime.Now, new string[] { "0000" }, new GameState(new int[] { 0 }, new int[] { 0 }, new int[] { -300 }, new char[] { 'r' }, new int[] { 0 })));
             else if (pCount == 2)
-                history.Add(new Frame(new string[] { "0000", "0000" }, new GameState(new int[] { 0, 100 }, new int[] { 0, 0 }, new int[] { -300, -300 }, new char[] { 'r', 'l' }, new int[] { 0, 0 })));
+                history.Add(new Frame(DateTime.Now, new string[] { "0000", "0000" }, new GameState(new int[] { 0, 100 }, new int[] { 0, 0 }, new int[] { -300, -300 }, new char[] { 'r', 'l' }, new int[] { 0, 0 })));
             //serverSock.Poll(-1, SelectMode.SelectRead);
             gameStartTime = DateTime.Now;
             while (true)

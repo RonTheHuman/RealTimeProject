@@ -78,6 +78,7 @@ namespace RealTimeProject
         public override string ToString()
         {
             string s = "";
+            s += "time: " + startTime.ToString("mm.ss.fff") + ", ";
             s += "inputs: [";
             foreach (string input in inputs)
             {
