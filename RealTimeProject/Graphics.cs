@@ -277,6 +277,7 @@ namespace RealTimeProject
                             }
                         }
                     }
+                    break;
                 }
             }
             Draw(simHistory.Last().state);
