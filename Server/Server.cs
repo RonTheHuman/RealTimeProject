@@ -10,7 +10,7 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        const int bufferSize = 1024, pCount = 2, frameMS = 17;
+        const int bufferSize = 1024, pCount = 1, frameMS = 20;
         static bool grid = false, compensateLag = true;
         static int blockCooldown = 0, blockDuration = 40;
         //const int simLag = 0;
@@ -153,7 +153,7 @@ namespace RealTimeProject
             curFNum++;
             //NBConsole.WriteLine("Started at " + st.Millisecond);
 
-            NBConsole.WriteLine("Current frame: " + curFNum); // get packets from players
+            NBConsole.WriteLine("Current frame num: " + curFNum); // get packets from players
             List<ClientPacket> packets = new List<ClientPacket>();
             while (serverSock.Poll(1, SelectMode.SelectRead))
             {
@@ -187,7 +187,7 @@ namespace RealTimeProject
                     packetPlayer = packets[i].player;
                     packetInput = Encoding.Latin1.GetString(packets[i].data[..4]);
                     packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].data[4..]));
-                    NBConsole.WriteLine("recieved inputs from " + packetTime.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
+                    NBConsole.WriteLine("recieved inputs [" + packetInput + "], p" + packetPlayer + " from " + packetTime.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
                     if (packetTime >= DateTime.Now)
                     {
                         throw new Exception("timestamp error");
@@ -285,9 +285,10 @@ namespace RealTimeProject
                 NBConsole.WriteLine("took " + duration.TotalMilliseconds + " ms");
                 if (frameMS - duration.TotalMilliseconds > 0)
                 {
-                    NBConsole.WriteLine("Was fast!");
+                    NBConsole.WriteLine("Was fast, sleeping more");
                     Thread.Sleep(frameMS - (int)duration.TotalMilliseconds);
                 }
+                NBConsole.WriteLine("\n");
             }
         }
     }

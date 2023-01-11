@@ -11,9 +11,9 @@ namespace RealTimeProject
     public partial class Graphics : Form
     {
         int right = 0, left = 0, block = 0, attack = 0, thisPlayer;
-        int curFNum = 1, recvFNum = 0, frameMS = 17, pCount = 2;
+        int curFNum = 1, recvFNum = 0, frameMS = 15, pCount = 1;
         static int blockCooldown = 0, blockDuration = 40;
-        bool grid = false;
+        bool grid = false, simulate = true;
         static List<Frame> simHistory = new List<Frame>();
         Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
         EndPoint serverEP;
@@ -231,7 +231,7 @@ namespace RealTimeProject
         private void GameLoopTimer_Tick(object sender, EventArgs e)
         {
             string curInput = "" + right + left + block + attack; // prepare message
-            //NBConsole.WriteLine("Preparing message");
+            NBConsole.WriteLine("Current input: [" + curInput + "]" + " current frame num: " + curFNum);
             DateTime frameStart = DateTime.Now;
             byte[] inputBytes = Encoding.Latin1.GetBytes(curInput);
             byte[] timeStamp = new byte[8];
@@ -241,13 +241,6 @@ namespace RealTimeProject
             timeStamp.CopyTo(sendData, 4);
             //NBConsole.WriteLine(inputBytes.Length + " | " + Convert.ToHexString(inputBytes) + " | " + Convert.ToHexString(timeStamp) + ", " + new DateTime(BinaryPrimitives.ReadInt64BigEndian(timeStamp)).ToString("mm.ss.fff") + " | " + Convert.ToHexString(sendData));
             clientSock.SendToAsync(sendData, SocketFlags.None, serverEP);
-
-            //NBConsole.WriteLine("Creating frame");
-            string[] simInputs = new string[pCount]; // create simulated frame
-            simHistory.Last().inputs.CopyTo(simInputs, 0);
-            simInputs[thisPlayer - 1] = curInput;
-            simHistory.Add(new Frame(frameStart, simInputs, NextState(simHistory.Last().state, simInputs, grid)));
-            curFNum++;
 
             NBConsole.WriteLine("Getting packets from server");
             List<string> packets = new List<string>(); // get packets from server
@@ -261,63 +254,91 @@ namespace RealTimeProject
             }
             if (packets.Count == 0) { NBConsole.WriteLine("no server data recieved"); }
             //else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
-            if (packets.Count() > 0) // deserialize packets and apply to simulated history
-            {
-                bool foundFrame = false;
-                string latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
-                JsonElement[] recvData = JsonSerializer.Deserialize<JsonElement[]>(latestPacket);
-                DateTime recvTimeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(recvData[0].Deserialize<byte[]>()));
-                string[] recvInputs = recvData[1].Deserialize<string[]>();
-                int[] recvPos = recvData[2].Deserialize<int[]>();
-                int[] recvPoints = recvData[3].Deserialize<int[]>();
-                int[] recvBFrames = recvData[4].Deserialize<int[]>();
-                char[] recvDirs = recvData[5].Deserialize<char[]>();
-                int[] recvAttacks = recvData[6].Deserialize<int[]>();
-                NBConsole.WriteLine("applying data from " + recvTimeStamp.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
 
-                for (int i = simHistory.Count() - 1; i >= 0; i--)
+
+            if (simulate)
+            {
+                string[] simInputs = new string[pCount]; // create simulated frame
+                simHistory.Last().inputs.CopyTo(simInputs, 0);
+                simInputs[thisPlayer - 1] = curInput;
+                simHistory.Add(new Frame(frameStart, simInputs, NextState(simHistory.Last().state, simInputs, grid)));
+                curFNum++;
+
+                if (packets.Count() > 0) // deserialize packets and apply to simulated history
                 {
-                    if (simHistory[i].startTime < recvTimeStamp)
+                    bool foundFrame = false;
+                    string latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
+                    JsonElement[] recvData = JsonSerializer.Deserialize<JsonElement[]>(latestPacket);
+                    DateTime recvTimeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(recvData[0].Deserialize<byte[]>()));
+                    string[] recvInputs = recvData[1].Deserialize<string[]>();
+                    int[] recvPos = recvData[2].Deserialize<int[]>();
+                    int[] recvPoints = recvData[3].Deserialize<int[]>();
+                    int[] recvBFrames = recvData[4].Deserialize<int[]>();
+                    char[] recvDirs = recvData[5].Deserialize<char[]>();
+                    int[] recvAttacks = recvData[6].Deserialize<int[]>();
+                    NBConsole.WriteLine("applying data from " + recvTimeStamp.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
+                    //client simulation and lagcomp on enemies
+                    for (int i = simHistory.Count() - 1; i >= 0; i--)
                     {
-                        NBConsole.WriteLine("found frame!");
-                        foundFrame = true;
-                        bool sameFrame = true;
-                        sameFrame = sameFrame && Enumerable.SequenceEqual(recvInputs, simHistory[i].inputs);
-                        sameFrame = sameFrame && Enumerable.SequenceEqual(recvPos, simHistory[i].state.positions);
-                        sameFrame = sameFrame && Enumerable.SequenceEqual(recvPoints, simHistory[i].state.points);
-                        sameFrame = sameFrame && Enumerable.SequenceEqual(recvBFrames, simHistory[i].state.blockFrames);
-                        sameFrame = sameFrame && Enumerable.SequenceEqual(recvDirs, simHistory[i].state.dirs);
-                        sameFrame = sameFrame && Enumerable.SequenceEqual(recvAttacks, simHistory[i].state.attacks);
-                        if (!sameFrame)
+                        if (simHistory[i].startTime < recvTimeStamp)
                         {
-                            NBConsole.WriteLine("Rollbacking to frame " + simHistory[i].startTime.ToString("mm.ss.fff"));
-                            simHistory[i].state = new GameState(recvPos, recvPoints, recvBFrames, recvDirs, recvAttacks);
-                            for(int j = i + 1; j < simHistory.Count; j++)
+                            NBConsole.WriteLine("found frame!");
+                            foundFrame = true;
+                            bool sameFrame = true;
+                            sameFrame = sameFrame && Enumerable.SequenceEqual(recvInputs, simHistory[i].inputs);
+                            sameFrame = sameFrame && Enumerable.SequenceEqual(recvPos, simHistory[i].state.positions);
+                            sameFrame = sameFrame && Enumerable.SequenceEqual(recvPoints, simHistory[i].state.points);
+                            sameFrame = sameFrame && Enumerable.SequenceEqual(recvBFrames, simHistory[i].state.blockFrames);
+                            sameFrame = sameFrame && Enumerable.SequenceEqual(recvDirs, simHistory[i].state.dirs);
+                            sameFrame = sameFrame && Enumerable.SequenceEqual(recvAttacks, simHistory[i].state.attacks);
+                            if (!sameFrame)
                             {
-                                string[] correctInputs = new string[pCount];
-                                for (int k = 0; k < pCount; k++)
+                                NBConsole.WriteLine("Rollbacking to frame at" + simHistory[i].startTime.ToString("mm.ss.fff"));
+                                simHistory[i].state = new GameState(recvPos, recvPoints, recvBFrames, recvDirs, recvAttacks);
+                                for (int j = i + 1; j < simHistory.Count; j++)
                                 {
-                                    if (k != thisPlayer - 1)
+                                    string[] correctInputs = new string[pCount];
+                                    for (int k = 0; k < pCount; k++)
                                     {
-                                        correctInputs[k] = recvInputs[k];
+                                        if (k != thisPlayer - 1)
+                                        {
+                                            correctInputs[k] = recvInputs[k];
+                                        }
                                     }
+                                    correctInputs[thisPlayer - 1] = simHistory[j].inputs[thisPlayer - 1];
+                                    simHistory[j].inputs = correctInputs;
+                                    simHistory[j].state = NextState(simHistory[j - 1].state, correctInputs, grid);
                                 }
-                                correctInputs[thisPlayer - 1] = simHistory[j].inputs[thisPlayer - 1];
-                                simHistory[j].inputs = correctInputs;
-                                simHistory[j].state = NextState(simHistory[j - 1].state, correctInputs, grid);
                             }
+                            break;
                         }
-                        break;
+                    }
+                    if (!foundFrame)
+                    {
+                        NBConsole.WriteLine("didn't find :(");
+                        throw new Exception();
                     }
                 }
-                if (!foundFrame)
+                NBConsole.WriteLine("updated state: " + simHistory.Last().state.ToString());
+                Draw(simHistory.Last().state);
+            }
+            else
+            {
+                if (packets.Count() > 0) // deserialize packets and apply to simulated history
                 {
-                    NBConsole.WriteLine("didn't find :(");
-                    throw new Exception();
+                    string latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
+                    JsonElement[] recvData = JsonSerializer.Deserialize<JsonElement[]>(latestPacket);
+                    DateTime recvTimeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(recvData[0].Deserialize<byte[]>()));
+                    string[] recvInputs = recvData[1].Deserialize<string[]>();
+                    int[] recvPos = recvData[2].Deserialize<int[]>();
+                    int[] recvPoints = recvData[3].Deserialize<int[]>();
+                    int[] recvBFrames = recvData[4].Deserialize<int[]>();
+                    char[] recvDirs = recvData[5].Deserialize<char[]>();
+                    int[] recvAttacks = recvData[6].Deserialize<int[]>();
+                    NBConsole.WriteLine("applying data from " + recvTimeStamp.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
+                    Draw(new GameState(recvPos, recvPoints, recvBFrames, recvDirs, recvAttacks));
                 }
             }
-            NBConsole.WriteLine("updated state: " + simHistory.Last().state.ToString());
-            Draw(simHistory.Last().state);
 
             //old history deletion, maybe needed?
             if (simHistory.Count >= 200)
@@ -341,6 +362,9 @@ namespace RealTimeProject
                     break;
                 case Keys.X:
                     attack = 1;
+                    break;
+                case Keys.S:
+                    simulate = !simulate;
                     break;
             }
         }
