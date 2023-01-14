@@ -11,7 +11,7 @@ namespace RealTimeProject
     public partial class Graphics : Form
     {
         int right = 0, left = 0, block = 0, attack = 0, thisPlayer;
-        int curFNum = 1, recvFNum = 0, frameMS = 15, pCount = 1;
+        int curFNum = 1, recvFNum = 0, frameMS = 15, pCount = 2;
         static int blockCooldown = 0, blockDuration = 40;
         bool grid = false, simulate = true;
         static List<Frame> simHistory = new List<Frame>();
@@ -75,6 +75,15 @@ namespace RealTimeProject
             GameLoopTimer.Interval = frameMS;
             Thread.Sleep(200);
             GameLoopTimer.Enabled = true;
+
+            if (simulate)
+            {
+                this.Text = "Simulating";
+            }
+            else
+            {
+                this.Text = "Not Simulating";
+            }
         }
 
 
@@ -365,6 +374,14 @@ namespace RealTimeProject
                     break;
                 case Keys.S:
                     simulate = !simulate;
+                    if (simulate)
+                    {
+                        this.Text = "Simulating!";
+                    }
+                    else
+                    {
+                        this.Text = "Not Simulating!";
+                    }
                     break;
             }
         }

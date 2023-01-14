@@ -10,7 +10,7 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        const int bufferSize = 1024, pCount = 1, frameMS = 20;
+        const int bufferSize = 1024, pCount = 2, frameMS = 20;
         static bool grid = false, compensateLag = true;
         static int blockCooldown = 0, blockDuration = 40;
         //const int simLag = 0;
