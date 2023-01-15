@@ -11,7 +11,7 @@ namespace RealTimeProject
     public partial class Graphics : Form
     {
         int right = 0, left = 0, block = 0, attack = 0, thisPlayer;
-        int curFNum = 1, recvFNum = 0, frameMS = 15, pCount = 2;
+        int curFNum = 1, recvFNum = 0, frameMS = 15, pCount = 1;
         static int blockCooldown = 0, blockDuration = 40;
         bool grid = false, simulate = true;
         static List<Frame> simHistory = new List<Frame>();
@@ -52,9 +52,11 @@ namespace RealTimeProject
             int sPort = 12345;
             NBConsole.WriteLine("Enter port for client: ");
             int cPort = int.Parse(Console.ReadLine());
-            var sAddress = IPAddress.Parse("10.100.102.20");
+            //var sAddress = IPAddress.Parse("10.100.102.20");
+            var sAddress = IPAddress.Parse("172.17.80.1");
             //var sAddress = IPAddress.Parse("192.168.68.112");
-            var cAddress = IPAddress.Parse("10.100.102.20");
+            //var cAddress = IPAddress.Parse("10.100.102.20");
+            var cAddress = IPAddress.Parse("172.17.80.1");
             //var cAddress = IPAddress.Parse("192.168.68.112");
             //address = IPAddress.Parse("172.16.2.167");
             EndPoint clientEP = new IPEndPoint(cAddress, cPort);
@@ -69,7 +71,10 @@ namespace RealTimeProject
             thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0'));
             NBConsole.WriteLine("You are player " + thisPlayer);
             if (pCount == 1)
+            {
                 simHistory.Add(new Frame(DateTime.MinValue, new string[] { "0000" }, new GameState(new int[] { 0 }, new int[] { 0 }, new int[] { -blockCooldown }, new char[] { 'r' }, new int[] { 0 })));
+                Player2Label.Visible = false;
+            }
             else if (pCount == 2)
                 simHistory.Add(new Frame(DateTime.MinValue, new string[] { "0000", "0000" }, new GameState(new int[] { 0, 100 }, new int[] { 0, 0 }, new int[] { -blockCooldown, -blockCooldown }, new char[] { 'r', 'l' }, new int[] { 0, 0 })));
             GameLoopTimer.Interval = frameMS;
@@ -84,6 +89,8 @@ namespace RealTimeProject
             {
                 this.Text = "Not Simulating";
             }
+
+            Draw(simHistory.Last().state);
         }
 
 
@@ -239,9 +246,10 @@ namespace RealTimeProject
 
         private void GameLoopTimer_Tick(object sender, EventArgs e)
         {
+            DateTime frameStart = DateTime.Now;
+            NBConsole.WriteLine("Started at: " + frameStart.ToString("mm.ss.fff"));
             string curInput = "" + right + left + block + attack; // prepare message
             NBConsole.WriteLine("Current input: [" + curInput + "]" + " current frame num: " + curFNum);
-            DateTime frameStart = DateTime.Now;
             byte[] inputBytes = Encoding.Latin1.GetBytes(curInput);
             byte[] timeStamp = new byte[8];
             BinaryPrimitives.WriteInt64BigEndian(timeStamp, DateTime.Now.Ticks);
@@ -329,6 +337,7 @@ namespace RealTimeProject
                     }
                 }
                 NBConsole.WriteLine("updated state: " + simHistory.Last().state.ToString());
+                NBConsole.WriteLine("Took " + (DateTime.Now - frameStart).ToString("fff") + "\n");
                 Draw(simHistory.Last().state);
             }
             else

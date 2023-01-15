@@ -10,7 +10,7 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        const int bufferSize = 1024, pCount = 2, frameMS = 20;
+        const int bufferSize = 1024, pCount = 1, frameMS = 15;
         static bool grid = false, compensateLag = true;
         static int blockCooldown = 0, blockDuration = 40;
         //const int simLag = 0;
@@ -149,7 +149,7 @@ namespace RealTimeProject
         static TimeSpan GameLoop(DateTime st)
         {
             DateTime frameStart = DateTime.Now;
-            NBConsole.WriteLine(frameStart.ToString("mm.ss.fff"));
+            NBConsole.WriteLine("Started at: " + frameStart.ToString("mm.ss.fff"));
             curFNum++;
             //NBConsole.WriteLine("Started at " + st.Millisecond);
 
@@ -251,8 +251,9 @@ namespace RealTimeProject
         {
             IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress sAddress = ipHost.AddressList[1];
-            //address = IPAddress.Parse("172.16.2.167");
-            sAddress = IPAddress.Parse("10.100.102.20");
+            //sAddress = IPAddress.Parse("172.16.2.167");
+            sAddress = IPAddress.Parse("172.17.80.1");
+            //sAddress = IPAddress.Parse("10.100.102.20");
             //sAddress = IPAddress.Parse("192.168.68.112");
             //Console.WriteLine(address);
             int sPort = 12345;
@@ -283,11 +284,14 @@ namespace RealTimeProject
             {
                 TimeSpan duration = GameLoop(DateTime.Now);
                 NBConsole.WriteLine("took " + duration.TotalMilliseconds + " ms");
-                if (frameMS - duration.TotalMilliseconds > 0)
-                {
-                    NBConsole.WriteLine("Was fast, sleeping more");
-                    Thread.Sleep(frameMS - (int)duration.TotalMilliseconds);
-                }
+                //if (frameMS - duration.TotalMilliseconds > 0)
+                //{
+                //    NBConsole.WriteLine("Was fast, sleeping more");
+                //    DateTime sleepStart = DateTime.Now;
+                //    NBConsole.WriteLine("Should sleep for " + (frameMS - (int)duration.TotalMilliseconds));
+                //    Thread.Sleep(frameMS - (int)duration.TotalMilliseconds);
+                //    NBConsole.WriteLine("Slept for " + (DateTime.Now - sleepStart).ToString("fff"));
+                //}
                 NBConsole.WriteLine("\n");
             }
         }
