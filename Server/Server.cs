@@ -11,11 +11,11 @@ namespace RealTimeProject
     internal class Server
     {
         const int bufferSize = 1024, pCount = 2, frameMS = 20;
-        static bool grid = false, compensateLag = true;
+        static bool grid = false, compensateLag = false;
         static int blockCooldown = 0, blockDuration = 40;
         //const int simLag = 0;
 
-        static List<Frame> history = new List<Frame> ();
+        static List<Frame> history = new List<Frame>(200);
         static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
         static int[] playerLRFNum = new int[pCount]; //last recieved frame num for each player
         static DateTime gameStartTime;
@@ -149,11 +149,10 @@ namespace RealTimeProject
         static TimeSpan GameLoop(DateTime st)
         {
             DateTime frameStart = DateTime.Now;
-            NBConsole.WriteLine(frameStart.ToString("mm.ss.fff"));
             curFNum++;
-            //NBConsole.WriteLine("Started at " + st.Millisecond);
 
-            NBConsole.WriteLine("Current frame num: " + curFNum); // get packets from players
+            NBConsole.WriteLine("Frame start " + frameStart.ToString("mm.ss.fff") + ", Frame num: " + curFNum);
+
             List<ClientPacket> packets = new List<ClientPacket>();
             while (serverSock.Poll(1, SelectMode.SelectRead))
             {
@@ -182,12 +181,13 @@ namespace RealTimeProject
             string packetInput;
             if (compensateLag)
             {
-                for (int i = 0; i < packets.Count; i++) // apply inputs from packets, using general rollback
+                for (int i = 0; i < packets.Count; i++) // apply inputs from packets, using lag compensation
                 {
                     packetPlayer = packets[i].player;
                     packetInput = Encoding.Latin1.GetString(packets[i].data[..4]);
                     packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].data[4..]));
                     NBConsole.WriteLine("recieved inputs [" + packetInput + "], p" + packetPlayer + " from " + packetTime.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
+
                     if (packetTime >= DateTime.Now)
                     {
                         throw new Exception("timestamp error");
@@ -204,11 +204,12 @@ namespace RealTimeProject
                     packetPlayer = packets[i].player;
                     packetInput = Encoding.Latin1.GetString(packets[i].data[..4]);
                     packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].data[4..]));
-                    NBConsole.WriteLine("recieved inputs from " + packetTime.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
+                    NBConsole.WriteLine("recieved inputs [" + packetInput + "], p" + packetPlayer + " from " + packetTime.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
+
                     latestInputs[packetPlayer - 1] = packetInput;
-                    history.Last().inputs = latestInputs;
-                    history.Last().state = NextState(history[history.Count - 1].state, latestInputs, grid);
                 }
+                history.Last().inputs = latestInputs;
+                history.Last().state = NextState(history[history.Count - 1].state, latestInputs, grid);
             }
 
             foreach (var ip in playerIPs.Keys) // send state to players
@@ -249,18 +250,15 @@ namespace RealTimeProject
 
         static void Main(string[] args)
         {
-            IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress sAddress = ipHost.AddressList[1];
-            //address = IPAddress.Parse("172.16.2.167");
-            sAddress = IPAddress.Parse("10.100.102.20");
-            //sAddress = IPAddress.Parse("192.168.68.112");
-            //Console.WriteLine(address);
+            IPAddress autoAdress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[1];
+            string[] adresses = new string[3] { "172.16.2.167", "10.100.102.20", "192.168.68.112" };
+            IPAddress sAddress = IPAddress.Parse(adresses[1]);
             int sPort = 12345;
-            serverSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             byte[] buffer = new byte[bufferSize];
-            EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
-
+            serverSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             serverSock.Bind(new IPEndPoint(sAddress, sPort));
+
+            EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
             for (int i = 0; i < pCount; i++)
             {
                 Console.WriteLine("Waiting for player " + (i + 1));
@@ -268,6 +266,7 @@ namespace RealTimeProject
                 Console.WriteLine(clientEP.ToString() + " entered");
                 playerIPs[new IPEndPoint(((IPEndPoint)clientEP).Address, ((IPEndPoint)clientEP).Port)] = i + 1;
             }
+
             foreach (var ip in playerIPs.Keys)
             {
                 serverSock.SendTo(Encoding.Latin1.GetBytes(playerIPs[ip].ToString()), ip);
@@ -277,17 +276,12 @@ namespace RealTimeProject
                 history.Add(new Frame(DateTime.Now, new string[] { "0000" }, new GameState(new int[] { 0 }, new int[] { 0 }, new int[] { -blockCooldown }, new char[] { 'r' }, new int[] { 0 })));
             else if (pCount == 2)
                 history.Add(new Frame(DateTime.Now, new string[] { "0000", "0000" }, new GameState(new int[] { 0, 100 }, new int[] { 0, 0 }, new int[] { -blockCooldown, -blockCooldown }, new char[] { 'r', 'l' }, new int[] { 0, 0 })));
-            //serverSock.Poll(-1, SelectMode.SelectRead);
+
             gameStartTime = DateTime.Now;
             while (true)
             {
                 TimeSpan duration = GameLoop(DateTime.Now);
                 NBConsole.WriteLine("took " + duration.TotalMilliseconds + " ms");
-                if (frameMS - duration.TotalMilliseconds > 0)
-                {
-                    NBConsole.WriteLine("Was fast, sleeping more");
-                    Thread.Sleep(frameMS - (int)duration.TotalMilliseconds);
-                }
                 NBConsole.WriteLine("\n");
             }
         }
