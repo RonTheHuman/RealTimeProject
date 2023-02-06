@@ -17,7 +17,6 @@ namespace RealTimeProject
         static List<Frame> simHistory = new List<Frame>();
         Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
         EndPoint serverEP;
-        //Task bulletTimeout = Task.Factory.StartNew(() => Thread.Sleep(1));
          
         byte[] buffer = new byte[1024];
         public static class NBConsole
@@ -47,115 +46,37 @@ namespace RealTimeProject
         }
         private void Graphics_Load(object sender, EventArgs e)
         {
-            //IPHostEntry ipHost = Dns.GetHostEntry(Dns.GetHostName());
-            //IPAddress serverAddress = ipHost.AddressList[1];
+            IPAddress autoAdress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[1];
+            string[] adresses = new string[3] { "172.16.2.167", "10.100.102.20", "192.168.68.112" };
             int sPort = 12345;
             NBConsole.WriteLine("Enter port for client: ");
             int cPort = int.Parse(Console.ReadLine());
-            var sAddress = IPAddress.Parse("10.100.102.20");
-            //var sAddress = IPAddress.Parse("192.168.68.112");
-            var cAddress = IPAddress.Parse("10.100.102.20");
-            //var cAddress = IPAddress.Parse("192.168.68.112");
-            //address = IPAddress.Parse("172.16.2.167");
+            var sAddress = IPAddress.Parse(adresses[1]);
+            var cAddress = IPAddress.Parse(adresses[1]);
             EndPoint clientEP = new IPEndPoint(cAddress, cPort);
             serverEP = new IPEndPoint(sAddress, sPort);
-            EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
 
             clientSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             clientSock.Bind(clientEP);
             clientSock.SendTo(new byte[] { (byte)'a' }, serverEP);
             NBConsole.WriteLine("Waiting server reply");
+            EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
             clientSock.ReceiveFrom(buffer, ref recieveEP);
             thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0'));
             NBConsole.WriteLine("You are player " + thisPlayer);
             if (pCount == 1)
-                simHistory.Add(new Frame(DateTime.MinValue, new string[] { "0000" }, new GameState(new int[] { 0 }, new int[] { 0 }, new int[] { -blockCooldown }, new char[] { 'r' }, new int[] { 0 })));
+                simHistory.Add(new Frame(DateTime.MinValue, new string[] { "0000" }, GameState.InitialState(1)));
             else if (pCount == 2)
-                simHistory.Add(new Frame(DateTime.MinValue, new string[] { "0000", "0000" }, new GameState(new int[] { 0, 100 }, new int[] { 0, 0 }, new int[] { -blockCooldown, -blockCooldown }, new char[] { 'r', 'l' }, new int[] { 0, 0 })));
+                simHistory.Add(new Frame(DateTime.MinValue, new string[] { "0000", "0000" }, GameState.InitialState(2)));
             GameLoopTimer.Interval = frameMS;
             Thread.Sleep(200);
             GameLoopTimer.Enabled = true;
 
             if (simulate)
-            {
-                this.Text = "Simulating";
-            }
+                Text = "Simulating";
             else
-            {
-                this.Text = "Not Simulating";
-            }
+                Text = "Not Simulating";
         }
-
-
-        public static GameState NextState(GameState state, string[] inputs, bool grid)
-        {
-            int speed = 5;
-            if (grid) speed = 50;
-            var nextState = new GameState(state);
-            for (int i = 0; i < inputs.Length; i++)
-            {
-                if (inputs[i][0] == '1')    //right
-                {
-                    nextState.positions[i] += speed;
-                    nextState.dirs[i] = 'r';
-                }
-                if (inputs[i][1] == '1')    //left
-                {
-                    nextState.positions[i] -= speed;
-                    nextState.dirs[i] = 'l';
-                }
-                if (inputs[i][2] == '1')    //block
-                {
-                    if (state.blockFrames[i] == -blockCooldown)
-                    {
-                        nextState.blockFrames[i] = blockDuration;
-                    }
-                }
-                if (state.blockFrames[i] > -blockCooldown)
-                {
-                    nextState.blockFrames[i] -= 1;
-                }
-                if (inputs[i][3] == '1')    //attack
-                {
-                    nextState.attacks[i] = 1;
-                    if (state.attacks[i] == 0)
-                    {
-                        if (nextState.dirs[i] == 'r')
-                        {
-                            for (int j = 0; j < inputs.Length; j++)
-                            {
-                                if (j != i && state.blockFrames[j] <= 0)
-                                {
-                                    if (state.positions[i] + 50 < state.positions[j] && state.positions[j] < state.positions[i] + 150)
-                                    {
-                                        nextState.points[i] += 1;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            for (int j = 0; j < inputs.Length; j++)
-                            {
-                                if (j != i && state.blockFrames[j] <= 0)
-                                {
-                                    if (state.positions[i] - 100 < state.positions[j] + 50 && state.positions[j] + 50 < state.positions[i])
-                                    {
-                                        nextState.points[i] += 1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    nextState.attacks[i] = 0;
-                }
-            }
-            return nextState;
-        }
-
 
         private void Draw(GameState state)
         {
@@ -248,21 +169,22 @@ namespace RealTimeProject
             byte[] sendData = new byte[8 + 4];
             inputBytes.CopyTo(sendData, 0);
             timeStamp.CopyTo(sendData, 4);
-            //NBConsole.WriteLine(inputBytes.Length + " | " + Convert.ToHexString(inputBytes) + " | " + Convert.ToHexString(timeStamp) + ", " + new DateTime(BinaryPrimitives.ReadInt64BigEndian(timeStamp)).ToString("mm.ss.fff") + " | " + Convert.ToHexString(sendData));
             clientSock.SendToAsync(sendData, SocketFlags.None, serverEP);
+            //NBConsole.WriteLine(inputBytes.Length + " | " + Convert.ToHexString(inputBytes) + " | " + Convert.ToHexString(timeStamp) + ", " + new DateTime(BinaryPrimitives.ReadInt64BigEndian(timeStamp)).ToString("mm.ss.fff") + " | " + Convert.ToHexString(sendData));
 
-            NBConsole.WriteLine("Getting packets from server");
+            //NBConsole.WriteLine("Getting packets from server");
             List<string> packets = new List<string>(); // get packets from server
             while (clientSock.Poll(1, SelectMode.SelectRead))
             {
                 byte[] buffer = new byte[1024];
                 EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
+
                 clientSock.ReceiveFrom(buffer, ref recieveEP);
                 packets.Add(Encoding.Latin1.GetString(buffer).TrimEnd('\0'));
                 NBConsole.WriteLine("Recieved " + packets.Last());
             }
             if (packets.Count == 0) { NBConsole.WriteLine("no server data recieved"); }
-            //else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
+            else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
 
 
             if (simulate)
@@ -270,7 +192,7 @@ namespace RealTimeProject
                 string[] simInputs = new string[pCount]; // create simulated frame
                 simHistory.Last().inputs.CopyTo(simInputs, 0);
                 simInputs[thisPlayer - 1] = curInput;
-                simHistory.Add(new Frame(frameStart, simInputs, NextState(simHistory.Last().state, simInputs, grid)));
+                simHistory.Add(new Frame(frameStart, simInputs, GameState.NextState(simHistory.Last().state, simInputs, grid)));
                 curFNum++;
 
                 if (packets.Count() > 0) // deserialize packets and apply to simulated history
@@ -316,7 +238,7 @@ namespace RealTimeProject
                                     }
                                     correctInputs[thisPlayer - 1] = simHistory[j].inputs[thisPlayer - 1];
                                     simHistory[j].inputs = correctInputs;
-                                    simHistory[j].state = NextState(simHistory[j - 1].state, correctInputs, grid);
+                                    simHistory[j].state = GameState.NextState(simHistory[j - 1].state, correctInputs, grid);
                                 }
                             }
                             break;
@@ -375,13 +297,9 @@ namespace RealTimeProject
                 case Keys.S:
                     simulate = !simulate;
                     if (simulate)
-                    {
-                        this.Text = "Simulating!";
-                    }
+                        Text = "Simulating";
                     else
-                    {
-                        this.Text = "Not Simulating!";
-                    }
+                        Text = "Not Simulating";
                     break;
             }
         }

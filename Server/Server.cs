@@ -12,9 +12,6 @@ namespace RealTimeProject
     {
         const int bufferSize = 1024, pCount = 2, frameMS = 20;
         static bool grid = false, compensateLag = false;
-        static int blockCooldown = 0, blockDuration = 40;
-        //const int simLag = 0;
-
         static List<Frame> history = new List<Frame>(200);
         static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
         static int[] playerLRFNum = new int[pCount]; //last recieved frame num for each player
@@ -56,74 +53,6 @@ namespace RealTimeProject
                 this.player = player;
             }
         }
-        public static GameState NextState(GameState state, string[] inputs, bool grid)
-        {
-            int speed = 5;
-            if (grid) speed = 50;
-            var nextState = new GameState(state);
-            for (int i = 0; i < inputs.Length; i++)
-            {
-                if (inputs[i][0] == '1')    //right
-                {
-                    nextState.positions[i] += speed;
-                    nextState.dirs[i] = 'r';
-                }
-                if (inputs[i][1] == '1')    //left
-                {
-                    nextState.positions[i] -= speed;
-                    nextState.dirs[i] = 'l';
-                }
-                if (inputs[i][2] == '1')    //block
-                {
-                    if (state.blockFrames[i] == -blockCooldown)
-                    {
-                        nextState.blockFrames[i] = blockDuration;
-                    }
-                }
-                if (state.blockFrames[i] > -blockCooldown)
-                {
-                    nextState.blockFrames[i] -= 1;
-                }
-                if (inputs[i][3] == '1')    //attack
-                {
-                    nextState.attacks[i] = 1;
-                    if (state.attacks[i] == 0)
-                    {
-                        if (nextState.dirs[i] == 'r')
-                        {
-                            for (int j = 0; j < inputs.Length; j++)
-                            {
-                                if (j != i && state.blockFrames[j] <= 0)
-                                {
-                                    if (state.positions[i] + 50 < state.positions[j] && state.positions[j] < state.positions[i] + 150)
-                                    {
-                                        nextState.points[i] += 1;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            for (int j = 0; j < inputs.Length; j++)
-                            {
-                                if (j != i && state.blockFrames[j] <= 0)
-                                {
-                                    if (state.positions[i] - 100 < state.positions[j] + 50 && state.positions[j] + 50 < state.positions[i])
-                                    {
-                                        nextState.points[i] += 1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    nextState.attacks[i] = 0;
-                }
-            }
-            return nextState;
-        }
 
 
         static void Rollback(string input, DateTime time, int player)
@@ -137,7 +66,7 @@ namespace RealTimeProject
                         for (int j = i; j < history.Count; j++)
                         {
                             history[j].inputs[player - 1] = input;
-                            history[j].state = NextState(history[j - 1].state, history[j].inputs, grid);
+                            history[j].state = GameState.NextState(history[j - 1].state, history[j].inputs, grid);
                         }
                     }
                     break;
@@ -174,7 +103,7 @@ namespace RealTimeProject
                     prevInputs[i] = history.Last().inputs[i];
                 }
             }
-            history.Add(new Frame(frameStart, prevInputs, NextState(history.Last().state, prevInputs, grid)));
+            history.Add(new Frame(frameStart, prevInputs, GameState.NextState(history.Last().state, prevInputs, grid)));
 
             int packetPlayer;
             DateTime packetTime;
@@ -209,7 +138,7 @@ namespace RealTimeProject
                     latestInputs[packetPlayer - 1] = packetInput;
                 }
                 history.Last().inputs = latestInputs;
-                history.Last().state = NextState(history[history.Count - 1].state, latestInputs, grid);
+                history.Last().state = GameState.NextState(history[history.Count - 1].state, latestInputs, grid);
             }
 
             foreach (var ip in playerIPs.Keys) // send state to players
@@ -273,9 +202,9 @@ namespace RealTimeProject
             }
 
             if (pCount == 1)
-                history.Add(new Frame(DateTime.Now, new string[] { "0000" }, new GameState(new int[] { 0 }, new int[] { 0 }, new int[] { -blockCooldown }, new char[] { 'r' }, new int[] { 0 })));
+                history.Add(new Frame(DateTime.MinValue, new string[] { "0000" }, GameState.InitialState(1)));
             else if (pCount == 2)
-                history.Add(new Frame(DateTime.Now, new string[] { "0000", "0000" }, new GameState(new int[] { 0, 100 }, new int[] { 0, 0 }, new int[] { -blockCooldown, -blockCooldown }, new char[] { 'r', 'l' }, new int[] { 0, 0 })));
+                history.Add(new Frame(DateTime.MinValue, new string[] { "0000", "0000" }, GameState.InitialState(2)));
 
             gameStartTime = DateTime.Now;
             while (true)

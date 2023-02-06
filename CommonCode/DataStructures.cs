@@ -10,9 +10,9 @@ namespace RealTimeProject
     {
         
     }
-    //server
     public class GameState
     {
+        static int speed = 5, blockCD = 5, blockDur = 40;
         public int[] positions;
         public int[] points;
         public int[] blockFrames;
@@ -62,7 +62,6 @@ namespace RealTimeProject
 
         public static GameState NextState(GameState state, string[] inputs, bool grid)
         {
-            int speed = 5, blockCD = 5, blockDur = 40;
             if (grid) speed = 50;
             var nextState = new GameState(state);
             for (int i = 0; i < inputs.Length; i++)
@@ -127,6 +126,14 @@ namespace RealTimeProject
                 }
             }
             return nextState;
+        }
+
+        public static GameState InitialState(int pCount)
+        {
+            if (pCount == 1)
+                return new GameState(new int[] { 0 }, new int[] { 0 }, new int[] { -blockCD }, new char[] { 'r' }, new int[] { 0 });
+            else
+                return new GameState(new int[] { 0, 100 }, new int[] { 0, 0 }, new int[] { -blockCD, -blockCD }, new char[] { 'r', 'l' }, new int[] { 0, 0 })));
         }
     }
 
