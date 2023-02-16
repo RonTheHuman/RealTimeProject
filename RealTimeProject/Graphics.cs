@@ -11,7 +11,7 @@ namespace RealTimeProject
     public partial class Graphics : Form
     {
         int right = 0, left = 0, block = 0, attack = 0, thisPlayer;
-        int curFNum = 1, recvFNum = 0, frameMS = 15, pCount = 2;
+        int curFNum = 1, recvFNum = 0, frameMS = 15, pCount = 1;
         static int blockCooldown = 0, blockDuration = 40;
         bool grid = false, simulate = true;
         static List<Frame> simHistory = new List<Frame>();
@@ -51,8 +51,8 @@ namespace RealTimeProject
             int sPort = 12345;
             NBConsole.WriteLine("Enter port for client: ");
             int cPort = int.Parse(Console.ReadLine());
-            var sAddress = IPAddress.Parse(adresses[0]);
-            var cAddress = IPAddress.Parse(adresses[0]);
+            var sAddress = IPAddress.Parse(adresses[1]);
+            var cAddress = IPAddress.Parse(adresses[1]);
             EndPoint clientEP = new IPEndPoint(cAddress, cPort);
             serverEP = new IPEndPoint(sAddress, sPort);
 

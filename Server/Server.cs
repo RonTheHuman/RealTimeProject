@@ -10,7 +10,7 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        const int bufferSize = 1024, pCount = 2, frameMS = 20;
+        const int bufferSize = 1024, pCount = 1, frameMS = 20;
         static bool grid = false, compensateLag = false;
         static List<Frame> history = new List<Frame>(200);
         static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
@@ -75,7 +75,7 @@ namespace RealTimeProject
         }
 
 
-        static object[] Serialize(byte[] timeStamp, Frame state)
+        static byte[] Serialize(byte[] timeStamp, Frame state)
         {
             object[] sendData = new object[7];
             sendData[0] = timeStamp;
@@ -85,7 +85,8 @@ namespace RealTimeProject
             sendData[4] = state.state.blockFrames;
             sendData[5] = state.state.dirs;
             sendData[6] = state.state.attacks;
-            return sendData;
+            //NBConsole.WriteLine(JsonSerializer.Serialize(sendData));
+            return Encoding.Latin1.GetBytes(JsonSerializer.Serialize(sendData));
         }
 
 
@@ -159,9 +160,7 @@ namespace RealTimeProject
             {
                 byte[] timeStamp = new byte[8];
                 BinaryPrimitives.WriteInt64BigEndian(timeStamp, DateTime.Now.Ticks);
-                object[] sendData = Serialize(timeStamp, history.Last());
-                //NBConsole.WriteLine(JsonSerializer.Serialize(sendData));
-                serverSock.SendTo(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(sendData)), ip);
+                serverSock.SendTo(Serialize(timeStamp, history.Last()), ip);
             }
 
             //old history deletion, maybe needed?
@@ -188,7 +187,7 @@ namespace RealTimeProject
         {
             IPAddress autoAdress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[1];
             string[] adresses = new string[3] { "172.16.2.167", "10.100.102.20", "192.168.68.112" };
-            IPAddress sAddress = IPAddress.Parse(adresses[0]);
+            IPAddress sAddress = IPAddress.Parse(adresses[1]);
             int sPort = 12345;
             byte[] buffer = new byte[bufferSize];
             serverSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);

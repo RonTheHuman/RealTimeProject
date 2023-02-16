@@ -35,3 +35,6 @@ C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\o
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\CommonCode.dll
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\CommonCode.pdb
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.csproj.CopyComplete
+C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\CommonCode.dll
+C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\CommonCode.pdb
+C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.csproj.CopyComplete
