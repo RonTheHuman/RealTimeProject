@@ -1,0 +1,12 @@
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\CommonCode1\obj\Debug\net6.0\CommonCode.csproj.AssemblyReference.cache
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\CommonCode1\obj\Debug\net6.0\CommonCode.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\CommonCode1\obj\Debug\net6.0\CommonCode.AssemblyInfoInputs.cache
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\CommonCode1\obj\Debug\net6.0\CommonCode.AssemblyInfo.cs
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\CommonCode1\obj\Debug\net6.0\CommonCode.csproj.CoreCompileInputs.cache
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\CommonCode1\bin\Debug\net6.0\CommonCode.deps.json
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\CommonCode1\bin\Debug\net6.0\CommonCode.dll
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\CommonCode1\bin\Debug\net6.0\CommonCode.pdb
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\CommonCode1\obj\Debug\net6.0\CommonCode.dll
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\CommonCode1\obj\Debug\net6.0\refint\CommonCode.dll
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\CommonCode1\obj\Debug\net6.0\CommonCode.pdb
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\CommonCode1\obj\Debug\net6.0\ref\CommonCode.dll

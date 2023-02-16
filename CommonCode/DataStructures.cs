@@ -1,15 +1,14 @@
 ﻿using System;
+using System.Text.Json;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace RealTimeProject
 {
-    internal class DataStructures
-    {
-        
-    }
     public class GameState
     {
         static int speed = 5, blockCD = 5, blockDur = 40;
@@ -164,6 +163,31 @@ namespace RealTimeProject
             s += "], ";
             s += "state: " + state.ToString();
             return s;
+        }
+    }
+
+
+    public class ServerPacket
+    {
+        public DateTime timeStamp;
+        public Frame frame;
+
+        public ServerPacket(DateTime timeStamp, Frame frame)
+        {
+            this.timeStamp = timeStamp;
+            this.frame = frame;
+        }
+
+        public ServerPacket Deserialize(string packet)
+        {
+            System.Text. JsonElement[] recvData = JsonSerializer.Deserialize<JsonElement[]>(packet);
+            DateTime recvTimeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(recvData[0].Deserialize<byte[]>()));
+            string[] recvInputs = recvData[1].Deserialize<string[]>();
+            int[] recvPos = recvData[2].Deserialize<int[]>();
+            int[] recvPoints = recvData[3].Deserialize<int[]>();
+            int[] recvBFrames = recvData[4].Deserialize<int[]>();
+            char[] recvDirs = recvData[5].Deserialize<char[]>();
+            int[] recvAttacks = recvData[6].Deserialize<int[]>();
         }
     }
 }

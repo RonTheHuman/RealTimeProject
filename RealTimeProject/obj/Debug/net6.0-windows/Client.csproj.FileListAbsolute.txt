@@ -32,3 +32,6 @@ C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\o
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\ref\Client.dll
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.pdb
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.genruntimeconfig.cache
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\CommonCode.dll
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\CommonCode.pdb
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.csproj.CopyComplete

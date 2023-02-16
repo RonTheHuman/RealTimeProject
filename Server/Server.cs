@@ -75,6 +75,20 @@ namespace RealTimeProject
         }
 
 
+        static object[] Serialize(byte[] timeStamp, Frame state)
+        {
+            object[] sendData = new object[7];
+            sendData[0] = timeStamp;
+            sendData[1] = state.inputs;
+            sendData[2] = state.state.positions;
+            sendData[3] = state.state.points;
+            sendData[4] = state.state.blockFrames;
+            sendData[5] = state.state.dirs;
+            sendData[6] = state.state.attacks;
+            return sendData;
+        }
+
+
         static TimeSpan GameLoop(DateTime st)
         {
             DateTime frameStart = DateTime.Now;
@@ -143,16 +157,9 @@ namespace RealTimeProject
 
             foreach (var ip in playerIPs.Keys) // send state to players
             {
-                object[] sendData = new object[7];
                 byte[] timeStamp = new byte[8];
-                BinaryPrimitives.WriteInt64BigEndian(timeStamp, DateTime.Now.Ticks); ;
-                sendData[0] = timeStamp;
-                sendData[1] = history.Last().inputs;
-                sendData[2] = history.Last().state.positions;
-                sendData[3] = history.Last().state.points;
-                sendData[4] = history.Last().state.blockFrames;
-                sendData[5] = history.Last().state.dirs;
-                sendData[6] = history.Last().state.attacks;
+                BinaryPrimitives.WriteInt64BigEndian(timeStamp, DateTime.Now.Ticks);
+                object[] sendData = Serialize(timeStamp, history.Last());
                 //NBConsole.WriteLine(JsonSerializer.Serialize(sendData));
                 serverSock.SendTo(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(sendData)), ip);
             }
@@ -181,7 +188,7 @@ namespace RealTimeProject
         {
             IPAddress autoAdress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[1];
             string[] adresses = new string[3] { "172.16.2.167", "10.100.102.20", "192.168.68.112" };
-            IPAddress sAddress = IPAddress.Parse(adresses[1]);
+            IPAddress sAddress = IPAddress.Parse(adresses[0]);
             int sPort = 12345;
             byte[] buffer = new byte[bufferSize];
             serverSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);

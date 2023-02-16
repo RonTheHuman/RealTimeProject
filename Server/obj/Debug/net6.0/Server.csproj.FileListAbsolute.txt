@@ -38,3 +38,6 @@ C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\bin\Debug\
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\bin\Debug\net6.0\CommonCode.pdb
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\bin\Debug\net6.0\CommonCode.dll.config
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\obj\Debug\net6.0\Server.csproj.CopyComplete
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\bin\Debug\net6.0\CommonCode.dll
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\bin\Debug\net6.0\CommonCode.pdb
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0\Server.csproj.CopyComplete

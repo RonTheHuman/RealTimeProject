@@ -51,8 +51,8 @@ namespace RealTimeProject
             int sPort = 12345;
             NBConsole.WriteLine("Enter port for client: ");
             int cPort = int.Parse(Console.ReadLine());
-            var sAddress = IPAddress.Parse(adresses[1]);
-            var cAddress = IPAddress.Parse(adresses[1]);
+            var sAddress = IPAddress.Parse(adresses[0]);
+            var cAddress = IPAddress.Parse(adresses[0]);
             EndPoint clientEP = new IPEndPoint(cAddress, cPort);
             serverEP = new IPEndPoint(sAddress, sPort);
 
@@ -199,33 +199,20 @@ namespace RealTimeProject
                 {
                     bool foundFrame = false;
                     string latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
-                    JsonElement[] recvData = JsonSerializer.Deserialize<JsonElement[]>(latestPacket);
-                    DateTime recvTimeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(recvData[0].Deserialize<byte[]>()));
-                    string[] recvInputs = recvData[1].Deserialize<string[]>();
-                    int[] recvPos = recvData[2].Deserialize<int[]>();
-                    int[] recvPoints = recvData[3].Deserialize<int[]>();
-                    int[] recvBFrames = recvData[4].Deserialize<int[]>();
-                    char[] recvDirs = recvData[5].Deserialize<char[]>();
-                    int[] recvAttacks = recvData[6].Deserialize<int[]>();
-                    NBConsole.WriteLine("applying data from " + recvTimeStamp.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
+                    ServerPacket servPacket = ServerPacket.Deserialize(latestPacket);
+                    NBConsole.WriteLine("applying data from " + servPacket.timeStamp.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
                     //client simulation and lagcomp on enemies
                     for (int i = simHistory.Count() - 1; i >= 0; i--)
                     {
-                        if (simHistory[i].startTime < recvTimeStamp)
+                        if (simHistory[i].startTime < servPacket.timeStamp)
                         {
                             NBConsole.WriteLine("found frame!");
                             foundFrame = true;
-                            bool sameFrame = true;
-                            sameFrame = sameFrame && Enumerable.SequenceEqual(recvInputs, simHistory[i].inputs);
-                            sameFrame = sameFrame && Enumerable.SequenceEqual(recvPos, simHistory[i].state.positions);
-                            sameFrame = sameFrame && Enumerable.SequenceEqual(recvPoints, simHistory[i].state.points);
-                            sameFrame = sameFrame && Enumerable.SequenceEqual(recvBFrames, simHistory[i].state.blockFrames);
-                            sameFrame = sameFrame && Enumerable.SequenceEqual(recvDirs, simHistory[i].state.dirs);
-                            sameFrame = sameFrame && Enumerable.SequenceEqual(recvAttacks, simHistory[i].state.attacks);
+                            bool sameFrame = servPacket.frame.Compare(simHistory[i]);
                             if (!sameFrame)
                             {
                                 NBConsole.WriteLine("Rollbacking to frame at" + simHistory[i].startTime.ToString("mm.ss.fff"));
-                                simHistory[i].state = new GameState(recvPos, recvPoints, recvBFrames, recvDirs, recvAttacks);
+                                simHistory[i].state = servPacket.frame.state;
                                 for (int j = i + 1; j < simHistory.Count; j++)
                                 {
                                     string[] correctInputs = new string[pCount];
@@ -233,7 +220,7 @@ namespace RealTimeProject
                                     {
                                         if (k != thisPlayer - 1)
                                         {
-                                            correctInputs[k] = recvInputs[k];
+                                            correctInputs[k] = servPacket.frame.inputs[k];
                                         }
                                     }
                                     correctInputs[thisPlayer - 1] = simHistory[j].inputs[thisPlayer - 1];
@@ -258,16 +245,10 @@ namespace RealTimeProject
                 if (packets.Count() > 0) // deserialize packets and apply to simulated history
                 {
                     string latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
-                    JsonElement[] recvData = JsonSerializer.Deserialize<JsonElement[]>(latestPacket);
-                    DateTime recvTimeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(recvData[0].Deserialize<byte[]>()));
-                    string[] recvInputs = recvData[1].Deserialize<string[]>();
-                    int[] recvPos = recvData[2].Deserialize<int[]>();
-                    int[] recvPoints = recvData[3].Deserialize<int[]>();
-                    int[] recvBFrames = recvData[4].Deserialize<int[]>();
-                    char[] recvDirs = recvData[5].Deserialize<char[]>();
-                    int[] recvAttacks = recvData[6].Deserialize<int[]>();
-                    NBConsole.WriteLine("applying data from " + recvTimeStamp.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
-                    Draw(new GameState(recvPos, recvPoints, recvBFrames, recvDirs, recvAttacks));
+                    ServerPacket servPacket = ServerPacket.Deserialize(latestPacket);
+                    NBConsole.WriteLine("applying data from " + servPacket.timeStamp.ToString("mm.ss.fff") + 
+                        " during frame that started at " + frameStart.ToString("mm.ss.fff"));
+                    Draw(servPacket.frame.state);
                 }
             }
 
