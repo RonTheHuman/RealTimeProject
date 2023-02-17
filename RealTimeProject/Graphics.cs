@@ -11,7 +11,7 @@ namespace RealTimeProject
     public partial class Graphics : Form
     {
         int right = 0, left = 0, block = 0, attack = 0, thisPlayer;
-        int curFNum = 1, recvFNum = 0, frameMS = 15, pCount = 2;
+        int curFNum = 1, recvFNum = 0, frameMS = 15, pCount = 1;
         static int blockCooldown = 0, blockDuration = 40;
         bool grid = false, simulate = true;
         static List<Frame> simHistory = new List<Frame>();
@@ -165,7 +165,7 @@ namespace RealTimeProject
             DateTime frameStart = DateTime.Now;
             byte[] inputBytes = Encoding.Latin1.GetBytes(curInput);
             byte[] timeStamp = new byte[8];
-            BinaryPrimitives.WriteInt64BigEndian(timeStamp, DateTime.Now.Ticks);
+            BinaryPrimitives.WriteInt64BigEndian(timeStamp, frameStart.Ticks);
             byte[] sendData = new byte[8 + 4];
             inputBytes.CopyTo(sendData, 0);
             timeStamp.CopyTo(sendData, 4);
@@ -202,31 +202,38 @@ namespace RealTimeProject
                     ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
                     NBConsole.WriteLine("applying data from " + servPacket.timeStamp.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
                     //client simulation and lagcomp on enemies
-                    for (int i = simHistory.Count() - 1; i >= 0; i--)
+                    for (int i = simHistory.Count() - 1; i > 0; i--)
                     {
-                        if (simHistory[i].startTime < servPacket.timeStamp)
+                        if (simHistory[i - 1].startTime <= servPacket.frame.startTime)
                         {
-                            NBConsole.WriteLine("found frame!");
                             foundFrame = true;
-                            bool sameFrame = servPacket.frame.Compare(simHistory[i]);
-                            if (!sameFrame)
+                            NBConsole.WriteLine("i: " + i + " history end: " + (simHistory.Count - 1));
+                            simHistory[i] = servPacket.frame;
+                            for (int j = i + 1; j < simHistory.Count(); j++)
                             {
-                                NBConsole.WriteLine("Rollbacking to frame at" + simHistory[i].startTime.ToString("mm.ss.fff"));
-                                simHistory[i].state = servPacket.frame.state;
-                                for (int j = i + 1; j < simHistory.Count; j++)
+                                string[] correctInputs = new string[pCount];
+                                for (int k = 0; k < pCount; k++)
                                 {
-                                    string[] correctInputs = new string[pCount];
-                                    for (int k = 0; k < pCount; k++)
+                                    if (k == thisPlayer - 1)
                                     {
-                                        if (k != thisPlayer - 1)
+                                        correctInputs[k] = simHistory[j].inputs[k];
+                                    }
+                                    else
+                                    {
+                                        int offset = 0;
+                                        if (k > thisPlayer - 1)
+                                            offset = -1;
+                                        if (servPacket.enemyInputs[k + offset].Length > j - i + 1)
                                         {
-                                            correctInputs[k] = servPacket.frame.inputs[k];
+                                            correctInputs[k] = servPacket.enemyInputs[k + offset][j - i + 1];
+                                        }
+                                        else
+                                        {
+                                            correctInputs[k] = simHistory[j - 1].inputs[k];
                                         }
                                     }
-                                    correctInputs[thisPlayer - 1] = simHistory[j].inputs[thisPlayer - 1];
-                                    simHistory[j].inputs = correctInputs;
-                                    simHistory[j].state = GameState.NextState(simHistory[j - 1].state, correctInputs, grid);
                                 }
+                                simHistory[j].state = GameState.NextState(simHistory[j - 1].state, correctInputs, false);
                             }
                             break;
                         }

@@ -10,7 +10,7 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        static int bufferSize = 1024, pCount = 2;
+        static int bufferSize = 1024, pCount = 1;
         static bool grid = false, compensateLag = false;
 
         static DateTime gameStartTime;
@@ -79,17 +79,20 @@ namespace RealTimeProject
 
         static byte[] Serialize(byte[] timeStamp, Frame state, string[][] enemyInputs)
         {
-            object[] sendData = new object[7 + pCount - 1];
+            object[] sendData = new object[7 + pCount];
             sendData[0] = timeStamp;
-            sendData[1] = state.inputs;
-            sendData[2] = state.state.positions;
-            sendData[3] = state.state.points;
-            sendData[4] = state.state.blockFrames;
-            sendData[5] = state.state.dirs;
-            sendData[6] = state.state.attacks;
+            byte[] frameTime = new byte[8];
+            BinaryPrimitives.WriteInt64BigEndian(frameTime, state.startTime.Ticks);
+            sendData[1] = frameTime;
+            sendData[2] = state.inputs;
+            sendData[3] = state.state.positions;
+            sendData[4] = state.state.points;
+            sendData[5] = state.state.blockFrames;
+            sendData[6] = state.state.dirs;
+            sendData[7] = state.state.attacks;
             for (int i = 0; i < pCount - 1; i++)
             {
-                sendData[7 + i] = enemyInputs[i];
+                sendData[8 + i] = enemyInputs[i];
             }
             string jsonString = JsonSerializer.Serialize(sendData);
             NBConsole.WriteLine(jsonString);
@@ -167,45 +170,49 @@ namespace RealTimeProject
                     latestInputs[packetPlayer - 1] = packetInput;
                 }
                 history.Last().inputs = latestInputs;
-                history.Last().state = GameState.NextState(history[history.Count - 1].state, latestInputs, grid);
+                history.Last().state = GameState.NextState(history[history.Count - 2].state, latestInputs, grid);
             }
 
             foreach (var ip in playerIPs.Keys) // send state to players
             {
                 int thisPlayer = playerIPs[ip];
-                byte[] timeStamp = new byte[8];
-                BinaryPrimitives.WriteInt64BigEndian(timeStamp, DateTime.Now.Ticks);
-                int startI = 0;
-                for (int i = history.Count - 1; i >= 0; i--)
+                if (playerLRS[thisPlayer - 1] != DateTime.MinValue)
                 {
-                    Console.WriteLine("Checking whether player " + thisPlayer + " recieved frame at " + history[i].startTime.ToString("mm.ss.fff") + " when last stamp was " + playerLRS[thisPlayer - 1].ToString("mm.ss.fff"));
-                    if (history[i].startTime < playerLRS[thisPlayer - 1])
+                    byte[] timeStamp = new byte[8];
+                    BinaryPrimitives.WriteInt64BigEndian(timeStamp, DateTime.Now.Ticks);
+                    int startI = 0;
+                    for (int i = history.Count - 1; i >= 0; i--)
                     {
-                         startI = i;
-                         break;
+                        NBConsole.WriteLine("Checking whether player " + thisPlayer + " last stamp  " + playerLRS[thisPlayer - 1].ToString("mm.ss.fff") + " was in frame " + history[i].startTime.ToString("mm.ss.fff"));
+                        if (history[i].startTime <= playerLRS[thisPlayer - 1])
+                        {
+                             startI = i + 1;
+                             break;
+                        }
+                        NBConsole.WriteLine(startI + "");
                     }
-                }
-                string[][] enemyInputs = new string[pCount - 1][];
-                for (int j = 0; j < pCount; j++)
-                {
-                    if (j != thisPlayer - 1)
+                    string[][] enemyInputs = new string[pCount - 1][];
+                    for (int j = 0; j < pCount; j++)
                     {
-                        string[] oneEnemyInput = new string[history.Count - startI];
-                        for (int i = startI; i < history.Count; i++)
+                        if (j != thisPlayer - 1)
                         {
-                            oneEnemyInput[i - startI] = history[i].inputs[j];
-                        }
-                        if (j < thisPlayer)
-                        {
-                            enemyInputs[j] = oneEnemyInput;
-                        }
-                        else
-                        {
-                            enemyInputs[j - 1] = oneEnemyInput;
+                            string[] oneEnemyInput = new string[history.Count - startI];
+                            for (int i = startI; i < history.Count; i++)
+                            {
+                                oneEnemyInput[i - startI] = history[i].inputs[j];
+                            }
+                            if (j < thisPlayer)
+                            {
+                                enemyInputs[j] = oneEnemyInput;
+                            }
+                            else
+                            {
+                                enemyInputs[j - 1] = oneEnemyInput;
+                            }
                         }
                     }
+                    serverSock.SendTo(Serialize(timeStamp, history[startI - 1], enemyInputs), ip);
                 }
-                serverSock.SendTo(Serialize(timeStamp, history.Last(), enemyInputs), ip);
             }
 
             //old history deletion, maybe needed?

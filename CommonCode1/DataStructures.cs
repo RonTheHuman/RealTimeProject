@@ -62,6 +62,7 @@ namespace RealTimeProject
 
         public static GameState NextState(GameState state, string[] inputs, bool grid)
         {
+            Console.WriteLine("called");
             if (grid) speed = 50;
             var nextState = new GameState(state);
             for (int i = 0; i < inputs.Length; i++)
@@ -198,18 +199,19 @@ namespace RealTimeProject
         {
             JsonElement[] recvData = JsonSerializer.Deserialize<JsonElement[]>(packet);
             DateTime recvTimeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(recvData[0].Deserialize<byte[]>()));
-            string[] recvInputs = recvData[1].Deserialize<string[]>();
-            int[] recvPos = recvData[2].Deserialize<int[]>();
-            int[] recvPoints = recvData[3].Deserialize<int[]>();
-            int[] recvBFrames = recvData[4].Deserialize<int[]>();
-            char[] recvDirs = recvData[5].Deserialize<char[]>();
-            int[] recvAttacks = recvData[6].Deserialize<int[]>();
+            DateTime recvStartTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(recvData[1].Deserialize<byte[]>()));
+            string[] recvInputs = recvData[2].Deserialize<string[]>();
+            int[] recvPos = recvData[3].Deserialize<int[]>();
+            int[] recvPoints = recvData[4].Deserialize<int[]>();
+            int[] recvBFrames = recvData[5].Deserialize<int[]>();
+            char[] recvDirs = recvData[6].Deserialize<char[]>();
+            int[] recvAttacks = recvData[7].Deserialize<int[]>();
             string[][] enemyInputs = new string[pCount - 1][];
             for (int i = 0; i < pCount - 1; i++)
             {
-                enemyInputs[i] = recvData[7 + i].Deserialize<string[]>();
+                enemyInputs[i] = recvData[8 + i].Deserialize<string[]>();
             }
-            return new ServerPacket(recvTimeStamp, new Frame(recvTimeStamp, recvInputs, new GameState(recvPos, recvPoints, recvBFrames, recvDirs, recvAttacks)), enemyInputs);
+            return new ServerPacket(recvTimeStamp, new Frame(recvStartTime, recvInputs, new GameState(recvPos, recvPoints, recvBFrames, recvDirs, recvAttacks)), enemyInputs);
         }
     }
 }
