@@ -10,14 +10,16 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        const int bufferSize = 1024, pCount = 1, frameMS = 20;
+        static int bufferSize = 1024, pCount = 2;
         static bool grid = false, compensateLag = false;
+
+        static DateTime gameStartTime;
         static List<Frame> history = new List<Frame>(200);
         static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
-        static int[] playerLRFNum = new int[pCount]; //last recieved frame num for each player
-        static DateTime gameStartTime;
-        static Socket serverSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
+        static DateTime[] playerLRS = new DateTime[pCount]; //last recieved stamp for each player
+        static int[] playerLRSIndex = new int[pCount];
         static Dictionary<IPEndPoint, int> playerIPs = new Dictionary<IPEndPoint, int>();
+        static Socket serverSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
 
 
         public static class NBConsole
@@ -75,9 +77,9 @@ namespace RealTimeProject
         }
 
 
-        static byte[] Serialize(byte[] timeStamp, Frame state)
+        static byte[] Serialize(byte[] timeStamp, Frame state, string[][] enemyInputs)
         {
-            object[] sendData = new object[7];
+            object[] sendData = new object[7 + pCount - 1];
             sendData[0] = timeStamp;
             sendData[1] = state.inputs;
             sendData[2] = state.state.positions;
@@ -85,8 +87,13 @@ namespace RealTimeProject
             sendData[4] = state.state.blockFrames;
             sendData[5] = state.state.dirs;
             sendData[6] = state.state.attacks;
-            //NBConsole.WriteLine(JsonSerializer.Serialize(sendData));
-            return Encoding.Latin1.GetBytes(JsonSerializer.Serialize(sendData));
+            for (int i = 0; i < pCount - 1; i++)
+            {
+                sendData[7 + i] = enemyInputs[i];
+            }
+            string jsonString = JsonSerializer.Serialize(sendData);
+            NBConsole.WriteLine(jsonString);
+            return Encoding.Latin1.GetBytes(jsonString);
         }
 
 
@@ -130,8 +137,11 @@ namespace RealTimeProject
                     packetPlayer = packets[i].player;
                     packetInput = Encoding.Latin1.GetString(packets[i].data[..4]);
                     packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].data[4..]));
+                    if (packetTime > playerLRS[packetPlayer - 1])
+                    {
+                        playerLRS[packetPlayer - 1] = packetTime;
+                    }
                     NBConsole.WriteLine("recieved inputs [" + packetInput + "], p" + packetPlayer + " from " + packetTime.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
-
                     if (packetTime >= DateTime.Now)
                     {
                         throw new Exception("timestamp error");
@@ -148,6 +158,10 @@ namespace RealTimeProject
                     packetPlayer = packets[i].player;
                     packetInput = Encoding.Latin1.GetString(packets[i].data[..4]);
                     packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].data[4..]));
+                    if (packetTime > playerLRS[packetPlayer - 1])
+                    {
+                        playerLRS[packetPlayer - 1] = packetTime;
+                    }
                     NBConsole.WriteLine("recieved inputs [" + packetInput + "], p" + packetPlayer + " from " + packetTime.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
 
                     latestInputs[packetPlayer - 1] = packetInput;
@@ -158,9 +172,40 @@ namespace RealTimeProject
 
             foreach (var ip in playerIPs.Keys) // send state to players
             {
+                int thisPlayer = playerIPs[ip];
                 byte[] timeStamp = new byte[8];
                 BinaryPrimitives.WriteInt64BigEndian(timeStamp, DateTime.Now.Ticks);
-                serverSock.SendTo(Serialize(timeStamp, history.Last()), ip);
+                int startI = 0;
+                for (int i = history.Count - 1; i >= 0; i--)
+                {
+                    Console.WriteLine("Checking whether player " + thisPlayer + " recieved frame at " + history[i].startTime.ToString("mm.ss.fff") + " when last stamp was " + playerLRS[thisPlayer - 1].ToString("mm.ss.fff"));
+                    if (history[i].startTime < playerLRS[thisPlayer - 1])
+                    {
+                         startI = i;
+                         break;
+                    }
+                }
+                string[][] enemyInputs = new string[pCount - 1][];
+                for (int j = 0; j < pCount; j++)
+                {
+                    if (j != thisPlayer - 1)
+                    {
+                        string[] oneEnemyInput = new string[history.Count - startI];
+                        for (int i = startI; i < history.Count; i++)
+                        {
+                            oneEnemyInput[i - startI] = history[i].inputs[j];
+                        }
+                        if (j < thisPlayer)
+                        {
+                            enemyInputs[j] = oneEnemyInput;
+                        }
+                        else
+                        {
+                            enemyInputs[j - 1] = oneEnemyInput;
+                        }
+                    }
+                }
+                serverSock.SendTo(Serialize(timeStamp, history.Last(), enemyInputs), ip);
             }
 
             //old history deletion, maybe needed?
@@ -200,6 +245,7 @@ namespace RealTimeProject
                 serverSock.ReceiveFrom(buffer, ref clientEP);
                 Console.WriteLine(clientEP.ToString() + " entered");
                 playerIPs[new IPEndPoint(((IPEndPoint)clientEP).Address, ((IPEndPoint)clientEP).Port)] = i + 1;
+                playerLRS[i] = DateTime.MinValue;
             }
 
             foreach (var ip in playerIPs.Keys)

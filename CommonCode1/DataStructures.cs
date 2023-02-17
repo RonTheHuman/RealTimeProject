@@ -185,14 +185,16 @@ namespace RealTimeProject
     {
         public DateTime timeStamp;
         public Frame frame;
+        public string[][] enemyInputs;
 
-        public ServerPacket(DateTime timeStamp, Frame frame)
+        public ServerPacket(DateTime timeStamp, Frame frame, string[][] enemyInputs)
         {
             this.timeStamp = timeStamp;
             this.frame = frame;
+            this.enemyInputs = enemyInputs;
         }
 
-        static public ServerPacket Deserialize(string packet)
+        public static ServerPacket Deserialize(string packet, int pCount)
         {
             JsonElement[] recvData = JsonSerializer.Deserialize<JsonElement[]>(packet);
             DateTime recvTimeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(recvData[0].Deserialize<byte[]>()));
@@ -202,8 +204,12 @@ namespace RealTimeProject
             int[] recvBFrames = recvData[4].Deserialize<int[]>();
             char[] recvDirs = recvData[5].Deserialize<char[]>();
             int[] recvAttacks = recvData[6].Deserialize<int[]>();
-            return new ServerPacket(recvTimeStamp, new Frame(recvTimeStamp, recvInputs, 
-                new GameState(recvPos, recvPoints, recvBFrames, recvDirs, recvAttacks)));
+            string[][] enemyInputs = new string[pCount - 1][];
+            for (int i = 0; i < pCount - 1; i++)
+            {
+                enemyInputs[i] = recvData[7 + i].Deserialize<string[]>();
+            }
+            return new ServerPacket(recvTimeStamp, new Frame(recvTimeStamp, recvInputs, new GameState(recvPos, recvPoints, recvBFrames, recvDirs, recvAttacks)), enemyInputs);
         }
     }
 }

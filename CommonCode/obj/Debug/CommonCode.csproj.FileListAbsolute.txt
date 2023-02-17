@@ -1,7 +1,0 @@
-C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\CommonCode\obj\Debug\CommonCode.csproj.AssemblyReference.cache
-C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\CommonCode\obj\Debug\CommonCode.csproj.CoreCompileInputs.cache
-C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\CommonCode\bin\Debug\CommonCode.dll.config
-C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\CommonCode\bin\Debug\CommonCode.dll
-C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\CommonCode\bin\Debug\CommonCode.pdb
-C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\CommonCode\obj\Debug\CommonCode.dll
-C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\CommonCode\obj\Debug\CommonCode.pdb

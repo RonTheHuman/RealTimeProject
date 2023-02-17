@@ -11,7 +11,7 @@ namespace RealTimeProject
     public partial class Graphics : Form
     {
         int right = 0, left = 0, block = 0, attack = 0, thisPlayer;
-        int curFNum = 1, recvFNum = 0, frameMS = 15, pCount = 1;
+        int curFNum = 1, recvFNum = 0, frameMS = 15, pCount = 2;
         static int blockCooldown = 0, blockDuration = 40;
         bool grid = false, simulate = true;
         static List<Frame> simHistory = new List<Frame>();
@@ -199,7 +199,7 @@ namespace RealTimeProject
                 {
                     bool foundFrame = false;
                     string latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
-                    ServerPacket servPacket = ServerPacket.Deserialize(latestPacket);
+                    ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
                     NBConsole.WriteLine("applying data from " + servPacket.timeStamp.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
                     //client simulation and lagcomp on enemies
                     for (int i = simHistory.Count() - 1; i >= 0; i--)
@@ -245,7 +245,7 @@ namespace RealTimeProject
                 if (packets.Count() > 0) // deserialize packets and apply to simulated history
                 {
                     string latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
-                    ServerPacket servPacket = ServerPacket.Deserialize(latestPacket);
+                    ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
                     NBConsole.WriteLine("applying data from " + servPacket.timeStamp.ToString("mm.ss.fff") + 
                         " during frame that started at " + frameStart.ToString("mm.ss.fff"));
                     Draw(servPacket.frame.state);
