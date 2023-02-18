@@ -9,4 +9,8 @@
     <StartupObject></StartupObject>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CommonCode1\CommonCode.csproj" />
+  </ItemGroup>
+
 </Project>

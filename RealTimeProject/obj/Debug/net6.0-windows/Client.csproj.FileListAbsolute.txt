@@ -32,20 +32,9 @@ C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\o
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\ref\Client.dll
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.pdb
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.genruntimeconfig.cache
-E:\School Programming\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\Client.exe
-E:\School Programming\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\Client.deps.json
-E:\School Programming\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\Client.runtimeconfig.json
-E:\School Programming\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\Client.dll
-E:\School Programming\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\Client.pdb
-E:\School Programming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.csproj.AssemblyReference.cache
-E:\School Programming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\RealTimeProject.Graphics.resources
-E:\School Programming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.csproj.GenerateResource.cache
-E:\School Programming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.GeneratedMSBuildEditorConfig.editorconfig
-E:\School Programming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.AssemblyInfoInputs.cache
-E:\School Programming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.AssemblyInfo.cs
-E:\School Programming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.csproj.CoreCompileInputs.cache
-E:\School Programming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.dll
-E:\School Programming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\refint\Client.dll
-E:\School Programming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.pdb
-E:\School Programming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.genruntimeconfig.cache
-E:\School Programming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\ref\Client.dll
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\CommonCode.dll
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\CommonCode.pdb
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.csproj.CopyComplete
+C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\CommonCode.dll
+C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\CommonCode.pdb
+C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\Client.csproj.CopyComplete

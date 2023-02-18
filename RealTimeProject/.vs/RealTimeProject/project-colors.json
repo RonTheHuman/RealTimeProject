@@ -10,7 +10,22 @@
       "ProjectGuid": "082b4d52-6f54-4e4a-8751-66c260223763",
       "DisplayName": "Server",
       "ColorIndex": 1
+    },
+    "981f0355-6458-4177-9894-0e1a97f3b432": {
+      "ProjectGuid": "981f0355-6458-4177-9894-0e1a97f3b432",
+      "DisplayName": "CommonCode",
+      "ColorIndex": 2
+    },
+    "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3": {
+      "ProjectGuid": "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3",
+      "DisplayName": "Miscellaneous Files",
+      "ColorIndex": -1
+    },
+    "e549c338-8418-484c-b7d7-bc6dbcb6ba97": {
+      "ProjectGuid": "e549c338-8418-484c-b7d7-bc6dbcb6ba97",
+      "DisplayName": "CommonCode",
+      "ColorIndex": 3
     }
   },
-  "NextColorIndex": 2
+  "NextColorIndex": 4
 }

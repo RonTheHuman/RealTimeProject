@@ -29,60 +29,59 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.SocketTimer = new System.Windows.Forms.Timer(this.components);
+            this.GameLoopTimer = new System.Windows.Forms.Timer(this.components);
             this.Player1Label = new System.Windows.Forms.Label();
             this.Player2Label = new System.Windows.Forms.Label();
-            this.Bullet1Label = new System.Windows.Forms.Label();
-            this.Bullet2Label = new System.Windows.Forms.Label();
+            this.Attack1Label = new System.Windows.Forms.Label();
+            this.Attack2Label = new System.Windows.Forms.Label();
             this.ScoreLabel = new System.Windows.Forms.Label();
             this.TimeLabel = new System.Windows.Forms.Label();
             this.TimeTimer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
-            // SocketTimer
+            // GameLoopTimer
             // 
-            this.SocketTimer.Enabled = true;
-            this.SocketTimer.Interval = 17;
-            this.SocketTimer.Tick += new System.EventHandler(this.SocketTimer_Tick);
+            this.GameLoopTimer.Interval = 17;
+            this.GameLoopTimer.Tick += new System.EventHandler(this.GameLoopTimer_Tick);
             // 
             // Player1Label
             // 
-            this.Player1Label.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.Player1Label.BackColor = System.Drawing.Color.MediumTurquoise;
             this.Player1Label.Location = new System.Drawing.Point(50, 250);
             this.Player1Label.Name = "Player1Label";
             this.Player1Label.Size = new System.Drawing.Size(50, 50);
             this.Player1Label.TabIndex = 0;
             this.Player1Label.Text = "O";
-            this.Player1Label.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.Player1Label.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // Player2Label
             // 
-            this.Player2Label.BackColor = System.Drawing.Color.Red;
+            this.Player2Label.BackColor = System.Drawing.Color.Coral;
             this.Player2Label.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.Player2Label.Location = new System.Drawing.Point(50, 150);
+            this.Player2Label.Location = new System.Drawing.Point(660, 250);
             this.Player2Label.Name = "Player2Label";
             this.Player2Label.Size = new System.Drawing.Size(50, 50);
             this.Player2Label.TabIndex = 1;
             this.Player2Label.Text = "O";
-            this.Player2Label.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.Player2Label.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // Bullet1Label
+            // Attack1Label
             // 
-            this.Bullet1Label.BackColor = System.Drawing.SystemColors.ControlText;
-            this.Bullet1Label.Location = new System.Drawing.Point(378, 168);
-            this.Bullet1Label.Name = "Bullet1Label";
-            this.Bullet1Label.Size = new System.Drawing.Size(14, 14);
-            this.Bullet1Label.TabIndex = 2;
-            this.Bullet1Label.Visible = false;
+            this.Attack1Label.BackColor = System.Drawing.Color.Teal;
+            this.Attack1Label.Location = new System.Drawing.Point(100, 268);
+            this.Attack1Label.Name = "Attack1Label";
+            this.Attack1Label.Size = new System.Drawing.Size(100, 14);
+            this.Attack1Label.TabIndex = 2;
+            this.Attack1Label.Visible = false;
             // 
-            // Bullet2Label
+            // Attack2Label
             // 
-            this.Bullet2Label.BackColor = System.Drawing.SystemColors.ControlText;
-            this.Bullet2Label.Location = new System.Drawing.Point(378, 268);
-            this.Bullet2Label.Name = "Bullet2Label";
-            this.Bullet2Label.Size = new System.Drawing.Size(14, 14);
-            this.Bullet2Label.TabIndex = 3;
-            this.Bullet2Label.Visible = false;
+            this.Attack2Label.BackColor = System.Drawing.Color.Brown;
+            this.Attack2Label.Location = new System.Drawing.Point(560, 268);
+            this.Attack2Label.Name = "Attack2Label";
+            this.Attack2Label.Size = new System.Drawing.Size(100, 14);
+            this.Attack2Label.TabIndex = 3;
+            this.Attack2Label.Visible = false;
             // 
             // ScoreLabel
             // 
@@ -117,8 +116,8 @@
             this.ClientSize = new System.Drawing.Size(784, 450);
             this.Controls.Add(this.TimeLabel);
             this.Controls.Add(this.ScoreLabel);
-            this.Controls.Add(this.Bullet2Label);
-            this.Controls.Add(this.Bullet1Label);
+            this.Controls.Add(this.Attack2Label);
+            this.Controls.Add(this.Attack1Label);
             this.Controls.Add(this.Player2Label);
             this.Controls.Add(this.Player1Label);
             this.Enabled = false;
@@ -134,11 +133,11 @@
 
         #endregion
 
-        private System.Windows.Forms.Timer SocketTimer;
+        private System.Windows.Forms.Timer GameLoopTimer;
         private Label Player1Label;
         private Label Player2Label;
-        private Label Bullet1Label;
-        private Label Bullet2Label;
+        private Label Attack1Label;
+        private Label Attack2Label;
         private Label ScoreLabel;
         private Label TimeLabel;
         private System.Windows.Forms.Timer TimeTimer;
