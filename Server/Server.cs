@@ -16,7 +16,7 @@ namespace RealTimeProject
         static DateTime gameStartTime;
         static List<Frame> history = new List<Frame>(200);
         static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
-        static DateTime[] playerLRS = new DateTime[pCount]; //last recieved stamp for each player
+        static DateTime[] playerLRS = new DateTime[pCount], playerLRS2 = new DateTime[pCount]; //last recieved stamp for each player
         static int[] playerLRSIndex = new int[pCount];
         static Dictionary<IPEndPoint, int> playerIPs = new Dictionary<IPEndPoint, int>();
         static Socket serverSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
@@ -162,9 +162,10 @@ namespace RealTimeProject
                     packetPlayer = packets[i].player;
                     packetInput = Encoding.Latin1.GetString(packets[i].data[..4]);
                     packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].data[4..]));
-                    if (packetTime > playerLRS[packetPlayer - 1])
+                    playerLRS[packetPlayer - 1] = frameStart;
+                    if (packetTime > playerLRS2[packetPlayer - 1])
                     {
-                        playerLRS[packetPlayer - 1] = packetTime;
+                        playerLRS2[packetPlayer - 1] = packetTime;
                     }
                     NBConsole.WriteLine("recieved inputs [" + packetInput + "], p" + packetPlayer + " from " + packetTime.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
 
@@ -212,7 +213,13 @@ namespace RealTimeProject
                             }
                         }
                     }
-                    serverSock.SendTo(Serialize(timeStamp, history[startI - 1], enemyInputs), ip);
+                    Frame sendFrame = history[startI - 1];
+                    if (!compensateLag)
+                    {
+                        sendFrame = new Frame(sendFrame);
+                        sendFrame.startTime = playerLRS2[thisPlayer - 1];
+                    }
+                    serverSock.SendTo(Serialize(timeStamp, sendFrame, enemyInputs), ip);
                 }
             }
 
@@ -254,6 +261,7 @@ namespace RealTimeProject
                 Console.WriteLine(clientEP.ToString() + " entered");
                 playerIPs[new IPEndPoint(((IPEndPoint)clientEP).Address, ((IPEndPoint)clientEP).Port)] = i + 1;
                 playerLRS[i] = DateTime.MinValue;
+                playerLRS2[i] = DateTime.MinValue;
             }
 
             foreach (var ip in playerIPs.Keys)

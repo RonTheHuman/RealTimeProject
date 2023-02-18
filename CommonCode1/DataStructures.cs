@@ -12,7 +12,7 @@ namespace RealTimeProject
 {
     public class GameState
     {
-        static int speed = 5, blockCD = 5, blockDur = 40;
+        static int speed = 3, blockCD = 5, blockDur = 40;
         public int[] positions;
         public int[] points;
         public int[] blockFrames;
@@ -149,6 +149,15 @@ namespace RealTimeProject
             this.startTime = startTime;
             this.inputs = inputs;
             this.state = state;
+        }
+
+
+        public Frame(Frame other)
+        {
+            startTime = other.startTime;
+            inputs = new string[other.inputs.Length];
+            other.inputs.CopyTo(inputs, 0);
+            state = new GameState(other.state);
         }
 
 
