@@ -62,7 +62,6 @@ namespace RealTimeProject
 
         public static GameState NextState(GameState state, string[] inputs, bool grid)
         {
-            Console.WriteLine("called");
             if (grid) speed = 50;
             var nextState = new GameState(state);
             for (int i = 0; i < inputs.Length; i++)
@@ -126,6 +125,7 @@ namespace RealTimeProject
                     nextState.attacks[i] = 0;
                 }
             }
+            //Console.WriteLine("called " + nextState.ToString());
             return nextState;
         }
 

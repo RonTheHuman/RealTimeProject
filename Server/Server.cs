@@ -10,8 +10,8 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        static int bufferSize = 1024, pCount = 1;
-        static bool grid = false, compensateLag = false;
+        static int bufferSize = 1024, pCount = 2;
+        static bool grid = false, compensateLag = true;
 
         static DateTime gameStartTime;
         static List<Frame> history = new List<Frame>(200);
@@ -108,6 +108,7 @@ namespace RealTimeProject
             NBConsole.WriteLine("Frame start " + frameStart.ToString("mm.ss.fff") + ", Frame num: " + curFNum);
 
             List<ClientPacket> packets = new List<ClientPacket>();
+            
             while (serverSock.Poll(1, SelectMode.SelectRead))
             {
                 byte[] buffer = new byte[bufferSize];
@@ -180,17 +181,17 @@ namespace RealTimeProject
                 {
                     byte[] timeStamp = new byte[8];
                     BinaryPrimitives.WriteInt64BigEndian(timeStamp, DateTime.Now.Ticks);
-                    int startI = 0;
+                    int startI = 1;
                     for (int i = history.Count - 1; i >= 0; i--)
                     {
-                        NBConsole.WriteLine("Checking whether player " + thisPlayer + " last stamp  " + playerLRS[thisPlayer - 1].ToString("mm.ss.fff") + " was in frame " + history[i].startTime.ToString("mm.ss.fff"));
+                        //NBConsole.WriteLine("Checking whether player " + thisPlayer + " last stamp  " + playerLRS[thisPlayer - 1].ToString("mm.ss.fff") + " was in frame " + history[i].startTime.ToString("mm.ss.fff"));
                         if (history[i].startTime <= playerLRS[thisPlayer - 1])
                         {
                              startI = i + 1;
                              break;
                         }
-                        NBConsole.WriteLine(startI + "");
                     }
+                    NBConsole.WriteLine("sending player" + thisPlayer + " " + (history.Count - startI) + " enemy inputs to catch up");
                     string[][] enemyInputs = new string[pCount - 1][];
                     for (int j = 0; j < pCount; j++)
                     {

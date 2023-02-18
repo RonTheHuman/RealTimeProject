@@ -11,7 +11,7 @@ namespace RealTimeProject
     public partial class Graphics : Form
     {
         int right = 0, left = 0, block = 0, attack = 0, thisPlayer;
-        int curFNum = 1, recvFNum = 0, frameMS = 15, pCount = 1;
+        int curFNum = 1, recvFNum = 0, frameMS = 15, pCount = 2;
         static int blockCooldown = 0, blockDuration = 40;
         bool grid = false, simulate = true;
         static List<Frame> simHistory = new List<Frame>();
@@ -207,7 +207,9 @@ namespace RealTimeProject
                         if (simHistory[i - 1].startTime <= servPacket.frame.startTime)
                         {
                             foundFrame = true;
-                            NBConsole.WriteLine("i: " + i + " history end: " + (simHistory.Count - 1));
+                            NBConsole.WriteLine("i: " + i + " history end: " + (simHistory.Count - 1) + ", " + (simHistory.Count - 1 - i));
+                            if (pCount > 1)
+                                NBConsole.WriteLine(" server has " + servPacket.enemyInputs[0].Length);
                             simHistory[i] = servPacket.frame;
                             for (int j = i + 1; j < simHistory.Count(); j++)
                             {
@@ -223,17 +225,20 @@ namespace RealTimeProject
                                         int offset = 0;
                                         if (k > thisPlayer - 1)
                                             offset = -1;
-                                        if (servPacket.enemyInputs[k + offset].Length > j - i + 1)
+                                        if (servPacket.enemyInputs[k + offset].Length > j - i - 1)
                                         {
-                                            correctInputs[k] = servPacket.enemyInputs[k + offset][j - i + 1];
+                                            correctInputs[k] = servPacket.enemyInputs[k + offset][j - i - 1];
+                                            NBConsole.WriteLine(correctInputs[k]);
                                         }
                                         else
                                         {
                                             correctInputs[k] = simHistory[j - 1].inputs[k];
+                                            NBConsole.WriteLine(correctInputs[k]);
                                         }
                                     }
                                 }
                                 simHistory[j].state = GameState.NextState(simHistory[j - 1].state, correctInputs, false);
+                                simHistory[j].inputs = correctInputs;
                             }
                             break;
                         }
@@ -244,7 +249,7 @@ namespace RealTimeProject
                         throw new Exception();
                     }
                 }
-                NBConsole.WriteLine("updated state: " + simHistory.Last().state.ToString());
+                NBConsole.WriteLine("updated state: " + simHistory.Last().state.ToString() + "\n");
                 Draw(simHistory.Last().state);
             }
             else
