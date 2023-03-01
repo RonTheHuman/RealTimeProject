@@ -32,11 +32,24 @@
             this.GameLoopTimer = new System.Windows.Forms.Timer(this.components);
             this.Player1Label = new System.Windows.Forms.Label();
             this.Player2Label = new System.Windows.Forms.Label();
-            this.Attack1Label = new System.Windows.Forms.Label();
-            this.Attack2Label = new System.Windows.Forms.Label();
+            this.AttackLabel1 = new System.Windows.Forms.Label();
+            this.AttackLabel2 = new System.Windows.Forms.Label();
             this.ScoreLabel = new System.Windows.Forms.Label();
             this.TimeLabel = new System.Windows.Forms.Label();
             this.TimeTimer = new System.Windows.Forms.Timer(this.components);
+            this.FloorLabel = new System.Windows.Forms.Label();
+            this.AttackLabel3 = new System.Windows.Forms.Label();
+            this.AttackLabel4 = new System.Windows.Forms.Label();
+            this.BlockLabel1 = new System.Windows.Forms.Label();
+            this.BlockLabel2 = new System.Windows.Forms.Label();
+            this.BlockLabel3 = new System.Windows.Forms.Label();
+            this.BlockLabel4 = new System.Windows.Forms.Label();
+            this.Player3Label = new System.Windows.Forms.Label();
+            this.Player4Label = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // GameLoopTimer
@@ -47,7 +60,7 @@
             // Player1Label
             // 
             this.Player1Label.BackColor = System.Drawing.Color.MediumTurquoise;
-            this.Player1Label.Location = new System.Drawing.Point(50, 250);
+            this.Player1Label.Location = new System.Drawing.Point(220, 395);
             this.Player1Label.Name = "Player1Label";
             this.Player1Label.Size = new System.Drawing.Size(50, 50);
             this.Player1Label.TabIndex = 0;
@@ -58,46 +71,47 @@
             // 
             this.Player2Label.BackColor = System.Drawing.Color.Coral;
             this.Player2Label.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.Player2Label.Location = new System.Drawing.Point(660, 250);
+            this.Player2Label.Location = new System.Drawing.Point(591, 395);
             this.Player2Label.Name = "Player2Label";
             this.Player2Label.Size = new System.Drawing.Size(50, 50);
             this.Player2Label.TabIndex = 1;
             this.Player2Label.Text = "O";
             this.Player2Label.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // Attack1Label
+            // AttackLabel1
             // 
-            this.Attack1Label.BackColor = System.Drawing.Color.Teal;
-            this.Attack1Label.Location = new System.Drawing.Point(100, 268);
-            this.Attack1Label.Name = "Attack1Label";
-            this.Attack1Label.Size = new System.Drawing.Size(100, 14);
-            this.Attack1Label.TabIndex = 2;
-            this.Attack1Label.Visible = false;
+            this.AttackLabel1.BackColor = System.Drawing.Color.Teal;
+            this.AttackLabel1.Location = new System.Drawing.Point(12, 10);
+            this.AttackLabel1.Name = "AttackLabel1";
+            this.AttackLabel1.Size = new System.Drawing.Size(14, 14);
+            this.AttackLabel1.TabIndex = 2;
+            this.AttackLabel1.Visible = false;
             // 
-            // Attack2Label
+            // AttackLabel2
             // 
-            this.Attack2Label.BackColor = System.Drawing.Color.Brown;
-            this.Attack2Label.Location = new System.Drawing.Point(560, 268);
-            this.Attack2Label.Name = "Attack2Label";
-            this.Attack2Label.Size = new System.Drawing.Size(100, 14);
-            this.Attack2Label.TabIndex = 3;
-            this.Attack2Label.Visible = false;
+            this.AttackLabel2.BackColor = System.Drawing.Color.Brown;
+            this.AttackLabel2.Location = new System.Drawing.Point(32, 10);
+            this.AttackLabel2.Name = "AttackLabel2";
+            this.AttackLabel2.Size = new System.Drawing.Size(14, 14);
+            this.AttackLabel2.TabIndex = 3;
+            this.AttackLabel2.Visible = false;
             // 
             // ScoreLabel
             // 
-            this.ScoreLabel.AutoSize = true;
-            this.ScoreLabel.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.ScoreLabel.BackColor = System.Drawing.Color.DarkSeaGreen;
+            this.ScoreLabel.Font = new System.Drawing.Font("Segoe UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.ScoreLabel.ForeColor = System.Drawing.Color.Black;
-            this.ScoreLabel.Location = new System.Drawing.Point(334, 13);
+            this.ScoreLabel.Location = new System.Drawing.Point(256, 486);
             this.ScoreLabel.Name = "ScoreLabel";
-            this.ScoreLabel.Size = new System.Drawing.Size(97, 42);
+            this.ScoreLabel.Size = new System.Drawing.Size(428, 53);
             this.ScoreLabel.TabIndex = 4;
-            this.ScoreLabel.Text = "Blue score: 0\r\nRed score: 0";
+            this.ScoreLabel.Text = "Blue: 3 | Orange: 3 | Yellow: 3 | Purple: 3";
+            this.ScoreLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // TimeLabel
             // 
             this.TimeLabel.AutoSize = true;
-            this.TimeLabel.Location = new System.Drawing.Point(36, 40);
+            this.TimeLabel.Location = new System.Drawing.Point(435, 9);
             this.TimeLabel.Name = "TimeLabel";
             this.TimeLabel.Size = new System.Drawing.Size(36, 15);
             this.TimeLabel.TabIndex = 5;
@@ -109,17 +123,145 @@
             this.TimeTimer.Interval = 1;
             this.TimeTimer.Tick += new System.EventHandler(this.TimeTimer_Tick);
             // 
+            // FloorLabel
+            // 
+            this.FloorLabel.BackColor = System.Drawing.Color.DarkSeaGreen;
+            this.FloorLabel.Location = new System.Drawing.Point(0, 457);
+            this.FloorLabel.Name = "FloorLabel";
+            this.FloorLabel.Size = new System.Drawing.Size(1035, 108);
+            this.FloorLabel.TabIndex = 6;
+            // 
+            // AttackLabel3
+            // 
+            this.AttackLabel3.BackColor = System.Drawing.Color.DarkGoldenrod;
+            this.AttackLabel3.Location = new System.Drawing.Point(52, 10);
+            this.AttackLabel3.Name = "AttackLabel3";
+            this.AttackLabel3.Size = new System.Drawing.Size(14, 14);
+            this.AttackLabel3.TabIndex = 7;
+            this.AttackLabel3.Visible = false;
+            // 
+            // AttackLabel4
+            // 
+            this.AttackLabel4.BackColor = System.Drawing.Color.DarkSlateBlue;
+            this.AttackLabel4.Location = new System.Drawing.Point(72, 10);
+            this.AttackLabel4.Name = "AttackLabel4";
+            this.AttackLabel4.Size = new System.Drawing.Size(14, 14);
+            this.AttackLabel4.TabIndex = 8;
+            this.AttackLabel4.Visible = false;
+            // 
+            // BlockLabel1
+            // 
+            this.BlockLabel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
+            this.BlockLabel1.Location = new System.Drawing.Point(92, 10);
+            this.BlockLabel1.Name = "BlockLabel1";
+            this.BlockLabel1.Size = new System.Drawing.Size(11, 11);
+            this.BlockLabel1.TabIndex = 9;
+            this.BlockLabel1.Visible = false;
+            // 
+            // BlockLabel2
+            // 
+            this.BlockLabel2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
+            this.BlockLabel2.Location = new System.Drawing.Point(109, 10);
+            this.BlockLabel2.Name = "BlockLabel2";
+            this.BlockLabel2.Size = new System.Drawing.Size(11, 11);
+            this.BlockLabel2.TabIndex = 10;
+            this.BlockLabel2.Visible = false;
+            // 
+            // BlockLabel3
+            // 
+            this.BlockLabel3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
+            this.BlockLabel3.Location = new System.Drawing.Point(126, 10);
+            this.BlockLabel3.Name = "BlockLabel3";
+            this.BlockLabel3.Size = new System.Drawing.Size(11, 11);
+            this.BlockLabel3.TabIndex = 11;
+            this.BlockLabel3.Visible = false;
+            // 
+            // BlockLabel4
+            // 
+            this.BlockLabel4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
+            this.BlockLabel4.Location = new System.Drawing.Point(143, 10);
+            this.BlockLabel4.Name = "BlockLabel4";
+            this.BlockLabel4.Size = new System.Drawing.Size(11, 11);
+            this.BlockLabel4.TabIndex = 12;
+            this.BlockLabel4.Visible = false;
+            // 
+            // Player3Label
+            // 
+            this.Player3Label.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(90)))));
+            this.Player3Label.Location = new System.Drawing.Point(109, 395);
+            this.Player3Label.Name = "Player3Label";
+            this.Player3Label.Size = new System.Drawing.Size(50, 50);
+            this.Player3Label.TabIndex = 13;
+            this.Player3Label.Text = "O";
+            this.Player3Label.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // Player4Label
+            // 
+            this.Player4Label.BackColor = System.Drawing.Color.MediumPurple;
+            this.Player4Label.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.Player4Label.Location = new System.Drawing.Point(713, 395);
+            this.Player4Label.Name = "Player4Label";
+            this.Player4Label.Size = new System.Drawing.Size(50, 50);
+            this.Player4Label.TabIndex = 14;
+            this.Player4Label.Text = "O";
+            this.Player4Label.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // label1
+            // 
+            this.label1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(199)))), ((int)(((byte)(199)))), ((int)(((byte)(199)))));
+            this.label1.Location = new System.Drawing.Point(-51, -3);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(446, 299);
+            this.label1.TabIndex = 15;
+            // 
+            // label2
+            // 
+            this.label2.BackColor = System.Drawing.Color.White;
+            this.label2.Location = new System.Drawing.Point(220, 238);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(410, 276);
+            this.label2.TabIndex = 16;
+            // 
+            // label3
+            // 
+            this.label3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(210)))), ((int)(((byte)(210)))), ((int)(((byte)(210)))));
+            this.label3.Location = new System.Drawing.Point(592, 165);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(414, 321);
+            this.label3.TabIndex = 17;
+            // 
+            // label4
+            // 
+            this.label4.BackColor = System.Drawing.Color.White;
+            this.label4.Location = new System.Drawing.Point(664, -40);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(324, 272);
+            this.label4.TabIndex = 18;
+            // 
             // Graphics
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(784, 450);
-            this.Controls.Add(this.TimeLabel);
-            this.Controls.Add(this.ScoreLabel);
-            this.Controls.Add(this.Attack2Label);
-            this.Controls.Add(this.Attack1Label);
+            this.ClientSize = new System.Drawing.Size(970, 563);
+            this.Controls.Add(this.BlockLabel4);
+            this.Controls.Add(this.BlockLabel3);
+            this.Controls.Add(this.BlockLabel2);
+            this.Controls.Add(this.BlockLabel1);
+            this.Controls.Add(this.Player4Label);
             this.Controls.Add(this.Player2Label);
             this.Controls.Add(this.Player1Label);
+            this.Controls.Add(this.Player3Label);
+            this.Controls.Add(this.AttackLabel4);
+            this.Controls.Add(this.AttackLabel3);
+            this.Controls.Add(this.ScoreLabel);
+            this.Controls.Add(this.FloorLabel);
+            this.Controls.Add(this.TimeLabel);
+            this.Controls.Add(this.AttackLabel2);
+            this.Controls.Add(this.AttackLabel1);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.label4);
             this.Enabled = false;
             this.Name = "Graphics";
             this.Text = "Form1";
@@ -136,10 +278,23 @@
         private System.Windows.Forms.Timer GameLoopTimer;
         private Label Player1Label;
         private Label Player2Label;
-        private Label Attack1Label;
-        private Label Attack2Label;
+        private Label AttackLabel1;
+        private Label AttackLabel2;
         private Label ScoreLabel;
         private Label TimeLabel;
         private System.Windows.Forms.Timer TimeTimer;
+        private Label FloorLabel;
+        private Label AttackLabel3;
+        private Label AttackLabel4;
+        private Label BlockLabel1;
+        private Label BlockLabel2;
+        private Label BlockLabel3;
+        private Label BlockLabel4;
+        private Label Player3Label;
+        private Label Player4Label;
+        private Label label1;
+        private Label label2;
+        private Label label3;
+        private Label label4;
     }
 }

@@ -57,7 +57,7 @@ namespace RealTimeProject
         }
 
 
-        static void Rollback(string input, DateTime time, int player)
+        static void Rollback(Input input, DateTime time, int player)
         {
             for (int i = history.Count() - 1; i >= 0; i--)
             {
@@ -68,7 +68,7 @@ namespace RealTimeProject
                         for (int j = i; j < history.Count; j++)
                         {
                             history[j].inputs[player - 1] = input;
-                            history[j].state = GameState.NextState(history[j - 1].state, history[j].inputs, grid);
+                            history[j].state = GameState.NextState(history[j - 1].inputs, history[j].inputs, history[j - 1].state);
                         }
                     }
                     break;
@@ -77,7 +77,7 @@ namespace RealTimeProject
         }
 
 
-        static byte[] Serialize(byte[] timeStamp, Frame state, string[][] enemyInputs)
+        static byte[] Serialize(byte[] timeStamp, Frame state, Input[][] enemyInputs)
         {
             object[] sendData = new object[7 + pCount];
             sendData[0] = timeStamp;
@@ -104,11 +104,9 @@ namespace RealTimeProject
         {
             DateTime frameStart = DateTime.Now;
             curFNum++;
-
             NBConsole.WriteLine("Frame start " + frameStart.ToString("mm.ss.fff") + ", Frame num: " + curFNum);
 
             List<ClientPacket> packets = new List<ClientPacket>();
-            
             while (serverSock.Poll(1, SelectMode.SelectRead))
             {
                 byte[] buffer = new byte[bufferSize];
@@ -121,7 +119,7 @@ namespace RealTimeProject
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
             //now each packet has (in this order): pnum, right, left, block, attack, timestamp
 
-            string[] prevInputs = new string[pCount]; // add temp extrapolated state
+            Input[] prevInputs = new Input[pCount]; // add temp extrapolated state
             for (int i = 0; i < pCount; i++)
             {
                 if (prevInputs[i] == null)
@@ -130,11 +128,11 @@ namespace RealTimeProject
                 }
 
             }
-            history.Add(new Frame(frameStart, prevInputs, GameState.NextState(history.Last().state, prevInputs, grid)));
+            history.Add(new Frame(frameStart, prevInputs, GameState.NextState(prevInputs, prevInputs, history.Last().state)));
 
             int packetPlayer;
             DateTime packetTime;
-            string packetInput;
+            Input packetInput;
             if (compensateLag)
             {
                 for (int i = 0; i < packets.Count; i++) // apply inputs from packets, using lag compensation
@@ -156,7 +154,7 @@ namespace RealTimeProject
             }
             else
             {
-                string[] latestInputs = new string[pCount];
+                Input[] latestInputs = new Input[pCount];
                 prevInputs.CopyTo(latestInputs, 0);
                 for (int i = 0; i < packets.Count; i++)
                 {
@@ -173,7 +171,7 @@ namespace RealTimeProject
                     latestInputs[packetPlayer - 1] = packetInput;
                 }
                 history.Last().inputs = latestInputs;
-                history.Last().state = GameState.NextState(history[history.Count - 2].state, latestInputs, grid);
+                history.Last().state = GameState.NextState(history[history.Count - 3].inputs, latestInputs, history[history.Count - 2].state);
             }
 
             foreach (var ip in playerIPs.Keys) // send state to players
@@ -194,12 +192,12 @@ namespace RealTimeProject
                         }
                     }
                     NBConsole.WriteLine("sending player" + thisPlayer + " " + (history.Count - startI) + " enemy inputs to catch up");
-                    string[][] enemyInputs = new string[pCount - 1][];
+                    Input[][] enemyInputs = new Input[pCount - 1][];
                     for (int j = 0; j < pCount; j++)
                     {
                         if (j != thisPlayer - 1)
                         {
-                            string[] oneEnemyInput = new string[history.Count - startI];
+                            Input[] oneEnemyInput = new Input[history.Count - startI];
                             for (int i = startI; i < history.Count; i++)
                             {
                                 oneEnemyInput[i - startI] = history[i].inputs[j];
@@ -225,10 +223,10 @@ namespace RealTimeProject
             }
 
             //old history deletion, maybe needed?
-            if (history.Count >= 200)
-            {
-                history.RemoveRange(0, 100);
-            }
+            //if (history.Count >= 200)
+            //{
+            //    history.RemoveRange(0, 100);
+            //}
 
             //print history
             string printMsg = "History:\n";
@@ -271,9 +269,9 @@ namespace RealTimeProject
             }
 
             if (pCount == 1)
-                history.Add(new Frame(DateTime.MinValue, new string[] { "0000" }, GameState.InitialState(1)));
+                history.Add(new Frame(DateTime.MinValue, new Input[] { Input.None }, GameState.InitialState(1)));
             else if (pCount == 2)
-                history.Add(new Frame(DateTime.MinValue, new string[] { "0000", "0000" }, GameState.InitialState(2)));
+                history.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None }, GameState.InitialState(2)));
 
             gameStartTime = DateTime.Now;
             while (true)

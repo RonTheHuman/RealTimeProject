@@ -94,12 +94,12 @@ namespace RealTimeProject
                 Player1Label.TextAlign = ContentAlignment.MiddleRight;
                 if (state.attacks[0] == 1)
                 {
-                    Attack1Label.Visible = true;
-                    Attack1Label.Location = new Point(state.positions[0] + 50, Player1Label.Location.Y + 18);
+                    AttackLabel1.Visible = true;
+                    AttackLabel1.Location = new Point(state.positions[0] + 50, Player1Label.Location.Y + 18);
                 }
                 else
                 {
-                    Attack1Label.Visible = false;
+                    AttackLabel1.Visible = false;
                 }
             }
             else
@@ -107,12 +107,12 @@ namespace RealTimeProject
                 Player1Label.TextAlign = ContentAlignment.MiddleLeft;
                 if (state.attacks[0] == 1)
                 {
-                    Attack1Label.Visible = true;
-                    Attack1Label.Location = new Point(state.positions[0] - 100, Player1Label.Location.Y + 18);
+                    AttackLabel1.Visible = true;
+                    AttackLabel1.Location = new Point(state.positions[0] - 100, Player1Label.Location.Y + 18);
                 }
                 else
                 {
-                    Attack1Label.Visible = false;
+                    AttackLabel1.Visible = false;
                 }
             }
             string scoreText = "Blue score: " + state.points[0];
@@ -133,12 +133,12 @@ namespace RealTimeProject
                     Player2Label.TextAlign = ContentAlignment.MiddleRight;
                     if (state.attacks[1] == 1)
                     {
-                        Attack2Label.Visible = true;
-                        Attack2Label.Location = new Point(state.positions[1] + 50, Player2Label.Location.Y + 18);
+                        AttackLabel2.Visible = true;
+                        AttackLabel2.Location = new Point(state.positions[1] + 50, Player2Label.Location.Y + 18);
                     }
                     else
                     {
-                        Attack2Label.Visible = false;
+                        AttackLabel2.Visible = false;
                     }
                 }
                 else
@@ -146,12 +146,12 @@ namespace RealTimeProject
                     Player2Label.TextAlign = ContentAlignment.MiddleLeft;
                     if (state.attacks[1] == 1)
                     {
-                        Attack2Label.Visible = true;
-                        Attack2Label.Location = new Point(state.positions[1] - 100, Player2Label.Location.Y + 18);
+                        AttackLabel2.Visible = true;
+                        AttackLabel2.Location = new Point(state.positions[1] - 100, Player2Label.Location.Y + 18);
                     }
                     else
                     {
-                        Attack2Label.Visible = false;
+                        AttackLabel2.Visible = false;
                     }
                 }
             }
@@ -265,10 +265,10 @@ namespace RealTimeProject
             }
 
             //old history deletion, maybe needed?
-            if (simHistory.Count >= 200)
-            {
-                simHistory.RemoveRange(0, 100);
-            }
+            //if (simHistory.Count >= 200)
+            //{
+            //    simHistory.RemoveRange(0, 100);
+            //}
         }
 
         private void Graphics_KeyDown(object sender, KeyEventArgs e)
