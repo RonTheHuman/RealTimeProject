@@ -77,27 +77,27 @@ namespace RealTimeProject
         }
 
 
-        static byte[] Serialize(byte[] timeStamp, Frame state, Input[][] enemyInputs)
-        {
-            object[] sendData = new object[7 + pCount];
-            sendData[0] = timeStamp;
-            byte[] frameTime = new byte[8];
-            BinaryPrimitives.WriteInt64BigEndian(frameTime, state.StartTime.Ticks);
-            sendData[1] = frameTime;
-            sendData[2] = state.Inputs;
-            sendData[3] = state.State.positions;
-            sendData[4] = state.State.points;
-            sendData[5] = state.State.blockFrames;
-            sendData[6] = state.State.dirs;
-            sendData[7] = state.State.attacks;
-            for (int i = 0; i < pCount - 1; i++)
-            {
-                sendData[8 + i] = enemyInputs[i];
-            }
-            string jsonString = JsonSerializer.Serialize(sendData);
-            NBConsole.WriteLine(jsonString);
-            return Encoding.Latin1.GetBytes(jsonString);
-        }
+        //static byte[] Serialize(byte[] timeStamp, Frame state, Input[][] enemyInputs)
+        //{
+        //    object[] sendData = new object[7 + pCount];
+        //    sendData[0] = timeStamp;
+        //    byte[] frameTime = new byte[8];
+        //    BinaryPrimitives.WriteInt64BigEndian(frameTime, state.StartTime.Ticks);
+        //    sendData[1] = frameTime;
+        //    sendData[2] = state.Inputs;
+        //    sendData[3] = state.State.positions;
+        //    sendData[4] = state.State.points;
+        //    sendData[5] = state.State.blockFrames;
+        //    sendData[6] = state.State.dirs;
+        //    sendData[7] = state.State.attacks;
+        //    for (int i = 0; i < pCount - 1; i++)
+        //    {
+        //        sendData[8 + i] = enemyInputs[i];
+        //    }
+        //    string jsonString = JsonSerializer.Serialize(sendData);
+        //    NBConsole.WriteLine(jsonString);
+        //    return Encoding.Latin1.GetBytes(jsonString);
+        //}
 
 
         static TimeSpan GameLoop(DateTime st)
@@ -138,8 +138,8 @@ namespace RealTimeProject
                 for (int i = 0; i < packets.Count; i++) // apply inputs from packets, using lag compensation
                 {
                     packetPlayer = packets[i].player;
-                    packetInput = Encoding.Latin1.GetString(packets[i].data[..4]);
-                    packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].data[4..]));
+                    packetInput = (Input)packets[i].data[0];
+                    packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].data[1..]));
                     if (packetTime > playerLRS[packetPlayer - 1])
                     {
                         playerLRS[packetPlayer - 1] = packetTime;
@@ -159,8 +159,8 @@ namespace RealTimeProject
                 for (int i = 0; i < packets.Count; i++)
                 {
                     packetPlayer = packets[i].player;
-                    packetInput = Encoding.Latin1.GetString(packets[i].data[..4]);
-                    packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].data[4..]));
+                    packetInput = (Input)packets[i].data[0];
+                    packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].data[1..]));
                     playerLRS[packetPlayer - 1] = frameStart;
                     if (packetTime > playerLRS2[packetPlayer - 1])
                     {
@@ -179,8 +179,7 @@ namespace RealTimeProject
                 int thisPlayer = playerIPs[ip];
                 if (playerLRS[thisPlayer - 1] != DateTime.MinValue)
                 {
-                    byte[] timeStamp = new byte[8];
-                    BinaryPrimitives.WriteInt64BigEndian(timeStamp, DateTime.Now.Ticks);
+                    DateTime saveNow = DateTime.Now;
                     int startI = 1;
                     for (int i = history.Count - 1; i >= 0; i--)
                     {
@@ -218,7 +217,7 @@ namespace RealTimeProject
                         sendFrame = new Frame(sendFrame);
                         sendFrame.StartTime = playerLRS2[thisPlayer - 1];
                     }
-                    serverSock.SendTo(Serialize(timeStamp, sendFrame, enemyInputs), ip);
+                    serverSock.SendTo(ServerPacket.Serialize(saveNow, sendFrame, enemyInputs, pCount), ip);
                 }
             }
 

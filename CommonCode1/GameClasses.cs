@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Buffers.Binary;
 using System.Drawing;
+using System.Net.Sockets;
 
 namespace RealTimeProject
 {
@@ -248,7 +249,7 @@ namespace RealTimeProject
             equal = equal && Stocks == other.Stocks;
             return equal;
         }
-        
+
         public byte[] ToBytes()
         {
             byte[] bytes = new byte[25];
@@ -654,7 +655,7 @@ namespace RealTimeProject
             {
                 inputs[i] = (Input)bytes[8 + i];
             }
-            GameState state = GameState.FromBytes(bytes[(8+pCount)..], pCount);
+            GameState state = GameState.FromBytes(bytes[(8 + pCount)..], pCount);
             return new Frame(startTime, inputs, state);
         }
 
@@ -676,57 +677,69 @@ namespace RealTimeProject
 
     public class ServerPacket
     {
-        public DateTime timeStamp;
-        public Frame frame;
-        public string[][] enemyInputs;
+        public DateTime TimeStamp { get; set; }
+        public Frame Frame { get; set; }
+        public Input[][] EnemyInputs { get; set; }
 
-        public ServerPacket(DateTime timeStamp, Frame frame, string[][] enemyInputs)
+        public ServerPacket(DateTime timeStamp, Frame frame, Input[][] enemyInputs)
         {
-            this.timeStamp = timeStamp;
-            this.frame = frame;
-            this.enemyInputs = enemyInputs;
+            this.TimeStamp = timeStamp;
+            this.Frame = frame;
+            this.EnemyInputs = enemyInputs;
         }
 
-        public static ServerPacket Deserialize(byte[] packet)
+        public override string ToString()
         {
-            DateTime recvTimeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packet[..8]));
-            DateTime recvStartTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(recvData[1].Deserialize<byte[]>()));
-            string[] recvInputs = recvData[2].Deserialize<string[]>();
-            int[] recvPos = recvData[3].Deserialize<int[]>();
-            int[] recvPoints = recvData[4].Deserialize<int[]>();
-            int[] recvBFrames = recvData[5].Deserialize<int[]>();
-            char[] recvDirs = recvData[6].Deserialize<char[]>();
-            int[] recvAttacks = recvData[7].Deserialize<int[]>();
-            string[][] enemyInputs = new string[pCount - 1][];
+            string s = "";
+            s += "stamp: " + TimeStamp.ToString("mm.ss.fff") + ", ";
+            s += "frame: " + Frame.ToString() + ", ";
+            s += "inputs: [";
+            for (int i = 0; i < EnemyInputs.Length; i++)
+            {
+                s += "[";
+                for (int j = 0; j < EnemyInputs[i].Length; j++)
+                {
+                    s += "[" + EnemyInputs[i][j].ToString() + "]";
+                }
+                s += "], ";
+            }
+            s += "]";
+            return s;
+        }
+
+        public static byte[] Serialize(DateTime timeStamp, Frame frame, Input[][] enemyInputs, int pCount)
+        {
+            byte[] bytes = new byte[16 + 26 * pCount + enemyInputs[0].Length * pCount];
+            BinaryPrimitives.WriteInt64BigEndian(bytes, timeStamp.Ticks);
+            frame.ToBytes().CopyTo(bytes, 8);
+            int eIStartI = 26 * pCount + 16;
             for (int i = 0; i < pCount - 1; i++)
             {
-                enemyInputs[i] = recvData[8 + i].Deserialize<string[]>();
+                for (int j = 0; j < enemyInputs[i].Length; j++)
+                {
+                    bytes[eIStartI + i * enemyInputs[i].Length + j] = (byte)enemyInputs[i][j];
+                }
             }
-            return new ServerPacket(recvTimeStamp, new Frame(recvStartTime, recvInputs, new GameState(recvPos, recvPoints, recvBFrames, recvDirs, recvAttacks)), enemyInputs);
+            return bytes;
         }
 
-        static byte[] Serialize(byte[] timeStamp, Frame state, Input[][] enemyInputs)
+        public static ServerPacket Deserialize(byte[] packet, int pCount)
         {
-
-            byte[] sendData = new byte[25 * pCount];
-            object[] sendData = new object[7 + pCount];
-            sendData[0] = timeStamp;
-            byte[] frameTime = new byte[8];
-            BinaryPrimitives.WriteInt64BigEndian(frameTime, state.StartTime.Ticks);
-            sendData[1] = frameTime;
-            sendData[2] = state.Inputs;
-            sendData[3] = state.State.positions;
-            sendData[4] = state.State.points;
-            sendData[5] = state.State.blockFrames;
-            sendData[6] = state.State.dirs;
-            sendData[7] = state.State.attacks;
+            DateTime timeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packet[..8]));
+            Frame frame = Frame.FromBytes(packet[8..(26 * pCount + 8)], pCount);
+            Input[][] enemyInputs = new Input[pCount - 1][];
+            int eICount = (packet.Length - 16 - 26 * pCount) / (pCount - 1);
+            byte[] eIBytes = packet[(26 * pCount + 8)..];
             for (int i = 0; i < pCount - 1; i++)
             {
-                sendData[8 + i] = enemyInputs[i];
+                Input[] oneEnemyInput = new Input[eICount];
+                for (int j = 0; j < eICount; j++)
+                {
+                    enemyInputs[i][j] = (Input)eIBytes[i * eICount + j];
+                }
             }
-            string jsonString = JsonSerializer.Serialize(sendData);
-            NBConsole.WriteLine(jsonString);
-            return Encoding.Latin1.GetBytes(jsonString);
+            return new ServerPacket(timeStamp, frame, enemyInputs);
         }
+
     }
 }

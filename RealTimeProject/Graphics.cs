@@ -200,17 +200,17 @@ namespace RealTimeProject
                     bool foundFrame = false;
                     string latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
                     ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
-                    NBConsole.WriteLine("applying data from " + servPacket.timeStamp.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
+                    NBConsole.WriteLine("applying data from " + servPacket.TimeStamp.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
                     //client simulation and lagcomp on enemies
                     for (int i = simHistory.Count() - 1; i > 0; i--)
                     {
-                        if (simHistory[i - 1].StartTime <= servPacket.frame.StartTime)
+                        if (simHistory[i - 1].StartTime <= servPacket.Frame.StartTime)
                         {
                             foundFrame = true;
                             NBConsole.WriteLine("i: " + i + " history end: " + (simHistory.Count - 1) + ", " + (simHistory.Count - 1 - i));
                             if (pCount > 1)
-                                NBConsole.WriteLine(" server has " + servPacket.enemyInputs[0].Length);
-                            simHistory[i] = servPacket.frame;
+                                NBConsole.WriteLine(" server has " + servPacket.EnemyInputs[0].Length);
+                            simHistory[i] = servPacket.Frame;
                             for (int j = i + 1; j < simHistory.Count(); j++)
                             {
                                 string[] correctInputs = new string[pCount];
@@ -225,9 +225,9 @@ namespace RealTimeProject
                                         int offset = 0;
                                         if (k > thisPlayer - 1)
                                             offset = -1;
-                                        if (servPacket.enemyInputs[k + offset].Length > j - i - 1)
+                                        if (servPacket.EnemyInputs[k + offset].Length > j - i - 1)
                                         {
-                                            correctInputs[k] = servPacket.enemyInputs[k + offset][j - i - 1];
+                                            correctInputs[k] = servPacket.EnemyInputs[k + offset][j - i - 1];
                                             NBConsole.WriteLine(correctInputs[k]);
                                         }
                                         else
@@ -258,9 +258,9 @@ namespace RealTimeProject
                 {
                     string latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
                     ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
-                    NBConsole.WriteLine("applying data from " + servPacket.timeStamp.ToString("mm.ss.fff") + 
+                    NBConsole.WriteLine("applying data from " + servPacket.TimeStamp.ToString("mm.ss.fff") + 
                         " during frame that started at " + frameStart.ToString("mm.ss.fff"));
-                    Draw(servPacket.frame.State);
+                    Draw(servPacket.Frame.State);
                 }
             }
 
