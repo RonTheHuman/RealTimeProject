@@ -190,9 +190,9 @@ namespace RealTimeProject
             if (simulate)
             {
                 string[] simInputs = new string[pCount]; // create simulated frame
-                simHistory.Last().inputs.CopyTo(simInputs, 0);
+                simHistory.Last().Inputs.CopyTo(simInputs, 0);
                 simInputs[thisPlayer - 1] = curInput;
-                simHistory.Add(new Frame(frameStart, simInputs, GameState.NextState(simHistory.Last().state, simInputs, grid)));
+                simHistory.Add(new Frame(frameStart, simInputs, GameState.NextState(simHistory.Last().State, simInputs, grid)));
                 curFNum++;
 
                 if (packets.Count() > 0) // deserialize packets and apply to simulated history
@@ -204,7 +204,7 @@ namespace RealTimeProject
                     //client simulation and lagcomp on enemies
                     for (int i = simHistory.Count() - 1; i > 0; i--)
                     {
-                        if (simHistory[i - 1].startTime <= servPacket.frame.startTime)
+                        if (simHistory[i - 1].StartTime <= servPacket.frame.StartTime)
                         {
                             foundFrame = true;
                             NBConsole.WriteLine("i: " + i + " history end: " + (simHistory.Count - 1) + ", " + (simHistory.Count - 1 - i));
@@ -218,7 +218,7 @@ namespace RealTimeProject
                                 {
                                     if (k == thisPlayer - 1)
                                     {
-                                        correctInputs[k] = simHistory[j].inputs[k];
+                                        correctInputs[k] = simHistory[j].Inputs[k];
                                     }
                                     else
                                     {
@@ -232,13 +232,13 @@ namespace RealTimeProject
                                         }
                                         else
                                         {
-                                            correctInputs[k] = simHistory[j - 1].inputs[k];
+                                            correctInputs[k] = simHistory[j - 1].Inputs[k];
                                             NBConsole.WriteLine(correctInputs[k]);
                                         }
                                     }
                                 }
-                                simHistory[j].state = GameState.NextState(simHistory[j - 1].state, correctInputs, false);
-                                simHistory[j].inputs = correctInputs;
+                                simHistory[j].State = GameState.NextState(simHistory[j - 1].State, correctInputs, false);
+                                simHistory[j].Inputs = correctInputs;
                             }
                             break;
                         }
@@ -249,8 +249,8 @@ namespace RealTimeProject
                         throw new Exception();
                     }
                 }
-                NBConsole.WriteLine("updated state: " + simHistory.Last().state.ToString() + "\n");
-                Draw(simHistory.Last().state);
+                NBConsole.WriteLine("updated state: " + simHistory.Last().State.ToString() + "\n");
+                Draw(simHistory.Last().State);
             }
             else
             {
@@ -260,7 +260,7 @@ namespace RealTimeProject
                     ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
                     NBConsole.WriteLine("applying data from " + servPacket.timeStamp.ToString("mm.ss.fff") + 
                         " during frame that started at " + frameStart.ToString("mm.ss.fff"));
-                    Draw(servPacket.frame.state);
+                    Draw(servPacket.frame.State);
                 }
             }
 

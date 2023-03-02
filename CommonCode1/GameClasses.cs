@@ -257,13 +257,14 @@ namespace RealTimeProject
             tempB = Vel.ToBytes();
             tempB.CopyTo(bytes, 8);
             if (FacingLeft)
-                bytes[16] = 0x00;
-            else
                 bytes[16] = 0x01;
+            else
+                bytes[16] = 0x00;
             bytes[17] = BFrame;
             bytes[18] = (byte)AttackName;
             tempB = new byte[2];
             BinaryPrimitives.WriteUInt16BigEndian(tempB, AttackFrame);
+            tempB.CopyTo(bytes, 19);
             bytes[21] = StunFrame;
             bytes[22] = KBPercent;
             bytes[23] = Jumps;
@@ -320,6 +321,26 @@ namespace RealTimeProject
                 pStates[i] = new PlayerState(other.PStates[i]);
             }
             PStates = pStates;
+        }
+
+        public byte[] ToBytes()
+        {
+            byte[] bytes = new byte[25 * PStates.Length];
+            for (int i = 0; i < PStates.Length; i++)
+            {
+                PStates[i].ToBytes().CopyTo(bytes, i * 25);
+            }
+            return bytes;
+        }
+
+        public static GameState FromBytes(byte[] bytes, int pCount)
+        {
+            PlayerState[] pStates = new PlayerState[pCount];
+            for (int i = 0; i < pCount; i++)
+            {
+                pStates[i] = PlayerState.FromBytes(bytes[(i * 25)..((i + 1) * 25)]);
+            }
+            return new GameState(pStates);
         }
 
         public override string ToString()
@@ -580,51 +601,75 @@ namespace RealTimeProject
 
     public class Frame
     {
-        public DateTime startTime;
-        public Input[] inputs;
-        public GameState state;
+        public DateTime StartTime { get; set; }
+        public Input[] Inputs { get; set; }
+        public GameState State { get; set; }
 
         public Frame(DateTime startTime, Input[] inputs, GameState state)
         {
-            this.startTime = startTime;
-            this.inputs = inputs;
-            this.state = state;
+            this.StartTime = startTime;
+            this.Inputs = inputs;
+            this.State = state;
         }
 
 
         public Frame(Frame other)
         {
-            startTime = other.startTime;
-            inputs = new Input[other.inputs.Length];
-            other.inputs.CopyTo(inputs, 0);
-            state = new GameState(other.state);
+            StartTime = other.StartTime;
+            Inputs = new Input[other.Inputs.Length];
+            other.Inputs.CopyTo(Inputs, 0);
+            State = new GameState(other.State);
         }
 
 
         public bool IsEqual(Frame other)
         {
             bool equal = true;
-            equal = equal && Enumerable.SequenceEqual(inputs, other.inputs);
-            for (int i = 0; i < state.PStates.Length; i++)
+            equal = equal && Enumerable.SequenceEqual(Inputs, other.Inputs);
+            for (int i = 0; i < State.PStates.Length; i++)
             {
-                equal = equal && state.PStates[i].IsEqual(other.state.PStates[i]);
+                equal = equal && State.PStates[i].IsEqual(other.State.PStates[i]);
             }
             return equal;
         }
 
+        public byte[] ToBytes()
+        {
+            byte[] bytes = new byte[26 * State.PStates.Length + 8];
+            BinaryPrimitives.WriteInt64BigEndian(bytes, StartTime.Ticks);
+            for (int i = 0; i < Inputs.Length; i++)
+            {
+                bytes[8 + i] = (byte)Inputs[i];
+            }
+            byte[] gsBytes = State.ToBytes();
+            gsBytes.CopyTo(bytes, 8 + Inputs.Length);
+            return bytes;
+        }
+
+        public static Frame FromBytes(byte[] bytes, int pCount)
+        {
+            DateTime startTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(bytes));
+            Input[] inputs = new Input[pCount];
+            for (int i = 0; i < pCount; i++)
+            {
+                inputs[i] = (Input)bytes[8 + i];
+            }
+            GameState state = GameState.FromBytes(bytes[(8+pCount)..], pCount);
+            return new Frame(startTime, inputs, state);
+        }
 
         public override string ToString()
         {
             string s = "";
-            s += "time: " + startTime.ToString("mm.ss.fff") + ", ";
+            s += "time: " + StartTime.ToString("mm.ss.fff") + ", ";
             s += "inputs: [";
-            foreach (Input input in inputs)
+            foreach (Input input in Inputs)
             {
                 s += input + ", ";
             }
             s = s.Remove(s.Length - 2);
             s += "], ";
-            s += "state: " + state.ToString();
+            s += "state: " + State.ToString();
             return s;
         }
     }
@@ -642,10 +687,9 @@ namespace RealTimeProject
             this.enemyInputs = enemyInputs;
         }
 
-        public static ServerPacket Deserialize(string packet, int pCount)
+        public static ServerPacket Deserialize(byte[] packet)
         {
-            JsonElement[] recvData = JsonSerializer.Deserialize<JsonElement[]>(packet);
-            DateTime recvTimeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(recvData[0].Deserialize<byte[]>()));
+            DateTime recvTimeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packet[..8]));
             DateTime recvStartTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(recvData[1].Deserialize<byte[]>()));
             string[] recvInputs = recvData[2].Deserialize<string[]>();
             int[] recvPos = recvData[3].Deserialize<int[]>();
@@ -668,14 +712,14 @@ namespace RealTimeProject
             object[] sendData = new object[7 + pCount];
             sendData[0] = timeStamp;
             byte[] frameTime = new byte[8];
-            BinaryPrimitives.WriteInt64BigEndian(frameTime, state.startTime.Ticks);
+            BinaryPrimitives.WriteInt64BigEndian(frameTime, state.StartTime.Ticks);
             sendData[1] = frameTime;
-            sendData[2] = state.inputs;
-            sendData[3] = state.state.positions;
-            sendData[4] = state.state.points;
-            sendData[5] = state.state.blockFrames;
-            sendData[6] = state.state.dirs;
-            sendData[7] = state.state.attacks;
+            sendData[2] = state.Inputs;
+            sendData[3] = state.State.positions;
+            sendData[4] = state.State.points;
+            sendData[5] = state.State.blockFrames;
+            sendData[6] = state.State.dirs;
+            sendData[7] = state.State.attacks;
             for (int i = 0; i < pCount - 1; i++)
             {
                 sendData[8 + i] = enemyInputs[i];

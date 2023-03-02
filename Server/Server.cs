@@ -61,14 +61,14 @@ namespace RealTimeProject
         {
             for (int i = history.Count() - 1; i >= 0; i--)
             {
-                if (history[i].startTime < time)
+                if (history[i].StartTime < time)
                 {
-                    if (history[i].inputs[player - 1] != input)
+                    if (history[i].Inputs[player - 1] != input)
                     {
                         for (int j = i; j < history.Count; j++)
                         {
-                            history[j].inputs[player - 1] = input;
-                            history[j].state = GameState.NextState(history[j - 1].inputs, history[j].inputs, history[j - 1].state);
+                            history[j].Inputs[player - 1] = input;
+                            history[j].State = GameState.NextState(history[j - 1].Inputs, history[j].Inputs, history[j - 1].State);
                         }
                     }
                     break;
@@ -82,14 +82,14 @@ namespace RealTimeProject
             object[] sendData = new object[7 + pCount];
             sendData[0] = timeStamp;
             byte[] frameTime = new byte[8];
-            BinaryPrimitives.WriteInt64BigEndian(frameTime, state.startTime.Ticks);
+            BinaryPrimitives.WriteInt64BigEndian(frameTime, state.StartTime.Ticks);
             sendData[1] = frameTime;
-            sendData[2] = state.inputs;
-            sendData[3] = state.state.positions;
-            sendData[4] = state.state.points;
-            sendData[5] = state.state.blockFrames;
-            sendData[6] = state.state.dirs;
-            sendData[7] = state.state.attacks;
+            sendData[2] = state.Inputs;
+            sendData[3] = state.State.positions;
+            sendData[4] = state.State.points;
+            sendData[5] = state.State.blockFrames;
+            sendData[6] = state.State.dirs;
+            sendData[7] = state.State.attacks;
             for (int i = 0; i < pCount - 1; i++)
             {
                 sendData[8 + i] = enemyInputs[i];
@@ -124,11 +124,11 @@ namespace RealTimeProject
             {
                 if (prevInputs[i] == null)
                 {
-                    prevInputs[i] = history.Last().inputs[i];
+                    prevInputs[i] = history.Last().Inputs[i];
                 }
 
             }
-            history.Add(new Frame(frameStart, prevInputs, GameState.NextState(prevInputs, prevInputs, history.Last().state)));
+            history.Add(new Frame(frameStart, prevInputs, GameState.NextState(prevInputs, prevInputs, history.Last().State)));
 
             int packetPlayer;
             DateTime packetTime;
@@ -170,8 +170,8 @@ namespace RealTimeProject
 
                     latestInputs[packetPlayer - 1] = packetInput;
                 }
-                history.Last().inputs = latestInputs;
-                history.Last().state = GameState.NextState(history[history.Count - 3].inputs, latestInputs, history[history.Count - 2].state);
+                history.Last().Inputs = latestInputs;
+                history.Last().State = GameState.NextState(history[history.Count - 3].Inputs, latestInputs, history[history.Count - 2].State);
             }
 
             foreach (var ip in playerIPs.Keys) // send state to players
@@ -185,7 +185,7 @@ namespace RealTimeProject
                     for (int i = history.Count - 1; i >= 0; i--)
                     {
                         //NBConsole.WriteLine("Checking whether player " + thisPlayer + " last stamp  " + playerLRS[thisPlayer - 1].ToString("mm.ss.fff") + " was in frame " + history[i].startTime.ToString("mm.ss.fff"));
-                        if (history[i].startTime <= playerLRS[thisPlayer - 1])
+                        if (history[i].StartTime <= playerLRS[thisPlayer - 1])
                         {
                              startI = i + 1;
                              break;
@@ -200,7 +200,7 @@ namespace RealTimeProject
                             Input[] oneEnemyInput = new Input[history.Count - startI];
                             for (int i = startI; i < history.Count; i++)
                             {
-                                oneEnemyInput[i - startI] = history[i].inputs[j];
+                                oneEnemyInput[i - startI] = history[i].Inputs[j];
                             }
                             if (j < thisPlayer)
                             {
@@ -216,7 +216,7 @@ namespace RealTimeProject
                     if (!compensateLag)
                     {
                         sendFrame = new Frame(sendFrame);
-                        sendFrame.startTime = playerLRS2[thisPlayer - 1];
+                        sendFrame.StartTime = playerLRS2[thisPlayer - 1];
                     }
                     serverSock.SendTo(Serialize(timeStamp, sendFrame, enemyInputs), ip);
                 }
