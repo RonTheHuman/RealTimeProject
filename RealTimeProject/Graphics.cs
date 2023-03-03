@@ -10,10 +10,12 @@ namespace RealTimeProject
 {
     public partial class Graphics : Form
     {
-        int right = 0, left = 0, block = 0, attack = 0, thisPlayer;
-        int curFNum = 1, recvFNum = 0, frameMS = 15, pCount = 2;
-        static int blockCooldown = 0, blockDuration = 40;
-        bool grid = false, simulate = true;
+        int curFNum = 1, recvFNum = 0, frameMS = 15, thisPlayer, pCount;
+        bool simulate = true;
+        Color[] playerColors = new Color[4] { Color.MediumTurquoise, Color.Coral, Color.FromArgb(255, 255, 90), Color.MediumPurple };
+
+        Input curInput = new Input(), prevInput;
+        Label[] playerLabels, blockLabels, attackLabels;
         static List<Frame> simHistory = new List<Frame>();
         Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
         EndPoint serverEP;
@@ -43,8 +45,11 @@ namespace RealTimeProject
         public Graphics()
         {
             InitializeComponent();
+            InitializeConnection();
+            InitializeGame();
         }
-        private void Graphics_Load(object sender, EventArgs e)
+
+        private void InitializeConnection()
         {
             IPAddress autoAdress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[1];
             string[] adresses = new string[3] { "172.16.2.167", "10.100.102.20", "192.168.68.112" };
@@ -62,12 +67,10 @@ namespace RealTimeProject
             NBConsole.WriteLine("Waiting server reply");
             EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
             clientSock.ReceiveFrom(buffer, ref recieveEP);
-            thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0'));
+            thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0')[0] + "");
+            pCount = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0')[1] + "");
             NBConsole.WriteLine("You are player " + thisPlayer);
-            if (pCount == 1)
-                simHistory.Add(new Frame(DateTime.MinValue, new string[] { "0000" }, GameState.InitialState(1)));
-            else if (pCount == 2)
-                simHistory.Add(new Frame(DateTime.MinValue, new string[] { "0000", "0000" }, GameState.InitialState(2)));
+            
             GameLoopTimer.Interval = frameMS;
             Thread.Sleep(200);
             GameLoopTimer.Enabled = true;
@@ -78,109 +81,153 @@ namespace RealTimeProject
                 Text = "Not Simulating";
         }
 
+        private void InitializeGame()
+        {
+            GameVariables.Bounds = new Rectangle(Bounds.X - 50, Bounds.Y - 50, Bounds.Width + 100, Bounds.Height + 100);
+            GameVariables.Gravity = 0.8f;
+            GameVariables.FloorY = FloorLabel.Location.Y;
+
+            playerLabels = new Label[pCount];
+            attackLabels = new Label[pCount];
+            blockLabels = new Label[pCount];
+            playerLabels[0] = Player1Label;
+            attackLabels[0] = AttackLabel1;
+            blockLabels[0] = BlockLabel1;
+            if (pCount >= 2)
+            {
+                Player2Label.Visible = true;
+                playerLabels[1] = Player2Label;
+                attackLabels[1] = AttackLabel2;
+                blockLabels[1] = BlockLabel2;
+            }
+            if (pCount >= 3)
+            {
+                Player3Label.Visible = true;
+                playerLabels[2] = Player3Label;
+                attackLabels[2] = AttackLabel3;
+                blockLabels[2] = BlockLabel3;
+            }
+            if (pCount >= 4)
+            {
+                Player4Label.Visible = true;
+                playerLabels[3] = Player4Label;
+                attackLabels[3] = AttackLabel4;
+                blockLabels[3] = BlockLabel4;
+            }
+            if (pCount == 1)
+                simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None }, GameState.InitialState(1)));
+            else if (pCount == 2)
+                simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None }, GameState.InitialState(2)));
+        }
+
         private void Draw(GameState state)
         {
-            Player1Label.Location = new Point(state.positions[0], Player1Label.Location.Y);
-            if (state.blockFrames[0] > 0)
+            string ScoreText = "";
+            for (int i = 0; i < pCount; i++)
             {
-                Player1Label.BackColor = Color.Gray;
-            }
-            else
-            {
-                Player1Label.BackColor = Color.MediumTurquoise;
-            }
-            if (state.dirs[0] == 'r')
-            {
-                Player1Label.TextAlign = ContentAlignment.MiddleRight;
-                if (state.attacks[0] == 1)
+                PlayerState playerI = state.PStates[i];
+                if (i == 0)
+                    ScoreText += "Blue: " + playerI.Stocks + " | ";
+                else if (i == 1)
+                    ScoreText += "Orange: " + playerI.Stocks + " | ";
+                else if (i == 2)
+                    ScoreText += "Yellow: " + playerI.Stocks + " | ";
+                else if (i == 3)
+                    ScoreText += "Purple: " + playerI.Stocks;
+                if (playerI.Stocks > 0)
                 {
-                    AttackLabel1.Visible = true;
-                    AttackLabel1.Location = new Point(state.positions[0] + 50, Player1Label.Location.Y + 18);
-                }
-                else
-                {
-                    AttackLabel1.Visible = false;
-                }
-            }
-            else
-            {
-                Player1Label.TextAlign = ContentAlignment.MiddleLeft;
-                if (state.attacks[0] == 1)
-                {
-                    AttackLabel1.Visible = true;
-                    AttackLabel1.Location = new Point(state.positions[0] - 100, Player1Label.Location.Y + 18);
-                }
-                else
-                {
-                    AttackLabel1.Visible = false;
-                }
-            }
-            string scoreText = "Blue score: " + state.points[0];
-            if (pCount == 2)
-            {
-                Player2Label.Location = new Point(state.positions[1], Player2Label.Location.Y);
-                scoreText += "\nRed score: " + state.points[1];
-                if (state.blockFrames[1] > 0)
-                {
-                    Player2Label.BackColor = Color.Gray;
-                }
-                else
-                {
-                    Player2Label.BackColor = Color.Coral;
-                }
-                if (state.dirs[1] == 'r')
-                {
-                    Player2Label.TextAlign = ContentAlignment.MiddleRight;
-                    if (state.attacks[1] == 1)
+                    playerLabels[i].BackColor = playerColors[i];
+                    playerLabels[i].BorderStyle = BorderStyle.None;
+                    Point intPos = playerI.Pos.ToPoint();
+                    playerLabels[i].Location = intPos;
+                    if (playerI.FacingLeft)
+                        playerLabels[i].TextAlign = ContentAlignment.MiddleLeft;
+                    else
+                        playerLabels[i].TextAlign = ContentAlignment.MiddleRight;
+
+                    if (playerI.AttackFrame > 0)
                     {
-                        AttackLabel2.Visible = true;
-                        AttackLabel2.Location = new Point(state.positions[1] + 50, Player2Label.Location.Y + 18);
+                        Attack attack = GameVariables.AttackDict[playerI.AttackName];
+                        AnimHitbox[] anim = attack.Animation;
+                        AnimHitbox ah = new AnimHitbox();
+                        if (playerI.AttackFrame > attack.StartupF && playerI.AttackFrame < attack.StartupF + anim.Last().endF)
+                        {
+                            for (int j = 0; j < anim.Length; j++)
+                            {
+                                if (playerI.AttackFrame - attack.StartupF < anim[j].endF)
+                                {
+                                    ah = anim[j];
+                                    break;
+                                }
+                            }
+                            if (!playerI.FacingLeft)
+                            {
+                                attackLabels[i].Location = new Point(intPos.X + 25 + (int)ah.hitbox.X, intPos.Y + 25 + (int)ah.hitbox.Y);
+                            }
+                            else
+                            {
+                                attackLabels[i].Location = new Point(intPos.X + 25 - (int)ah.hitbox.X - (int)ah.hitbox.Width, intPos.Y + 25 + (int)ah.hitbox.Y);
+                            }
+                            attackLabels[i].Size = ah.hitbox.Size.ToSize();
+                            attackLabels[i].Visible = true;
+                        }
+                        else
+                        {
+                            attackLabels[i].Visible = false;
+                        }
+                        playerLabels[i].BackColor = Color.FromArgb(playerLabels[i].BackColor.R - 50, playerLabels[i].BackColor.G - 50, playerLabels[i].BackColor.B - 50);
                     }
                     else
                     {
-                        AttackLabel2.Visible = false;
+                        attackLabels[i].Visible = false;
                     }
+                    if (playerI.BFrame == 0)
+                    {
+                        blockLabels[i].Location = new Point(intPos.X + 19, intPos.Y - 11 - 7);
+                        blockLabels[i].Visible = true;
+                    }
+                    else if (playerI.BFrame < GameVariables.BlockDur)
+                    {
+                        playerLabels[i].BackColor = Color.Gray;
+                        blockLabels[i].Visible = false;
+                    }
+                    if (playerI.StunFrame > 0)
+                    {
+                        playerLabels[i].BackColor = Color.Honeydew;
+                        playerLabels[i].BorderStyle = BorderStyle.FixedSingle;
+                    }
+                    playerLabels[i].Text = playerI.KBPercent + "";
                 }
                 else
                 {
-                    Player2Label.TextAlign = ContentAlignment.MiddleLeft;
-                    if (state.attacks[1] == 1)
-                    {
-                        AttackLabel2.Visible = true;
-                        AttackLabel2.Location = new Point(state.positions[1] - 100, Player2Label.Location.Y + 18);
-                    }
-                    else
-                    {
-                        AttackLabel2.Visible = false;
-                    }
+                    playerLabels[i].Visible = false;
+                    attackLabels[i].Visible = false;
+                    blockLabels[i].Visible = false;
                 }
             }
-            ScoreLabel.Text = scoreText;
+            ScoreLabel.Text = ScoreText;
         }
+
 
         private void GameLoopTimer_Tick(object sender, EventArgs e)
         {
-            string curInput = "" + right + left + block + attack; // prepare message
             NBConsole.WriteLine("Current input: [" + curInput + "]" + " current frame num: " + curFNum);
             DateTime frameStart = DateTime.Now;
-            byte[] inputBytes = Encoding.Latin1.GetBytes(curInput);
             byte[] timeStamp = new byte[8];
             BinaryPrimitives.WriteInt64BigEndian(timeStamp, frameStart.Ticks);
-            byte[] sendData = new byte[8 + 4];
-            inputBytes.CopyTo(sendData, 0);
-            timeStamp.CopyTo(sendData, 4);
+            byte[] sendData = new byte[8 + 1];
+            sendData[0] = (byte)curInput;
+            timeStamp.CopyTo(sendData, 1);
             clientSock.SendToAsync(sendData, SocketFlags.None, serverEP);
             //NBConsole.WriteLine(inputBytes.Length + " | " + Convert.ToHexString(inputBytes) + " | " + Convert.ToHexString(timeStamp) + ", " + new DateTime(BinaryPrimitives.ReadInt64BigEndian(timeStamp)).ToString("mm.ss.fff") + " | " + Convert.ToHexString(sendData));
 
             //NBConsole.WriteLine("Getting packets from server");
-            List<string> packets = new List<string>(); // get packets from server
+            List<byte[]> packets = new List<byte[]>(); // get packets from server
             while (clientSock.Poll(1, SelectMode.SelectRead))
             {
                 byte[] buffer = new byte[1024];
                 EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
-
-                clientSock.ReceiveFrom(buffer, ref recieveEP);
-                packets.Add(Encoding.Latin1.GetString(buffer).TrimEnd('\0'));
+                packets.Add(buffer[clientSock.ReceiveFrom(buffer, ref recieveEP)..]);
                 NBConsole.WriteLine("Recieved " + packets.Last());
             }
             if (packets.Count == 0) { NBConsole.WriteLine("no server data recieved"); }
@@ -189,16 +236,16 @@ namespace RealTimeProject
 
             if (simulate)
             {
-                string[] simInputs = new string[pCount]; // create simulated frame
+                Input[] simInputs = new Input[pCount]; // create simulated frame
                 simHistory.Last().Inputs.CopyTo(simInputs, 0);
                 simInputs[thisPlayer - 1] = curInput;
-                simHistory.Add(new Frame(frameStart, simInputs, GameState.NextState(simHistory.Last().State, simInputs, grid)));
+                simHistory.Add(new Frame(frameStart, simInputs, GameState.NextState(simHistory.Last().Inputs, simInputs, simHistory.Last().State)));
                 curFNum++;
 
                 if (packets.Count() > 0) // deserialize packets and apply to simulated history
                 {
                     bool foundFrame = false;
-                    string latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
+                    byte[] latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
                     ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
                     NBConsole.WriteLine("applying data from " + servPacket.TimeStamp.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
                     //client simulation and lagcomp on enemies
@@ -213,7 +260,7 @@ namespace RealTimeProject
                             simHistory[i] = servPacket.Frame;
                             for (int j = i + 1; j < simHistory.Count(); j++)
                             {
-                                string[] correctInputs = new string[pCount];
+                                Input[] correctInputs = new Input[pCount];
                                 for (int k = 0; k < pCount; k++)
                                 {
                                     if (k == thisPlayer - 1)
@@ -228,16 +275,16 @@ namespace RealTimeProject
                                         if (servPacket.EnemyInputs[k + offset].Length > j - i - 1)
                                         {
                                             correctInputs[k] = servPacket.EnemyInputs[k + offset][j - i - 1];
-                                            NBConsole.WriteLine(correctInputs[k]);
+                                            NBConsole.WriteLine(correctInputs[k].ToString());
                                         }
                                         else
                                         {
                                             correctInputs[k] = simHistory[j - 1].Inputs[k];
-                                            NBConsole.WriteLine(correctInputs[k]);
+                                            NBConsole.WriteLine(correctInputs[k].ToString());
                                         }
                                     }
                                 }
-                                simHistory[j].State = GameState.NextState(simHistory[j - 1].State, correctInputs, false);
+                                simHistory[j].State = GameState.NextState(simHistory[j - 1].Inputs, correctInputs, simHistory[j - 1].State);
                                 simHistory[j].Inputs = correctInputs;
                             }
                             break;
@@ -256,7 +303,7 @@ namespace RealTimeProject
             {
                 if (packets.Count() > 0) // deserialize packets and apply to simulated history
                 {
-                    string latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
+                    byte[] latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
                     ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
                     NBConsole.WriteLine("applying data from " + servPacket.TimeStamp.ToString("mm.ss.fff") + 
                         " during frame that started at " + frameStart.ToString("mm.ss.fff"));
@@ -270,22 +317,30 @@ namespace RealTimeProject
             //    simHistory.RemoveRange(0, 100);
             //}
         }
-
         private void Graphics_KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
             {
-                case Keys.Right:
-                    right = 1;
+                case Keys.D:
+                    curInput |= Input.Right;
                     break;
-                case Keys.Left:
-                    left = 1;
+                case Keys.A:
+                    curInput |= Input.Left;
                     break;
-                case Keys.Z:
-                    block = 1;
+                case Keys.W:
+                    curInput |= Input.Up;
                     break;
-                case Keys.X:
-                    attack = 1;
+                case Keys.Space:
+                    curInput |= Input.Jump;
+                    break;
+                case Keys.F:
+                    curInput |= Input.Block;
+                    break;
+                case Keys.G:
+                    curInput |= Input.LAttack;
+                    break;
+                case Keys.H:
+                    curInput |= Input.HAttack;
                     break;
                 case Keys.S:
                     simulate = !simulate;
@@ -301,17 +356,26 @@ namespace RealTimeProject
         {
             switch (e.KeyCode)
             {
-                case Keys.Right:
-                    right = 0;
+                case Keys.D:
+                    curInput &= ~Input.Right;
                     break;
-                case Keys.Left:
-                    left = 0;
+                case Keys.A:
+                    curInput &= ~Input.Left;
                     break;
-                case Keys.Z:
-                    block = 0;
+                case Keys.W:
+                    curInput &= ~Input.Up;
                     break;
-                case Keys.X:
-                    attack = 0;
+                case Keys.Space:
+                    curInput &= ~Input.Jump;
+                    break;
+                case Keys.F:
+                    curInput &= ~Input.Block;
+                    break;
+                case Keys.G:
+                    curInput &= ~Input.LAttack;
+                    break;
+                case Keys.H:
+                    curInput &= ~Input.HAttack;
                     break;
             }
         }

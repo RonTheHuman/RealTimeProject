@@ -10,7 +10,7 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        static int bufferSize = 1024, pCount = 2;
+        static int bufferSize = 1024, pCount = 1;
         static bool grid = false, compensateLag = true;
 
         static DateTime gameStartTime;
@@ -75,30 +75,6 @@ namespace RealTimeProject
                 }
             }
         }
-
-
-        //static byte[] Serialize(byte[] timeStamp, Frame state, Input[][] enemyInputs)
-        //{
-        //    object[] sendData = new object[7 + pCount];
-        //    sendData[0] = timeStamp;
-        //    byte[] frameTime = new byte[8];
-        //    BinaryPrimitives.WriteInt64BigEndian(frameTime, state.StartTime.Ticks);
-        //    sendData[1] = frameTime;
-        //    sendData[2] = state.Inputs;
-        //    sendData[3] = state.State.positions;
-        //    sendData[4] = state.State.points;
-        //    sendData[5] = state.State.blockFrames;
-        //    sendData[6] = state.State.dirs;
-        //    sendData[7] = state.State.attacks;
-        //    for (int i = 0; i < pCount - 1; i++)
-        //    {
-        //        sendData[8 + i] = enemyInputs[i];
-        //    }
-        //    string jsonString = JsonSerializer.Serialize(sendData);
-        //    NBConsole.WriteLine(jsonString);
-        //    return Encoding.Latin1.GetBytes(jsonString);
-        //}
-
 
         static TimeSpan GameLoop(DateTime st)
         {
@@ -264,7 +240,7 @@ namespace RealTimeProject
 
             foreach (var ip in playerIPs.Keys)
             {
-                serverSock.SendTo(Encoding.Latin1.GetBytes(playerIPs[ip].ToString()), ip);
+                serverSock.SendTo(Encoding.Latin1.GetBytes(playerIPs[ip].ToString() + pCount.ToString()), ip);
             }
 
             if (pCount == 1)

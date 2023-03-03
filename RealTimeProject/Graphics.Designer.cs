@@ -77,6 +77,7 @@
             this.Player2Label.TabIndex = 1;
             this.Player2Label.Text = "O";
             this.Player2Label.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.Player2Label.Visible = false;
             // 
             // AttackLabel1
             // 
@@ -194,6 +195,7 @@
             this.Player3Label.TabIndex = 13;
             this.Player3Label.Text = "O";
             this.Player3Label.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.Player3Label.Visible = false;
             // 
             // Player4Label
             // 
@@ -205,6 +207,7 @@
             this.Player4Label.TabIndex = 14;
             this.Player4Label.Text = "O";
             this.Player4Label.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.Player4Label.Visible = false;
             // 
             // label1
             // 
@@ -265,7 +268,6 @@
             this.Enabled = false;
             this.Name = "Graphics";
             this.Text = "Form1";
-            this.Load += new System.EventHandler(this.Graphics_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Graphics_KeyDown);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Graphics_KeyUp);
             this.ResumeLayout(false);
