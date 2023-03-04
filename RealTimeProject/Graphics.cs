@@ -307,7 +307,7 @@ namespace RealTimeProject
                 }
                 NBConsole.WriteLine("updated state: " + simHistory.Last().State.ToString());
                 Draw(simHistory.Last().State);
-                NBConsole.WriteLine("Took " + (DateTime.Now - frameStart).ToString("mm.ss.fff"));
+                NBConsole.WriteLine("Took " + (DateTime.Now - frameStart).Milliseconds);
             }
             else
             {

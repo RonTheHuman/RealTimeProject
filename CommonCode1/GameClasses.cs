@@ -239,7 +239,7 @@ namespace RealTimeProject
             StunFrame = 0;
             KBPercent = 50;
             Jumps = 2;
-            Stocks = 1;
+            Stocks = 5;
         }
 
         public PlayerState(PlayerState other)
