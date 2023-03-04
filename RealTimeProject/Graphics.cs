@@ -118,6 +118,10 @@ namespace RealTimeProject
                 simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None }, GameState.InitialState(1)));
             else if (pCount == 2)
                 simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None }, GameState.InitialState(2)));
+            else if (pCount == 3)
+                simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None }, GameState.InitialState(3)));
+            else if (pCount == 4)
+                simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None, Input.None }, GameState.InitialState(4)));
         }
 
         private void Draw(GameState state)
@@ -136,6 +140,8 @@ namespace RealTimeProject
                     ScoreText += "Purple: " + playerI.Stocks;
                 if (playerI.Stocks > 0)
                 {
+                    playerLabels[i].Visible = true;
+                    attackLabels[i].Visible = true;
                     playerLabels[i].BackColor = playerColors[i];
                     playerLabels[i].BorderStyle = BorderStyle.None;
                     Point intPos = playerI.Pos.ToPoint();
@@ -211,8 +217,8 @@ namespace RealTimeProject
 
         private void GameLoopTimer_Tick(object sender, EventArgs e)
         {
-            NBConsole.WriteLine("Current input: [" + curInput + "]" + " current frame num: " + curFNum);
             DateTime frameStart = DateTime.Now;
+            NBConsole.WriteLine("Current input: [" + curInput + "]" + " current frame num: " + curFNum + " frameStart: " + frameStart.ToString("mm.ss.fff"));
             byte[] timeStamp = new byte[8];
             BinaryPrimitives.WriteInt64BigEndian(timeStamp, frameStart.Ticks);
             byte[] sendData = new byte[8 + 1];
@@ -227,8 +233,9 @@ namespace RealTimeProject
             {
                 byte[] buffer = new byte[1024];
                 EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
-                packets.Add(buffer[clientSock.ReceiveFrom(buffer, ref recieveEP)..]);
-                NBConsole.WriteLine("Recieved " + packets.Last());
+                int packetLen = clientSock.ReceiveFrom(buffer, ref recieveEP);
+                packets.Add(buffer[..packetLen]);
+                //NBConsole.WriteLine("Recieved " + packets.Last());
             }
             if (packets.Count == 0) { NBConsole.WriteLine("no server data recieved"); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
@@ -247,16 +254,16 @@ namespace RealTimeProject
                     bool foundFrame = false;
                     byte[] latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
                     ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
-                    NBConsole.WriteLine("applying data from " + servPacket.TimeStamp.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
+                    NBConsole.WriteLine("applying data from " + servPacket.TimeStamp.ToString("mm.ss.fff") + ". data:\n" + servPacket.ToString());
                     //client simulation and lagcomp on enemies
                     for (int i = simHistory.Count() - 1; i > 0; i--)
                     {
                         if (simHistory[i - 1].StartTime <= servPacket.Frame.StartTime)
                         {
                             foundFrame = true;
-                            NBConsole.WriteLine("i: " + i + " history end: " + (simHistory.Count - 1) + ", " + (simHistory.Count - 1 - i));
+                            NBConsole.WriteLine("resimulation start: " + i + " history end: " + (simHistory.Count - 1) + ", count: " + (simHistory.Count - 1 - i));
                             if (pCount > 1)
-                                NBConsole.WriteLine(" server has " + servPacket.EnemyInputs[0].Length);
+                                NBConsole.WriteLine(" server sent " + servPacket.EnemyInputs[0].Length + " eInputs");
                             simHistory[i] = servPacket.Frame;
                             for (int j = i + 1; j < simHistory.Count(); j++)
                             {
@@ -275,17 +282,19 @@ namespace RealTimeProject
                                         if (servPacket.EnemyInputs[k + offset].Length > j - i - 1)
                                         {
                                             correctInputs[k] = servPacket.EnemyInputs[k + offset][j - i - 1];
-                                            NBConsole.WriteLine(correctInputs[k].ToString());
+                                            //NBConsole.WriteLine(correctInputs[k].ToString());
                                         }
                                         else
                                         {
                                             correctInputs[k] = simHistory[j - 1].Inputs[k];
-                                            NBConsole.WriteLine(correctInputs[k].ToString());
+                                            //NBConsole.WriteLine(correctInputs[k].ToString());
                                         }
                                     }
                                 }
                                 simHistory[j].State = GameState.NextState(simHistory[j - 1].Inputs, correctInputs, simHistory[j - 1].State);
                                 simHistory[j].Inputs = correctInputs;
+                                //NBConsole.WriteLine("P" + thisPlayer + ": pInput= (" + simHistory[j - 1].Inputs[thisPlayer - 1] + "), cInput= (" + correctInputs[thisPlayer - 1] + "), " +
+                                //    "start state = " + simHistory[j - 1].State + ", after: Pos= " + simHistory[j].State.PStates[thisPlayer - 1].Pos + ", Vel= " + simHistory[j].State.PStates[thisPlayer - 1].Vel);
                             }
                             break;
                         }
@@ -296,8 +305,9 @@ namespace RealTimeProject
                         throw new Exception();
                     }
                 }
-                NBConsole.WriteLine("updated state: " + simHistory.Last().State.ToString() + "\n");
+                NBConsole.WriteLine("updated state: " + simHistory.Last().State.ToString());
                 Draw(simHistory.Last().State);
+                NBConsole.WriteLine("Took " + (DateTime.Now - frameStart).ToString("mm.ss.fff"));
             }
             else
             {

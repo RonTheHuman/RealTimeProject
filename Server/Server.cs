@@ -10,7 +10,7 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        static int bufferSize = 1024, pCount = 1;
+        static int bufferSize = 1024, pCount = 2;
         static bool grid = false, compensateLag = true;
 
         static DateTime gameStartTime;
@@ -20,29 +20,6 @@ namespace RealTimeProject
         static int[] playerLRSIndex = new int[pCount];
         static Dictionary<IPEndPoint, int> playerIPs = new Dictionary<IPEndPoint, int>();
         static Socket serverSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
-
-
-        public static class NBConsole
-        {
-            private static BlockingCollection<string> m_Queue = new BlockingCollection<string>();
-
-            static NBConsole()
-            {
-                var thread = new Thread(
-                  () =>
-                  {
-                      while (true) Console.WriteLine(m_Queue.Take());
-                  });
-                thread.IsBackground = true;
-                thread.Start();
-            }
-
-            public static void WriteLine(string value)
-            {
-                m_Queue.Add(value);
-            }
-        }
-
 
         public struct ClientPacket
         {
@@ -98,11 +75,7 @@ namespace RealTimeProject
             Input[] prevInputs = new Input[pCount]; // add temp extrapolated state
             for (int i = 0; i < pCount; i++)
             {
-                if (prevInputs[i] == null)
-                {
                     prevInputs[i] = history.Last().Inputs[i];
-                }
-
             }
             history.Add(new Frame(frameStart, prevInputs, GameState.NextState(prevInputs, prevInputs, history.Last().State)));
 
@@ -193,6 +166,8 @@ namespace RealTimeProject
                         sendFrame = new Frame(sendFrame);
                         sendFrame.StartTime = playerLRS2[thisPlayer - 1];
                     }
+
+                    Console.WriteLine("sending: " + new ServerPacket(saveNow, sendFrame, enemyInputs));
                     serverSock.SendTo(ServerPacket.Serialize(saveNow, sendFrame, enemyInputs, pCount), ip);
                 }
             }
@@ -247,6 +222,10 @@ namespace RealTimeProject
                 history.Add(new Frame(DateTime.MinValue, new Input[] { Input.None }, GameState.InitialState(1)));
             else if (pCount == 2)
                 history.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None }, GameState.InitialState(2)));
+            else if (pCount == 3)
+                history.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None }, GameState.InitialState(3)));
+            else if (pCount == 4)
+                history.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None, Input.None }, GameState.InitialState(4)));
 
             gameStartTime = DateTime.Now;
             while (true)

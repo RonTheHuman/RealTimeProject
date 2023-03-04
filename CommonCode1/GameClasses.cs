@@ -9,9 +9,31 @@ using System.Threading.Tasks;
 using System.Buffers.Binary;
 using System.Drawing;
 using System.Net.Sockets;
+using System.Collections.Concurrent;
 
 namespace RealTimeProject
 {
+    public static class NBConsole
+    {
+        private static BlockingCollection<string> m_Queue = new BlockingCollection<string>();
+
+        static NBConsole()
+        {
+            var thread = new Thread(
+              () =>
+              {
+                  while (true) Console.WriteLine(m_Queue.Take());
+              });
+            thread.IsBackground = true;
+            thread.Start();
+        }
+
+        public static void WriteLine(string value)
+        {
+            m_Queue.Add(value);
+        }
+    }
+
     public class Vector2
     {
         public float X { get; set; }
@@ -223,7 +245,7 @@ namespace RealTimeProject
         public PlayerState(PlayerState other)
         {
             Pos = new Vector2(other.Pos.X, other.Pos.Y);
-            Vel = new Vector2(other.Vel.X, other.Vel.X);
+            Vel = new Vector2(other.Vel.X, other.Vel.Y);
             FacingLeft = other.FacingLeft;
             BFrame = other.BFrame;
             AttackName = other.AttackName;
@@ -351,7 +373,7 @@ namespace RealTimeProject
             {
                 s += "p" + (i + 1) + ": " + PStates[i] + ", ";
             }
-            s.Remove(s.Length - 2);
+            s = s.Remove(s.Length - 2);
             return s;
         }
 
@@ -553,16 +575,9 @@ namespace RealTimeProject
                 }
                 playerI.Vel.Y += GameVariables.Gravity;
 
-                playerI.Pos.Add(playerV);
-                if (playerI.Pos.Y >= GameVariables.FloorY - GameVariables.PlayerSize.Height && playerI.Vel.Y > 0)
-                {
-                    playerI.Pos = new Vector2(playerI.Pos.X, GameVariables.FloorY - GameVariables.PlayerSize.Height);
-                    playerI.Vel.Y = 0;
-                    playerI.Jumps = 2;
-                }
                 if (playerV.X > GameVariables.BaseMS || playerV.X < -GameVariables.BaseMS || playerI.StunFrame > 0)
                 {
-                    if (playerI.Pos.Y == GameVariables.FloorY - GameVariables.PlayerSize.Height)
+                    if (playerI.Pos.Y >= GameVariables.FloorY - GameVariables.PlayerSize.Height)
                     {
                         playerV.X = (int)(playerV.X * GameVariables.Friction);
                     }
@@ -571,13 +586,20 @@ namespace RealTimeProject
                 {
                     playerV.X = WalkV;
                 }
+                playerI.Pos.Add(playerV);
+
+                if (playerI.Pos.Y >= GameVariables.FloorY - GameVariables.PlayerSize.Height && playerI.Vel.Y > 0)
+                {
+                    playerI.Pos = new Vector2(playerI.Pos.X, GameVariables.FloorY - GameVariables.PlayerSize.Height);
+                    playerI.Vel.Y = 0;
+                    playerI.Jumps = 2;
+                }
                 if (!GameVariables.Bounds.IntersectsWith(new Rectangle(playerI.Pos.ToPoint(), GameVariables.PlayerSize)))
                 {
                     playerI.Stocks -= 1;
                     playerI.Pos = new Vector2(400, 250);
                     playerI.Vel = new Vector2(0, 0);
                 }
-                Console.WriteLine("Player " + (i + 1) + ": " + playerI.Pos + ", " + playerI.Vel);
             }
             return nextState;
         }
