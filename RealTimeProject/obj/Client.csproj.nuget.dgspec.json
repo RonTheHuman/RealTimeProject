@@ -1,20 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\RealTimeProject\\Client.csproj": {}
+    "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\RealTimeProject\\Client.csproj": {}
   },
   "projects": {
-    "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\CommonCode1\\CommonCode.csproj": {
+    "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\CommonCode1\\CommonCode.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\CommonCode1\\CommonCode.csproj",
+        "projectUniqueName": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\CommonCode1\\CommonCode.csproj",
         "projectName": "CommonCode",
-        "projectPath": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\CommonCode1\\CommonCode.csproj",
-        "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\CommonCode1\\obj\\",
+        "projectPath": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\CommonCode1\\CommonCode.csproj",
+        "packagesPath": "C:\\Users\\u101040.DESHALIT\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\CommonCode1\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
         "configFilePaths": [
-          "C:\\Users\\USER\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\u101040.DESHALIT\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -55,25 +58,28 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.403\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.402\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\RealTimeProject\\Client.csproj": {
+    "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\RealTimeProject\\Client.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\RealTimeProject\\Client.csproj",
+        "projectUniqueName": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\RealTimeProject\\Client.csproj",
         "projectName": "Client",
-        "projectPath": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\RealTimeProject\\Client.csproj",
-        "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\RealTimeProject\\obj\\",
+        "projectPath": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\RealTimeProject\\Client.csproj",
+        "packagesPath": "C:\\Users\\u101040.DESHALIT\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\RealTimeProject\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
         "configFilePaths": [
-          "C:\\Users\\USER\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\u101040.DESHALIT\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "net6.0-windows7.0"
+          "net6.0-windows"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
@@ -83,8 +89,8 @@
           "net6.0-windows7.0": {
             "targetAlias": "net6.0-windows",
             "projectReferences": {
-              "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\CommonCode1\\CommonCode.csproj": {
-                "projectPath": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\CommonCode1\\CommonCode.csproj"
+              "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\CommonCode1\\CommonCode.csproj": {
+                "projectPath": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\CommonCode1\\CommonCode.csproj"
               }
             }
           }
@@ -117,7 +123,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.403\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.402\\RuntimeIdentifierGraph.json"
         }
       }
     }

@@ -52,12 +52,12 @@ namespace RealTimeProject
         private void InitializeConnection()
         {
             IPAddress autoAdress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[1];
-            string[] adresses = new string[3] { "172.16.2.167", "10.100.102.20", "192.168.68.112" };
+            List<string> adresses = new List<string> { "172.16.2.167", "10.100.102.20", "192.168.68.112", "172.16.94.163" };
             int sPort = 12345;
             NBConsole.WriteLine("Enter port for client: ");
             int cPort = int.Parse(Console.ReadLine());
             var sAddress = IPAddress.Parse(adresses[1]);
-            var cAddress = IPAddress.Parse(adresses[1]);
+            var cAddress = IPAddress.Parse(adresses[3]);
             EndPoint clientEP = new IPEndPoint(cAddress, cPort);
             serverEP = new IPEndPoint(sAddress, sPort);
 
