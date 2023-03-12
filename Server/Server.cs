@@ -10,7 +10,7 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        static int bufferSize = 1024, pCount = 2;
+        static int bufferSize = 1024, pCount = 4;
         static bool grid = false, compensateLag = true;
 
         static DateTime gameStartTime;
@@ -65,7 +65,8 @@ namespace RealTimeProject
                 byte[] buffer = new byte[bufferSize];
                 EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
                 int bytesRecieved = serverSock.ReceiveFrom(buffer, ref clientEP);
-                packets.Add(new ClientPacket(playerIPs[(IPEndPoint)clientEP], buffer[..bytesRecieved]));
+                if (playerIPs.ContainsKey((IPEndPoint)clientEP))
+                    packets.Add(new ClientPacket(playerIPs[(IPEndPoint)clientEP], buffer[..bytesRecieved]));
                 //NBConsole.WriteLine("Recieved " + Convert.ToHexString(packets.Last().data));
             }
             if (packets.Count == 0) { NBConsole.WriteLine("no user inputs recieved"); }
@@ -195,8 +196,8 @@ namespace RealTimeProject
         static void Main(string[] args)
         {
             IPAddress autoAdress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[1];
-            string[] adresses = new string[3] { "172.16.2.167", "10.100.102.20", "192.168.68.112" };
-            IPAddress sAddress = IPAddress.Parse(adresses[1]);
+            string[] adresses = new string[4] { "172.16.2.167", "10.100.102.20", "192.168.68.112", "172.16.5.133" };
+            IPAddress sAddress = IPAddress.Parse(adresses[3]);
             int sPort = 12345;
             byte[] buffer = new byte[bufferSize];
             serverSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);

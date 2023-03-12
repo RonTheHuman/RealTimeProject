@@ -46,10 +46,6 @@
             this.BlockLabel4 = new System.Windows.Forms.Label();
             this.Player3Label = new System.Windows.Forms.Label();
             this.Player4Label = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // GameLoopTimer
@@ -209,38 +205,6 @@
             this.Player4Label.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.Player4Label.Visible = false;
             // 
-            // label1
-            // 
-            this.label1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(199)))), ((int)(((byte)(199)))), ((int)(((byte)(199)))));
-            this.label1.Location = new System.Drawing.Point(-51, -3);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(446, 299);
-            this.label1.TabIndex = 15;
-            // 
-            // label2
-            // 
-            this.label2.BackColor = System.Drawing.Color.White;
-            this.label2.Location = new System.Drawing.Point(220, 238);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(410, 276);
-            this.label2.TabIndex = 16;
-            // 
-            // label3
-            // 
-            this.label3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(210)))), ((int)(((byte)(210)))), ((int)(((byte)(210)))));
-            this.label3.Location = new System.Drawing.Point(592, 165);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(414, 321);
-            this.label3.TabIndex = 17;
-            // 
-            // label4
-            // 
-            this.label4.BackColor = System.Drawing.Color.White;
-            this.label4.Location = new System.Drawing.Point(664, -40);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(324, 272);
-            this.label4.TabIndex = 18;
-            // 
             // Graphics
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -261,10 +225,6 @@
             this.Controls.Add(this.TimeLabel);
             this.Controls.Add(this.AttackLabel2);
             this.Controls.Add(this.AttackLabel1);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.label4);
             this.Enabled = false;
             this.Name = "Graphics";
             this.Text = "Form1";
@@ -294,9 +254,5 @@
         private Label BlockLabel4;
         private Label Player3Label;
         private Label Player4Label;
-        private Label label1;
-        private Label label2;
-        private Label label3;
-        private Label label4;
     }
 }
