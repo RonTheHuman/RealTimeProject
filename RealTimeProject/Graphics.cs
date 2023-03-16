@@ -52,12 +52,12 @@ namespace RealTimeProject
         private void InitializeConnection()
         {
             IPAddress autoAdress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[1];
-            List<string> adresses = new List<string> { "172.16.2.167", "10.100.102.20", "192.168.68.112", "172.16.94.163", "172.16.5.133" };
+            List<string> adresses = new List<string> { "172.16.2.167", "10.100.102.20", "192.168.68.112", "172.16.94.163", "172.16.5.133", "172.16.149.199" };
             int sPort = 12345;
             NBConsole.WriteLine("Enter port for client: ");
             int cPort = int.Parse(Console.ReadLine());
-            var sAddress = IPAddress.Parse(adresses[4]);
-            var cAddress = IPAddress.Parse(adresses[4]);
+            var sAddress = IPAddress.Parse(adresses[5]);
+            var cAddress = IPAddress.Parse(adresses[5]);
             EndPoint clientEP = new IPEndPoint(cAddress, cPort);
             serverEP = new IPEndPoint(sAddress, sPort);
 
@@ -115,13 +115,13 @@ namespace RealTimeProject
                 blockLabels[3] = BlockLabel4;
             }
             if (pCount == 1)
-                simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None }, GameState.InitialState(1)));
+                simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None }, GameLogic.InitialState(1)));
             else if (pCount == 2)
-                simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None }, GameState.InitialState(2)));
+                simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None }, GameLogic.InitialState(2)));
             else if (pCount == 3)
-                simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None }, GameState.InitialState(3)));
+                simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None }, GameLogic.InitialState(3)));
             else if (pCount == 4)
-                simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None, Input.None }, GameState.InitialState(4)));
+                simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None, Input.None }, GameLogic.InitialState(4)));
         }
 
         private void Draw(GameState state)
@@ -246,7 +246,7 @@ namespace RealTimeProject
                 Input[] simInputs = new Input[pCount]; // create simulated frame
                 simHistory.Last().Inputs.CopyTo(simInputs, 0);
                 simInputs[thisPlayer - 1] = curInput;
-                simHistory.Add(new Frame(frameStart, simInputs, GameState.NextState(simHistory.Last().Inputs, simInputs, simHistory.Last().State)));
+                simHistory.Add(new Frame(frameStart, simInputs, GameLogic.NextState(simHistory.Last().Inputs, simInputs, simHistory.Last().State)));
                 curFNum++;
 
                 if (packets.Count() > 0) // deserialize packets and apply to simulated history
@@ -291,7 +291,7 @@ namespace RealTimeProject
                                         }
                                     }
                                 }
-                                simHistory[j].State = GameState.NextState(simHistory[j - 1].Inputs, correctInputs, simHistory[j - 1].State);
+                                simHistory[j].State = GameLogic.NextState(simHistory[j - 1].Inputs, correctInputs, simHistory[j - 1].State);
                                 simHistory[j].Inputs = correctInputs;
                                 //NBConsole.WriteLine("P" + thisPlayer + ": pInput= (" + simHistory[j - 1].Inputs[thisPlayer - 1] + "), cInput= (" + correctInputs[thisPlayer - 1] + "), " +
                                 //    "start state = " + simHistory[j - 1].State + ", after: Pos= " + simHistory[j].State.PStates[thisPlayer - 1].Pos + ", Vel= " + simHistory[j].State.PStates[thisPlayer - 1].Vel);

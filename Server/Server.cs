@@ -10,16 +10,16 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        static int bufferSize = 1024, pCount = 4;
-        static bool grid = false, compensateLag = true;
+        static int bufferSize = 1024, pCount = 1;
+        static bool compensateLag = true;
 
-        static DateTime gameStartTime;
-        static List<Frame> history = new List<Frame>(200);
-        static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
-        static DateTime[] playerLRS = new DateTime[pCount], playerLRS2 = new DateTime[pCount]; //last recieved stamp for each player
-        static int[] playerLRSIndex = new int[pCount];
+        static string settings = "";
+        static Socket serverSock;
         static Dictionary<IPEndPoint, int> playerIPs = new Dictionary<IPEndPoint, int>();
-        static Socket serverSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
+        static List<Frame> history = new List<Frame>(200);
+        //last recieved stamps for each player, 2 is for broken non lagcomp
+        static DateTime[] playerLRS = new DateTime[pCount], playerLRS2 = new DateTime[pCount]; 
+        static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
 
         public struct ClientPacket
         {
@@ -45,11 +45,74 @@ namespace RealTimeProject
                         for (int j = i; j < history.Count; j++)
                         {
                             history[j].Inputs[player - 1] = input;
-                            history[j].State = GameState.NextState(history[j - 1].Inputs, history[j].Inputs, history[j - 1].State);
+                            history[j].State = GameLogic.NextState(history[j - 1].Inputs, history[j].Inputs, history[j - 1].State);
                         }
                     }
                     break;
                 }
+            }
+        }
+
+        static Socket CreateLocalSocket()
+        {
+            Socket sock = new Socket(SocketType.Dgram, ProtocolType.Udp);
+            IPAddress sAddress;
+            int sPort = 12345;
+
+            string[] adresses = new string[5] { "172.16.2.167", "10.100.102.20", "192.168.68.112", "172.16.5.133", "172.16.149.199" };
+            Console.WriteLine("Use default? y/n");
+            if (Console.ReadLine() == "y")
+            {
+                sAddress = IPAddress.Parse(adresses[int.Parse(settings[0] + "")]);
+            }
+            else
+            {
+                Console.WriteLine("Enter address:");
+                sAddress = IPAddress.Parse(Console.ReadLine());
+            }
+            sock.Bind(new IPEndPoint(sAddress, sPort));
+            return sock;
+        }
+
+        static Frame CreateInitFrame()
+        {
+            if (pCount == 1)
+                return new Frame(DateTime.MinValue, new Input[] { Input.None }, GameLogic.InitialState(1));
+            if (pCount == 2)
+                return new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None }, GameLogic.InitialState(2));
+            if (pCount == 3)
+                return new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None }, GameLogic.InitialState(3));
+            return new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None, Input.None }, GameLogic.InitialState(4));
+        }
+
+        static void Main(string[] args)
+        {
+            settings = File.ReadAllText(Path.GetFullPath(@"settings.txt"));
+            serverSock = CreateLocalSocket();
+            
+            byte[] buffer = new byte[bufferSize];
+            EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
+            for (int i = 0; i < pCount; i++)
+            {
+                Console.WriteLine("Waiting for player " + (i + 1));
+                serverSock.ReceiveFrom(buffer, ref clientEP);
+                Console.WriteLine(clientEP.ToString() + " entered");
+                playerIPs[new IPEndPoint(((IPEndPoint)clientEP).Address, ((IPEndPoint)clientEP).Port)] = i + 1;
+                playerLRS[i] = DateTime.MinValue;
+                playerLRS2[i] = DateTime.MinValue;
+            }
+
+            foreach (var ip in playerIPs.Keys)
+            {
+                serverSock.SendTo(Encoding.Latin1.GetBytes(playerIPs[ip].ToString() + pCount.ToString()), ip);
+            }
+
+            history.Add(CreateInitFrame());
+
+            while (true)
+            {
+                TimeSpan duration = GameLoop(DateTime.Now);
+                NBConsole.WriteLine("took " + duration.TotalMilliseconds + " ms\n");
             }
         }
 
@@ -67,7 +130,6 @@ namespace RealTimeProject
                 int bytesRecieved = serverSock.ReceiveFrom(buffer, ref clientEP);
                 if (playerIPs.ContainsKey((IPEndPoint)clientEP))
                     packets.Add(new ClientPacket(playerIPs[(IPEndPoint)clientEP], buffer[..bytesRecieved]));
-                //NBConsole.WriteLine("Recieved " + Convert.ToHexString(packets.Last().data));
             }
             if (packets.Count == 0) { NBConsole.WriteLine("no user inputs recieved"); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
@@ -76,9 +138,9 @@ namespace RealTimeProject
             Input[] prevInputs = new Input[pCount]; // add temp extrapolated state
             for (int i = 0; i < pCount; i++)
             {
-                    prevInputs[i] = history.Last().Inputs[i];
+                prevInputs[i] = history.Last().Inputs[i];
             }
-            history.Add(new Frame(frameStart, prevInputs, GameState.NextState(prevInputs, prevInputs, history.Last().State)));
+            history.Add(new Frame(frameStart, prevInputs, GameLogic.NextState(prevInputs, prevInputs, history.Last().State)));
 
             int packetPlayer;
             DateTime packetTime;
@@ -121,7 +183,7 @@ namespace RealTimeProject
                     latestInputs[packetPlayer - 1] = packetInput;
                 }
                 history.Last().Inputs = latestInputs;
-                history.Last().State = GameState.NextState(history[history.Count - 3].Inputs, latestInputs, history[history.Count - 2].State);
+                history.Last().State = GameLogic.NextState(history[history.Count - 3].Inputs, latestInputs, history[history.Count - 2].State);
             }
 
             foreach (var ip in playerIPs.Keys) // send state to players
@@ -173,12 +235,6 @@ namespace RealTimeProject
                 }
             }
 
-            //old history deletion, maybe needed?
-            //if (history.Count >= 200)
-            //{
-            //    history.RemoveRange(0, 100);
-            //}
-
             //print history
             string printMsg = "History:\n";
             foreach (var f in history.Skip(history.Count - 10))
@@ -186,55 +242,9 @@ namespace RealTimeProject
                 printMsg += f.ToString() + "\n";
             }
             printMsg = printMsg.TrimEnd('\n');
-            TimeSpan duration = (DateTime.Now - st);
-            //printMsg += "took" + duration.TotalMilliseconds + " ms" + "| " + st.Millisecond;
             NBConsole.WriteLine(printMsg);
+            TimeSpan duration = (DateTime.Now - st);
             return duration;
-        }
-
-
-        static void Main(string[] args)
-        {
-            IPAddress autoAdress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[1];
-            string[] adresses = new string[4] { "172.16.2.167", "10.100.102.20", "192.168.68.112", "172.16.5.133" };
-            IPAddress sAddress = IPAddress.Parse(adresses[3]);
-            int sPort = 12345;
-            byte[] buffer = new byte[bufferSize];
-            serverSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            serverSock.Bind(new IPEndPoint(sAddress, sPort));
-
-            EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
-            for (int i = 0; i < pCount; i++)
-            {
-                Console.WriteLine("Waiting for player " + (i + 1));
-                serverSock.ReceiveFrom(buffer, ref clientEP);
-                Console.WriteLine(clientEP.ToString() + " entered");
-                playerIPs[new IPEndPoint(((IPEndPoint)clientEP).Address, ((IPEndPoint)clientEP).Port)] = i + 1;
-                playerLRS[i] = DateTime.MinValue;
-                playerLRS2[i] = DateTime.MinValue;
-            }
-
-            foreach (var ip in playerIPs.Keys)
-            {
-                serverSock.SendTo(Encoding.Latin1.GetBytes(playerIPs[ip].ToString() + pCount.ToString()), ip);
-            }
-
-            if (pCount == 1)
-                history.Add(new Frame(DateTime.MinValue, new Input[] { Input.None }, GameState.InitialState(1)));
-            else if (pCount == 2)
-                history.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None }, GameState.InitialState(2)));
-            else if (pCount == 3)
-                history.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None }, GameState.InitialState(3)));
-            else if (pCount == 4)
-                history.Add(new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None, Input.None }, GameState.InitialState(4)));
-
-            gameStartTime = DateTime.Now;
-            while (true)
-            {
-                TimeSpan duration = GameLoop(DateTime.Now);
-                NBConsole.WriteLine("took " + duration.TotalMilliseconds + " ms");
-                NBConsole.WriteLine("\n");
-            }
         }
     }
 }
