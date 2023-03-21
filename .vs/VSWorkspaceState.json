@@ -1,7 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\RealTimeProject"
+    "\\RealTimeProject",
+    "\\Server"
   ],
+  "SelectedNode": "\\RealTimeProject\\Graphics.cs",
   "PreviewInSolutionExplorer": false
 }

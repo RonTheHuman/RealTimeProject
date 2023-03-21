@@ -83,9 +83,9 @@ namespace RealTimeProject
 
         private void InitializeGame()
         {
-            GameVariables.Bounds = new Rectangle(Bounds.X - 50, Bounds.Y - 50, Bounds.Width + 100, Bounds.Height + 100);
-            GameVariables.Gravity = 0.8f;
-            GameVariables.FloorY = FloorLabel.Location.Y;
+            GameLogic.GameVariables.Bounds = new Rectangle(Bounds.X - 50, Bounds.Y - 50, Bounds.Width + 100, Bounds.Height + 100);
+            GameLogic.GameVariables.Gravity = 0.8f;
+            GameLogic.GameVariables.FloorY = FloorLabel.Location.Y;
 
             playerLabels = new Label[pCount];
             attackLabels = new Label[pCount];
@@ -153,7 +153,7 @@ namespace RealTimeProject
 
                     if (playerI.AttackFrame > 0)
                     {
-                        Attack attack = GameVariables.AttackDict[playerI.AttackName];
+                        Attack attack = GameLogic.GameVariables.AttackDict[playerI.AttackName];
                         AnimHitbox[] anim = attack.Animation;
                         AnimHitbox ah = new AnimHitbox();
                         if (playerI.AttackFrame > attack.StartupF && playerI.AttackFrame < attack.StartupF + anim.Last().endF)
@@ -192,7 +192,7 @@ namespace RealTimeProject
                         blockLabels[i].Location = new Point(intPos.X + 19, intPos.Y - 11 - 7);
                         blockLabels[i].Visible = true;
                     }
-                    else if (playerI.BFrame < GameVariables.BlockDur)
+                    else if (playerI.BFrame < GameLogic.GameVariables.BlockDur)
                     {
                         playerLabels[i].BackColor = Color.Gray;
                         blockLabels[i].Visible = false;

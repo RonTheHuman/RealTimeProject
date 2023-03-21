@@ -253,5 +253,62 @@ namespace RealTimeProject
             }
             return new GameState(pStates);
         }
+
+        public class GameVariables
+        {
+            public static Rectangle Bounds { get; set; }
+            public static int FloorY { get; set; }
+            public static float Gravity { get; set; }
+            public static Size PlayerSize { get; set; }
+            public static float BaseMS { get; set; }
+            public static float Friction { get; set; }
+            public static float MaxMS { get; set; }
+            public static float BaseJS { get; set; }
+            public static int BlockCD { get; set; }
+            public static int BlockDur { get; set; }
+            public static Dictionary<AttackName, Attack> AttackDict { get; }
+            static GameVariables()
+            {
+                Bounds = new Rectangle(-50, -50, 1086, 702);
+                FloorY = 457;
+                Gravity = 0.8f;
+                PlayerSize = new Size(50, 50);
+                BaseMS = 5;
+                Friction = 0.5f;
+                MaxMS = 5;
+                BaseJS = 16;
+                BlockCD = 40;
+                BlockDur = 10;
+                AttackDict = new Dictionary<AttackName, Attack>();
+                AttackDict[AttackName.NLight] = new Attack(
+                    new AnimHitbox[] { new AnimHitbox(new Rectangle(new Point(25, -9), new Size(15, 18)), 8),
+                                   new AnimHitbox(new Rectangle(new Point(25, -9), new Size(20, 18)), 12),
+                                   new AnimHitbox(new Rectangle(new Point(25, -9), new Size(50, 18)), 20)}, new Vector2(-6, -20), 20, 5, 0);
+                AttackDict[AttackName.SLight] = new Attack(
+                    new AnimHitbox[] { new AnimHitbox(new Rectangle(new Point(25, -7), new Size(25, 14)), 5),
+                                   new AnimHitbox(new Rectangle(new Point(25, -7), new Size(50, 14)), 10),
+                                   new AnimHitbox(new Rectangle(new Point(25, -7), new Size(70, 14)), 15),
+                                   new AnimHitbox(new Rectangle(new Point(25, -7), new Size(80, 14)), 20)}, new Vector2(10, -8), 20, 10, 0);
+                AttackDict[AttackName.ULight] = new Attack(
+                    new AnimHitbox[] { new AnimHitbox(new Rectangle(new Point(-9, -25 - 15), new Size(18, 15)), 8),
+                                   new AnimHitbox(new Rectangle(new Point(-9, -25 - 20), new Size(18, 20)), 12),
+                                   new AnimHitbox(new Rectangle(new Point(-9, -25 - 60), new Size(18, 60)), 23)}, new Vector2(0, -20), 20, 10, 0);
+                AttackDict[AttackName.NAir] = new Attack(
+                    new AnimHitbox[] { new AnimHitbox(new Rectangle(new Point(-30, -30), new Size(60, 60)), 5),
+                                   new AnimHitbox(new Rectangle(new Point(-35, -35), new Size(70, 70)), 15)}, new Vector2(0, -10), 20, 10, 10);
+                AttackDict[AttackName.SHeavy] = new Attack(
+                    new AnimHitbox[] { new AnimHitbox(new Rectangle(new Point(25, -10), new Size(20, 20)), 5),
+                                   new AnimHitbox(new Rectangle(new Point(50, -50), new Size(40, 40)), 15),
+                                   new AnimHitbox(new Rectangle(new Point(20, -120), new Size(60, 60)), 25),
+                                   new AnimHitbox(new Rectangle(new Point(-60, -170), new Size(80, 80)), 35)}, new Vector2(-20, -20), 20, 30, 20);
+                AttackDict[AttackName.NHeavy] = new Attack(
+                    new AnimHitbox[] { new AnimHitbox(new Rectangle(new Point(-50, -37), new Size(100, 62)), 5),
+                                   new AnimHitbox(new Rectangle(new Point(-100, -60), new Size(200, 85)), 20)}, new Vector2(20, -20), 20, 30, 20);
+                AttackDict[AttackName.UHeavy] = new Attack(
+                    new AnimHitbox[] { new AnimHitbox(new Rectangle(new Point(-7, -25 - 600), new Size(14, 600)), 7),
+                                   new AnimHitbox(new Rectangle(new Point(-30, -25 - 600), new Size(60, 600)), 18),
+                                   new AnimHitbox(new Rectangle(new Point(-40, -25 - 600), new Size(80, 600)), 25)}, new Vector2(5, -50), 20, 30, 20);
+            }
+        }
     }
 }

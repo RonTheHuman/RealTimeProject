@@ -10,7 +10,7 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        static int bufferSize = 1024, pCount = 1;
+        static int bufferSize = 1024, pCount = 2;
         static bool compensateLag = true;
 
         static string settings = "";
@@ -183,7 +183,7 @@ namespace RealTimeProject
                     latestInputs[packetPlayer - 1] = packetInput;
                 }
                 history.Last().Inputs = latestInputs;
-                history.Last().State = GameLogic.NextState(history[history.Count - 3].Inputs, latestInputs, history[history.Count - 2].State);
+                history.Last().State = GameLogic.NextState(history[history.Count - 2].Inputs, latestInputs, history[history.Count - 1].State);
             }
 
             foreach (var ip in playerIPs.Keys) // send state to players
