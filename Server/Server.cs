@@ -10,8 +10,8 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        static int bufferSize = 1024, pCount = 2;
-        static bool compensateLag = true;
+        static int bufferSize = 1024, pCount = 1;
+        static bool compensateLag = false;
 
         static string settings = "";
         static Socket serverSock;
@@ -109,14 +109,14 @@ namespace RealTimeProject
 
             history.Add(CreateInitFrame());
 
-            while (true)
-            {
-                TimeSpan duration = GameLoop(DateTime.Now);
-                NBConsole.WriteLine("took " + duration.TotalMilliseconds + " ms\n");
-            }
+            System.Timers.Timer gameTimer = new System.Timers.Timer(15);
+            gameTimer.Elapsed += GameLoop;
+            gameTimer.AutoReset = true;
+            gameTimer.Enabled = true;
+            Console.ReadLine();
         }
 
-        static TimeSpan GameLoop(DateTime st)
+        static void GameLoop(object? sender, ElapsedEventArgs e)
         {
             DateTime frameStart = DateTime.Now;
             curFNum++;
@@ -183,7 +183,8 @@ namespace RealTimeProject
                     latestInputs[packetPlayer - 1] = packetInput;
                 }
                 history.Last().Inputs = latestInputs;
-                history.Last().State = GameLogic.NextState(history[history.Count - 2].Inputs, latestInputs, history[history.Count - 1].State);
+                if (history.Count > 4)
+                    history.Last().State = GameLogic.NextState(history[history.Count - 2].Inputs, latestInputs, history[history.Count - 2].State);
             }
 
             foreach (var ip in playerIPs.Keys) // send state to players
@@ -241,10 +242,9 @@ namespace RealTimeProject
             {
                 printMsg += f.ToString() + "\n";
             }
-            printMsg = printMsg.TrimEnd('\n');
             NBConsole.WriteLine(printMsg);
-            TimeSpan duration = (DateTime.Now - st);
-            return duration;
+            TimeSpan duration = (DateTime.Now - frameStart);
+            printMsg += "took " + duration.TotalMilliseconds + " ms\n";
         }
     }
 }
