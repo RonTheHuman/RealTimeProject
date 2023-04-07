@@ -254,6 +254,21 @@ namespace RealTimeProject
             return new GameState(pStates);
         }
 
+        private static GameState _NextPlayerState(GameState state, Input prevInput, Input curInput)
+        {
+            return NextState(new Input[] { prevInput }, new Input[] { curInput }, state);
+        }
+
+        public static PlayerState SimulatePlayerState(PlayerState startState, Input[] inputs)
+        {
+            GameState finalState = new GameState(new PlayerState[] { startState });
+            for (int i = 0; i < inputs.Length; i++)
+            {
+                finalState = _NextPlayerState(finalState, inputs[i], inputs[i + 1]);
+            }
+            return finalState.PStates[0];
+        }
+
         public class GameVariables
         {
             public static Rectangle Bounds { get; set; }

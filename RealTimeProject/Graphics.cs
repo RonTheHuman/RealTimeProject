@@ -11,7 +11,7 @@ namespace RealTimeProject
     public partial class Graphics : Form
     {
         int curFNum = 1, recvFNum = 0, frameMS = 15, thisPlayer, pCount;
-        bool simulate = true;
+        bool fullSim = true, clientSim = true, enemySim = false;
         Color[] playerColors = new Color[4] { Color.MediumTurquoise, Color.Coral, Color.FromArgb(255, 255, 90), Color.MediumPurple };
 
         Input curInput = new Input(), prevInput;
@@ -75,7 +75,7 @@ namespace RealTimeProject
             Thread.Sleep(200);
             GameLoopTimer.Enabled = true;
 
-            if (simulate)
+            if (fullSim)
                 Text = "Simulating";
             else
                 Text = "Not Simulating";
@@ -303,7 +303,7 @@ namespace RealTimeProject
                     throw new Exception();
                 }
             }
-            if (simulate)
+            if (fullSim)
             {
                 NBConsole.WriteLine("updated state: " + simHistory.Last().State.ToString());
                 Draw(simHistory.Last().State);
@@ -353,8 +353,8 @@ namespace RealTimeProject
                     curInput |= Input.HAttack;
                     break;
                 case Keys.S:
-                    simulate = !simulate;
-                    if (simulate)
+                    fullSim = !fullSim;
+                    if (fullSim)
                         Text = "Simulating";
                     else
                         Text = "Not Simulating";
