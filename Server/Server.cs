@@ -11,7 +11,7 @@ namespace RealTimeProject
     internal class Server
     {
         static int bufferSize = 1024, pCount = 1;
-        static bool compensateLag = false;
+        static bool compensateLag = true;
 
         static string settings = "";
         static Socket serverSock;

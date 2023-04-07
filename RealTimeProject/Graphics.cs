@@ -56,8 +56,8 @@ namespace RealTimeProject
             int sPort = 12345;
             NBConsole.WriteLine("Enter port for client: ");
             int cPort = int.Parse(Console.ReadLine());
-            var sAddress = IPAddress.Parse(adresses[5]);
-            var cAddress = IPAddress.Parse(adresses[5]);
+            var sAddress = IPAddress.Parse(adresses[1]);
+            var cAddress = IPAddress.Parse(adresses[1]);
             EndPoint clientEP = new IPEndPoint(cAddress, cPort);
             serverEP = new IPEndPoint(sAddress, sPort);
 
@@ -240,71 +240,71 @@ namespace RealTimeProject
             if (packets.Count == 0) { NBConsole.WriteLine("no server data recieved"); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
 
+            //resimulation
+            Input[] simInputs = new Input[pCount]; // create simulated frame
+            simHistory.Last().Inputs.CopyTo(simInputs, 0);
+            simInputs[thisPlayer - 1] = curInput;
+            simHistory.Add(new Frame(frameStart, simInputs, GameLogic.NextState(simHistory.Last().Inputs, simInputs, simHistory.Last().State)));
+            curFNum++;
 
-            if (simulate)
+            if (packets.Count() > 0) // deserialize packets and apply to simulated history
             {
-                Input[] simInputs = new Input[pCount]; // create simulated frame
-                simHistory.Last().Inputs.CopyTo(simInputs, 0);
-                simInputs[thisPlayer - 1] = curInput;
-                simHistory.Add(new Frame(frameStart, simInputs, GameLogic.NextState(simHistory.Last().Inputs, simInputs, simHistory.Last().State)));
-                curFNum++;
-
-                if (packets.Count() > 0) // deserialize packets and apply to simulated history
+                bool foundFrame = false;
+                byte[] latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
+                ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
+                NBConsole.WriteLine("applying data from " + servPacket.TimeStamp.ToString("mm.ss.fff") + ". data:\n" + servPacket.ToString());
+                //client simulation and lagcomp on enemies
+                for (int i = simHistory.Count() - 1; i > 0; i--)
                 {
-                    bool foundFrame = false;
-                    byte[] latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
-                    ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
-                    NBConsole.WriteLine("applying data from " + servPacket.TimeStamp.ToString("mm.ss.fff") + ". data:\n" + servPacket.ToString());
-                    //client simulation and lagcomp on enemies
-                    for (int i = simHistory.Count() - 1; i > 0; i--)
+                    if (simHistory[i - 1].StartTime <= servPacket.Frame.StartTime)
                     {
-                        if (simHistory[i - 1].StartTime <= servPacket.Frame.StartTime)
+                        foundFrame = true;
+                        NBConsole.WriteLine("resimulation start: " + i + " history end: " + (simHistory.Count - 1) + ", count: " + (simHistory.Count - 1 - i));
+                        if (pCount > 1)
+                            NBConsole.WriteLine(" server sent " + servPacket.EnemyInputs[0].Length + " eInputs");
+                        simHistory[i] = servPacket.Frame;
+                        for (int j = i + 1; j < simHistory.Count(); j++)
                         {
-                            foundFrame = true;
-                            NBConsole.WriteLine("resimulation start: " + i + " history end: " + (simHistory.Count - 1) + ", count: " + (simHistory.Count - 1 - i));
-                            if (pCount > 1)
-                                NBConsole.WriteLine(" server sent " + servPacket.EnemyInputs[0].Length + " eInputs");
-                            simHistory[i] = servPacket.Frame;
-                            for (int j = i + 1; j < simHistory.Count(); j++)
+                            Input[] correctInputs = new Input[pCount];
+                            for (int k = 0; k < pCount; k++)
                             {
-                                Input[] correctInputs = new Input[pCount];
-                                for (int k = 0; k < pCount; k++)
+                                if (k == thisPlayer - 1)
                                 {
-                                    if (k == thisPlayer - 1)
+                                    correctInputs[k] = simHistory[j].Inputs[k];
+                                }
+                                else
+                                {
+                                    int offset = 0;
+                                    if (k > thisPlayer - 1)
+                                        offset = -1;
+                                    if (servPacket.EnemyInputs[k + offset].Length > j - i - 1)
                                     {
-                                        correctInputs[k] = simHistory[j].Inputs[k];
+                                        correctInputs[k] = servPacket.EnemyInputs[k + offset][j - i - 1];
+                                        //NBConsole.WriteLine(correctInputs[k].ToString());
                                     }
                                     else
                                     {
-                                        int offset = 0;
-                                        if (k > thisPlayer - 1)
-                                            offset = -1;
-                                        if (servPacket.EnemyInputs[k + offset].Length > j - i - 1)
-                                        {
-                                            correctInputs[k] = servPacket.EnemyInputs[k + offset][j - i - 1];
-                                            //NBConsole.WriteLine(correctInputs[k].ToString());
-                                        }
-                                        else
-                                        {
-                                            correctInputs[k] = simHistory[j - 1].Inputs[k];
-                                            //NBConsole.WriteLine(correctInputs[k].ToString());
-                                        }
+                                        correctInputs[k] = simHistory[j - 1].Inputs[k];
+                                        //NBConsole.WriteLine(correctInputs[k].ToString());
                                     }
                                 }
-                                simHistory[j].State = GameLogic.NextState(simHistory[j - 1].Inputs, correctInputs, simHistory[j - 1].State);
-                                simHistory[j].Inputs = correctInputs;
-                                //NBConsole.WriteLine("P" + thisPlayer + ": pInput= (" + simHistory[j - 1].Inputs[thisPlayer - 1] + "), cInput= (" + correctInputs[thisPlayer - 1] + "), " +
-                                //    "start state = " + simHistory[j - 1].State + ", after: Pos= " + simHistory[j].State.PStates[thisPlayer - 1].Pos + ", Vel= " + simHistory[j].State.PStates[thisPlayer - 1].Vel);
                             }
-                            break;
+                            simHistory[j].State = GameLogic.NextState(simHistory[j - 1].Inputs, correctInputs, simHistory[j - 1].State);
+                            simHistory[j].Inputs = correctInputs;
+                            //NBConsole.WriteLine("P" + thisPlayer + ": pInput= (" + simHistory[j - 1].Inputs[thisPlayer - 1] + "), cInput= (" + correctInputs[thisPlayer - 1] + "), " +
+                            //    "start state = " + simHistory[j - 1].State + ", after: Pos= " + simHistory[j].State.PStates[thisPlayer - 1].Pos + ", Vel= " + simHistory[j].State.PStates[thisPlayer - 1].Vel);
                         }
-                    }
-                    if (!foundFrame)
-                    {
-                        NBConsole.WriteLine("didn't find :(");
-                        throw new Exception();
+                        break;
                     }
                 }
+                if (!foundFrame)
+                {
+                    NBConsole.WriteLine("didn't find :(");
+                    throw new Exception();
+                }
+            }
+            if (simulate)
+            {
                 NBConsole.WriteLine("updated state: " + simHistory.Last().State.ToString());
                 Draw(simHistory.Last().State);
                 NBConsole.WriteLine("Took " + (DateTime.Now - frameStart).Milliseconds);
@@ -321,11 +321,11 @@ namespace RealTimeProject
                 }
             }
 
-            //old history deletion, maybe needed?
-            //if (simHistory.Count >= 200)
-            //{
-            //    simHistory.RemoveRange(0, 100);
-            //}
+        //old history deletion, maybe needed?
+        //if (simHistory.Count >= 200)
+        //{
+        //    simHistory.RemoveRange(0, 100);
+        //}
         }
         private void Graphics_KeyDown(object sender, KeyEventArgs e)
         {
