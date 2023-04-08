@@ -262,9 +262,9 @@ namespace RealTimeProject
         public static PlayerState SimulatePlayerState(PlayerState startState, Input[] inputs)
         {
             GameState finalState = new GameState(new PlayerState[] { startState });
-            for (int i = 0; i < inputs.Length; i++)
+            for (int i = 1; i < inputs.Length; i++)
             {
-                finalState = _NextPlayerState(finalState, inputs[i], inputs[i + 1]);
+                finalState = _NextPlayerState(finalState, inputs[i - 1], inputs[i]);
             }
             return finalState.PStates[0];
         }

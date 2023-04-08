@@ -10,7 +10,7 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        static int bufferSize = 1024, pCount = 1;
+        static int bufferSize = 1024, pCount = 2;
         static bool compensateLag = true;
 
         static string settings = "";

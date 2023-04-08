@@ -14,9 +14,11 @@ namespace RealTimeProject
         bool fullSim = true, clientSim = true, enemySim = false;
         Color[] playerColors = new Color[4] { Color.MediumTurquoise, Color.Coral, Color.FromArgb(255, 255, 90), Color.MediumPurple };
 
-        Input curInput = new Input(), prevInput;
+        Input curInput = new Input();
+        List<Input> unackedInputs = new List<Input>(20);
         Label[] playerLabels, blockLabels, attackLabels;
         static List<Frame> simHistory = new List<Frame>();
+        ServerPacket lastServerPacket;
         Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
         EndPoint serverEP;
          
@@ -252,6 +254,8 @@ namespace RealTimeProject
                 bool foundFrame = false;
                 byte[] latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
                 ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
+                lastServerPacket = servPacket;
+                unackedInputs.Clear();
                 NBConsole.WriteLine("applying data from " + servPacket.TimeStamp.ToString("mm.ss.fff") + ". data:\n" + servPacket.ToString());
                 //client simulation and lagcomp on enemies
                 for (int i = simHistory.Count() - 1; i > 0; i--)
@@ -271,6 +275,7 @@ namespace RealTimeProject
                                 if (k == thisPlayer - 1)
                                 {
                                     correctInputs[k] = simHistory[j].Inputs[k];
+                                    unackedInputs.Add(correctInputs[k]);
                                 }
                                 else
                                 {
@@ -303,29 +308,101 @@ namespace RealTimeProject
                     throw new Exception();
                 }
             }
+            else
+            {
+                unackedInputs.Add(curInput);
+            }
+
             if (fullSim)
             {
+                // show the final frame from the simulated history (with causality)
                 NBConsole.WriteLine("updated state: " + simHistory.Last().State.ToString());
                 Draw(simHistory.Last().State);
                 NBConsole.WriteLine("Took " + (DateTime.Now - frameStart).Milliseconds);
             }
             else
             {
-                if (packets.Count() > 0) // deserialize packets and apply to simulated history
+                // show the frame after the last player action recieved from server, no extra simulation
+                if (!clientSim && !enemySim)
                 {
-                    byte[] latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
-                    ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
-                    NBConsole.WriteLine("applying data from " + servPacket.TimeStamp.ToString("mm.ss.fff") + 
-                        " during frame that started at " + frameStart.ToString("mm.ss.fff"));
-                    Draw(servPacket.Frame.State);
+                    if (packets.Count() > 0) // deserialize packets and apply to simulated history
+                    {
+                        byte[] latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
+                        ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
+                        NBConsole.WriteLine("applying data from " + servPacket.TimeStamp.ToString("mm.ss.fff") + 
+                            " during frame that started at " + frameStart.ToString("mm.ss.fff"));
+                        Draw(servPacket.Frame.State);
+                    }
+                }
+                else
+                {
+                    if (lastServerPacket != null)
+                    {
+                        GameState stateToDraw = new GameState(lastServerPacket.Frame.State);
+                        // simulate the catch-up frames for the enemies sent by the server
+                        for (int i = 0; i < pCount; i++)
+                        {
+                            if (i != thisPlayer - 1)
+                            {
+                                int offset = 0;
+                                if (i > thisPlayer - 1)
+                                {
+                                    offset = -1;
+                                }
+                                Input[] enemyInputs  = new Input[lastServerPacket.EnemyInputs[i + offset].Length + 1];
+                                enemyInputs[0] = lastServerPacket.Frame.Inputs[i];
+                                lastServerPacket.EnemyInputs[i + offset].CopyTo(enemyInputs, 1);
+                                stateToDraw.PStates[i] = GameLogic.SimulatePlayerState(stateToDraw.PStates[i], enemyInputs);
+                            }
+                        }
+                        //simulate client inputs that didn't reach the server
+                        if (clientSim)
+                        {
+                            stateToDraw.PStates[thisPlayer - 1] = GameLogic.SimulatePlayerState(stateToDraw.PStates[thisPlayer - 1], unackedInputs.ToArray());
+                        }
+                        if (enemySim)
+                        {
+                            for (int i = 0; i < pCount; i++)
+                            {
+                                if (i != thisPlayer - 1)
+                                {
+                                    int offset = 0;
+                                    if (i > thisPlayer - 1)
+                                    {
+                                        offset = -1;
+                                    }
+                                    Input[] enemyInputs = new Input[unackedInputs.Count - lastServerPacket.EnemyInputs.Length + 1];
+                                    for (int j = 0; j < enemyInputs.Length; j++)
+                                    {
+                                        enemyInputs[j] = lastServerPacket.EnemyInputs[i + offset][^1];
+                                    }
+                                    stateToDraw.PStates[i] = GameLogic.SimulatePlayerState(stateToDraw.PStates[i], enemyInputs);
+                                }
+                            }
+                        }
+                        Draw(stateToDraw);
+                    }
                 }
             }
 
-        //old history deletion, maybe needed?
-        //if (simHistory.Count >= 200)
-        //{
-        //    simHistory.RemoveRange(0, 100);
-        //}
+            if (fullSim)
+                Text = "Fully simulating";
+            else
+            {
+                Text = "Simulating seperatly: ";
+                if (clientSim)
+                    Text += "client simulation ";
+                if (enemySim)
+                    Text += "enemy extrapolation ";
+                if (!clientSim && !enemySim)
+                    Text += "nothing";
+
+            }
+            //old history deletion, maybe needed?
+            //if (simHistory.Count >= 200)
+            //{
+            //    simHistory.RemoveRange(0, 100);
+            //}
         }
         private void Graphics_KeyDown(object sender, KeyEventArgs e)
         {
@@ -343,21 +420,23 @@ namespace RealTimeProject
                 case Keys.Space:
                     curInput |= Input.Jump;
                     break;
-                case Keys.F:
+                case Keys.L:
                     curInput |= Input.Block;
                     break;
-                case Keys.G:
+                case Keys.J:
                     curInput |= Input.LAttack;
                     break;
-                case Keys.H:
+                case Keys.K:
                     curInput |= Input.HAttack;
                     break;
-                case Keys.S:
+                case Keys.I:
                     fullSim = !fullSim;
-                    if (fullSim)
-                        Text = "Simulating";
-                    else
-                        Text = "Not Simulating";
+                    break;
+                case Keys.O:
+                    clientSim = !clientSim;
+                    break;
+                case Keys.P:
+                    enemySim = !enemySim;
                     break;
             }
         }
@@ -378,13 +457,13 @@ namespace RealTimeProject
                 case Keys.Space:
                     curInput &= ~Input.Jump;
                     break;
-                case Keys.F:
+                case Keys.L:
                     curInput &= ~Input.Block;
                     break;
-                case Keys.G:
+                case Keys.J:
                     curInput &= ~Input.LAttack;
                     break;
-                case Keys.H:
+                case Keys.K:
                     curInput &= ~Input.HAttack;
                     break;
             }
