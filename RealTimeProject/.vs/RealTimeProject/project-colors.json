@@ -8,7 +8,7 @@
     },
     "082b4d52-6f54-4e4a-8751-66c260223763": {
       "ProjectGuid": "082b4d52-6f54-4e4a-8751-66c260223763",
-      "DisplayName": "Server",
+      "DisplayName": "_Server",
       "ColorIndex": 1
     },
     "981f0355-6458-4177-9894-0e1a97f3b432": {
@@ -25,7 +25,17 @@
       "ProjectGuid": "e549c338-8418-484c-b7d7-bc6dbcb6ba97",
       "DisplayName": "CommonCode",
       "ColorIndex": 3
+    },
+    "e459f9ba-4ec3-4ed5-b4ed-8f6d7065d2b5": {
+      "ProjectGuid": "e459f9ba-4ec3-4ed5-b4ed-8f6d7065d2b5",
+      "DisplayName": "_Server",
+      "ColorIndex": 4
+    },
+    "c14c62f2-bed7-492b-8d2a-3c6af825d693": {
+      "ProjectGuid": "c14c62f2-bed7-492b-8d2a-3c6af825d693",
+      "DisplayName": "Server",
+      "ColorIndex": 5
     }
   },
-  "NextColorIndex": 4
+  "NextColorIndex": 6
 }

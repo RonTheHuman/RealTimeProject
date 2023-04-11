@@ -18,7 +18,7 @@ namespace RealTimeProject
         List<Input> unackedInputs = new List<Input>(20);
         Label[] playerLabels, blockLabels, attackLabels;
         static List<Frame> simHistory = new List<Frame>();
-        ServerPacket lastServerPacket;
+        ServerGamePacket lastServerPacket;
         Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
         EndPoint serverEP;
          
@@ -262,8 +262,24 @@ namespace RealTimeProject
             if (packets.Count() > 0) // deserialize packets and apply to simulated history
             {
                 bool foundFrame = false;
-                byte[] latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
-                ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
+                foreach (byte[] packet in packets)
+                {
+                    if (packet.Length == 1)
+                    {
+                        NBConsole.WriteLine("Server Closed");
+                        GameLoopTimer.Enabled = false;
+                        return;
+                    }
+                }
+                ServerGamePacket servPacket = ServerGamePacket.Deserialize(packets.Last(), pCount); // pick the latest frame because can arrive out of order
+                for (int i = 0; i < packets.Count - 1; i++)
+                {
+                    ServerGamePacket temp = ServerGamePacket.Deserialize(packets[i], pCount);
+                    if (temp.TimeStamp > servPacket.TimeStamp)
+                    {
+                        servPacket = temp;
+                    }
+                }
                 lastServerPacket = servPacket;
                 unackedInputs.Clear();
                 NBConsole.WriteLine("applying data from " + servPacket.TimeStamp.ToString("mm.ss.fff") + ". data:\n" + servPacket.ToString());
@@ -338,7 +354,7 @@ namespace RealTimeProject
                     if (packets.Count() > 0) // deserialize packets and apply to simulated history
                     {
                         byte[] latestPacket = packets.Last(); // later pick the highest frame because can arrive out of order
-                        ServerPacket servPacket = ServerPacket.Deserialize(latestPacket, pCount);
+                        ServerGamePacket servPacket = ServerGamePacket.Deserialize(latestPacket, pCount);
                         NBConsole.WriteLine("applying data from " + servPacket.TimeStamp.ToString("mm.ss.fff") + 
                             " during frame that started at " + frameStart.ToString("mm.ss.fff"));
                         Draw(servPacket.Frame.State);

@@ -397,13 +397,13 @@ namespace RealTimeProject
         }
     }
 
-    public class ServerPacket
+    public class ServerGamePacket
     {
         public DateTime TimeStamp { get; set; }
         public Frame Frame { get; set; }
         public Input[][] EnemyInputs { get; set; }
 
-        public ServerPacket(DateTime timeStamp, Frame frame, Input[][] enemyInputs)
+        public ServerGamePacket(DateTime timeStamp, Frame frame, Input[][] enemyInputs)
         {
             this.TimeStamp = timeStamp;
             this.Frame = frame;
@@ -454,7 +454,7 @@ namespace RealTimeProject
             return bytes;
         }
 
-        public static ServerPacket Deserialize(byte[] packet, int pCount)
+        public static ServerGamePacket Deserialize(byte[] packet, int pCount)
         {
             DateTime timeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packet[..8]));
             Frame frame = Frame.FromBytes(packet[8..(26 * pCount + 16)], pCount);
@@ -472,8 +472,19 @@ namespace RealTimeProject
                 }
                 enemyInputs[i] = oneEnemyInput;
             }
-            return new ServerPacket(timeStamp, frame, enemyInputs);
+            return new ServerGamePacket(timeStamp, frame, enemyInputs);
         }
 
+    }
+    public class ClientPacket
+    {
+        public byte[] Data { get; set; }
+        public int Player { get; set; }
+
+        public ClientPacket(int player, byte[] data)
+        {
+            Data = data;
+            Player = player;
+        }
     }
 }
