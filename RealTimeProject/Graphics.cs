@@ -226,7 +226,7 @@ namespace RealTimeProject
             byte[] sendData = new byte[8 + 1];
             sendData[0] = (byte)curInput;
             timeStamp.CopyTo(sendData, 1);
-            clientSock.SendToAsync(sendData, SocketFlags.None, serverEP);
+            clientSock.SendTo(sendData, SocketFlags.None, serverEP);
             //NBConsole.WriteLine(inputBytes.Length + " | " + Convert.ToHexString(inputBytes) + " | " + Convert.ToHexString(timeStamp) + ", " + new DateTime(BinaryPrimitives.ReadInt64BigEndian(timeStamp)).ToString("mm.ss.fff") + " | " + Convert.ToHexString(sendData));
 
             //NBConsole.WriteLine("Getting packets from server");
@@ -235,7 +235,17 @@ namespace RealTimeProject
             {
                 byte[] buffer = new byte[1024];
                 EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
-                int packetLen = clientSock.ReceiveFrom(buffer, ref recieveEP);
+                int packetLen = 0;
+                try
+                {
+                    packetLen = clientSock.ReceiveFrom(buffer, ref recieveEP);
+                }
+                catch (SocketException se)
+                {
+                    Console.WriteLine("Server closed");
+                    GameLoopTimer.Enabled = false;
+                    return;
+                }
                 packets.Add(buffer[..packetLen]);
                 //NBConsole.WriteLine("Recieved " + packets.Last());
             }

@@ -10,7 +10,7 @@ namespace RealTimeProject
 {
     internal class Server
     {
-        static int bufferSize = 1024, pCount = 2;
+        static int bufferSize = 1024, pCount = 0;
         static bool compensateLag = true;
 
         static string settings = "";
@@ -18,7 +18,8 @@ namespace RealTimeProject
         static Dictionary<IPEndPoint, int> playerIPs = new Dictionary<IPEndPoint, int>();
         static List<Frame> history = new List<Frame>(200);
         //last recieved stamps for each player, 2 is for broken non lagcomp
-        static DateTime[] playerLRS = new DateTime[pCount], playerLRS2 = new DateTime[pCount]; 
+        static DateTime[] playerLRS = new DateTime[pCount], playerLRS2 = new DateTime[pCount];
+        static System.Timers.Timer gameTimer;
         static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
 
         public struct ClientPacket
@@ -53,67 +54,88 @@ namespace RealTimeProject
             }
         }
 
-        static Socket CreateLocalSocket()
+        static Socket CreateLocalSocket(string ipstr)
         {
             Socket sock = new Socket(SocketType.Dgram, ProtocolType.Udp);
             IPAddress sAddress;
             int sPort = 12345;
-
-            string[] adresses = new string[5] { "172.16.2.167", "10.100.102.20", "192.168.68.112", "172.16.5.133", "172.16.149.199" };
-            Console.WriteLine("Use default? y/n");
-            if (Console.ReadLine() == "y")
-            {
-                sAddress = IPAddress.Parse(adresses[int.Parse(settings[0] + "")]);
-            }
-            else
-            {
-                Console.WriteLine("Enter address:");
-                sAddress = IPAddress.Parse(Console.ReadLine());
-            }
+            sAddress = IPAddress.Parse(ipstr);
             sock.Bind(new IPEndPoint(sAddress, sPort));
             return sock;
         }
 
-        static Frame CreateInitFrame()
+        static Frame CreateInitFrame(int playerCount)
         {
-            if (pCount == 1)
+            if (playerCount == 1)
                 return new Frame(DateTime.MinValue, new Input[] { Input.None }, GameLogic.InitialState(1));
-            if (pCount == 2)
+            if (playerCount == 2)
                 return new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None }, GameLogic.InitialState(2));
-            if (pCount == 3)
+            if (playerCount == 3)
                 return new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None }, GameLogic.InitialState(3));
             return new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None, Input.None }, GameLogic.InitialState(4));
         }
 
         static void Main(string[] args)
         {
-            settings = File.ReadAllText(Path.GetFullPath(@"settings.txt"));
-            serverSock = CreateLocalSocket();
-            
-            byte[] buffer = new byte[bufferSize];
-            EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
-            for (int i = 0; i < pCount; i++)
+            settings = File.ReadAllText(Path.GetFullPath("settings.txt"));
+            int maxPlayers = int.Parse(settings.Split("\r\n")[1]);
+
+            while (true)
             {
-                Console.WriteLine("Waiting for player " + (i + 1));
-                serverSock.ReceiveFrom(buffer, ref clientEP);
-                Console.WriteLine(clientEP.ToString() + " entered");
-                playerIPs[new IPEndPoint(((IPEndPoint)clientEP).Address, ((IPEndPoint)clientEP).Port)] = i + 1;
-                playerLRS[i] = DateTime.MinValue;
-                playerLRS2[i] = DateTime.MinValue;
+                serverSock = CreateLocalSocket(settings.Split("\r\n")[0]);
+                pCount = 0;
+                history.Clear();
+                playerIPs.Clear();
+
+                Console.WriteLine("Opened lobby, waiting for players. Max defined in settings, start game by pressing any key.");
+                byte[] buffer = new byte[bufferSize];
+                EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
+                Task<SocketReceiveFromResult> playerJoinTask = serverSock.ReceiveFromAsync(buffer, SocketFlags.None, clientEP);
+                Console.WriteLine("Waiting for player " + 1);
+                while (pCount < maxPlayers)
+                {
+                    if (Console.KeyAvailable && pCount > 0)
+                        break;
+                    if (playerJoinTask.IsCompleted)
+                    {
+                        SocketReceiveFromResult playerJoinTaskResult = playerJoinTask.Result;
+                        clientEP = playerJoinTaskResult.RemoteEndPoint;
+                        Console.WriteLine(clientEP.ToString() + " entered");
+                        playerIPs[new IPEndPoint(((IPEndPoint)clientEP).Address, ((IPEndPoint)clientEP).Port)] = pCount + 1;
+                        pCount++;
+                        playerJoinTask = serverSock.ReceiveFromAsync(buffer, SocketFlags.None, clientEP);
+                    }
+                }
+
+                playerLRS = new DateTime[pCount];
+                playerLRS2 = new DateTime[pCount];
+                for (int i = 0; i < pCount; i++)
+                {
+                    playerLRS[i] = DateTime.MinValue;
+                    playerLRS2[i] = DateTime.MinValue;
+                }
+
+                foreach (var ip in playerIPs.Keys)
+                {
+                    serverSock.SendTo(Encoding.Latin1.GetBytes(playerIPs[ip].ToString() + pCount.ToString()), ip);
+                }
+
+                history.Add(CreateInitFrame(pCount));
+
+                gameTimer = new System.Timers.Timer(15);
+                gameTimer.Elapsed += GameLoop;
+                gameTimer.AutoReset = true;
+                gameTimer.Enabled = true;
+                while (gameTimer.Enabled) { }
+                Thread.Sleep(15);
+                serverSock.Close();
+
+                Console.WriteLine("Exit or start a new lobby? (e for exit, else for new lobby)");
+                if (Console.Read() == 'e')
+                {
+                    break;
+                }
             }
-
-            foreach (var ip in playerIPs.Keys)
-            {
-                serverSock.SendTo(Encoding.Latin1.GetBytes(playerIPs[ip].ToString() + pCount.ToString()), ip);
-            }
-
-            history.Add(CreateInitFrame());
-
-            System.Timers.Timer gameTimer = new System.Timers.Timer(15);
-            gameTimer.Elapsed += GameLoop;
-            gameTimer.AutoReset = true;
-            gameTimer.Enabled = true;
-            Console.ReadLine();
         }
 
         static void GameLoop(object? sender, ElapsedEventArgs e)
@@ -245,6 +267,18 @@ namespace RealTimeProject
             NBConsole.WriteLine(printMsg);
             TimeSpan duration = (DateTime.Now - frameStart);
             printMsg += "took " + duration.TotalMilliseconds + " ms\n";
+
+            if (Console.KeyAvailable)
+            {
+                if (Console.ReadKey().Key == ConsoleKey.Enter)
+                {
+                    history[history.Count - 1] = CreateInitFrame(pCount);
+                }
+                else if (Console.ReadKey().Key == ConsoleKey.Escape)
+                {
+                    gameTimer.Stop();
+                }
+            }
         }
     }
 }
