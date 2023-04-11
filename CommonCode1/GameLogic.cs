@@ -115,7 +115,7 @@ namespace RealTimeProject
                                     if (playerJ.BFrame > 0 && playerJ.BFrame < GameVariables.BlockDur + 1)
                                     {
                                         playerI.AttackFrame = 0;
-                                        playerI.StunFrame = attack.StunF;
+                                        playerI.StunFrame = 30;
                                         playerI.AttackName = AttackName.None;
                                     }
                                     else

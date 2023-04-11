@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RealTimeProject
 {
-    public partial class Form1 : Form
+    public partial class Server : Form
     {
         static int bufferSize = 1024, pCount = 0;
         static bool compensateLag = true;
@@ -271,7 +271,7 @@ namespace RealTimeProject
             ResetGameButton.Enabled = true;
             StopGameButton.Enabled = true;
         }
-        public Form1()
+        public Server()
         {
             InitializeComponent();
         }

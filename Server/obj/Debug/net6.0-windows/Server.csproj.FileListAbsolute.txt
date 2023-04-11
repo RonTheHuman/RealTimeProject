@@ -4,7 +4,6 @@ C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\obj\Debug\
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\obj\Debug\net6.0-windows\Server.AssemblyInfoInputs.cache
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\obj\Debug\net6.0-windows\Server.AssemblyInfo.cs
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\obj\Debug\net6.0-windows\Server.csproj.CoreCompileInputs.cache
-C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\obj\Debug\net6.0-windows\RealTimeProject.Form1.resources
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\bin\Debug\net6.0-windows\Server.exe
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\bin\Debug\net6.0-windows\Server.deps.json
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\bin\Debug\net6.0-windows\Server.runtimeconfig.json
@@ -18,3 +17,4 @@ C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\obj\Debug\
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\obj\Debug\net6.0-windows\ref\Server.dll
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\obj\Debug\net6.0-windows\Server.pdb
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\obj\Debug\net6.0-windows\Server.genruntimeconfig.cache
+C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\obj\Debug\net6.0-windows\RealTimeProject.Server.resources

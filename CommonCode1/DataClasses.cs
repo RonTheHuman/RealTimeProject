@@ -154,7 +154,8 @@ namespace RealTimeProject
         Jump = 0b_0000_1000,
         LAttack = 0b_0001_0000,
         HAttack = 0b_0010_0000,
-        Block = 0b_0100_0000
+        Block = 0b_0100_0000,
+        Down = 0b_1000_0000
     }
 
     public class PlayerState

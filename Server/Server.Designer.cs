@@ -1,6 +1,6 @@
 ﻿namespace RealTimeProject
 {
-    partial class Form1
+    partial class Server
     {
         /// <summary>
         ///  Required designer variable.
