@@ -10,7 +10,7 @@ namespace RealTimeProject
 {
     public class GameLogic
     {
-        static private void IncrementStunF(GameState state)
+        static void IncrementStunF(GameState state)
         {
             foreach (PlayerState player in state.PStates)
             {
@@ -19,7 +19,7 @@ namespace RealTimeProject
             }
         }
 
-        static private void IncrementBlockF(Input[] prevInputs, Input[] curInputs, GameState state, int pCount)
+        static void IncrementBlockF(Input[] prevInputs, Input[] curInputs, GameState state, int pCount)
         {
             for (int i = 0; i < pCount; i++)
             {
@@ -43,7 +43,7 @@ namespace RealTimeProject
             }
         }
 
-        static private bool[] GetOnFloorArr(GameState state, int pCount)
+        static bool[] GetOnFloorArr(GameState state, int pCount)
         {
             bool[] OnFloorArr = new bool[pCount];
             for (int i = 0; i < pCount; i++)
@@ -59,7 +59,7 @@ namespace RealTimeProject
             return OnFloorArr;
         }
 
-        static private void IncrementAttackF(Input[] prevInputs, Input[] curInputs, GameState state, int pCount, bool[] onFloorArr)
+        static void IncrementAttackF(Input[] prevInputs, Input[] curInputs, GameState state, int pCount, bool[] onFloorArr)
         {
             for (int i = 0; i < pCount; i++)
             {
@@ -138,6 +138,179 @@ namespace RealTimeProject
             }
         }
 
+        static void ProccessAttackCollisions(GameState state, int pCount, Vector2[] accArr)
+        {
+            for (int i = 0; i < pCount; i++)
+            {
+                PlayerState playerI = state.PStates[i];
+                if (playerI.Stocks == 0)
+                    continue;
+                if (playerI.AttackName != AttackName.None)
+                {
+                    Attack attack = GameVariables.AttackDict[playerI.AttackName];
+                    AnimHitbox[] anim = attack.Animation;
+                    if (attack.StartupF < playerI.AttackFrame && playerI.AttackFrame <= attack.StartupF + anim.Last().endF)
+                    {
+                        AnimHitbox animHitbox = new AnimHitbox();
+                        for (int k = 0; k < anim.Length; k++)
+                        {
+                            if (playerI.AttackFrame - attack.StartupF <= anim[k].endF)
+                            {
+                                animHitbox = anim[k];
+                                break;
+                            }
+                        }
+                        RectangleF actualHitbox;
+                        if (!playerI.FacingLeft)
+                        {
+                            actualHitbox = new RectangleF(new PointF(
+                                                            playerI.Pos.X + 25 + animHitbox.hitbox.X,
+                                                            playerI.Pos.Y + 25 + animHitbox.hitbox.Y),
+                                                            animHitbox.hitbox.Size);
+                        }
+                        else
+                        {
+                            actualHitbox = new RectangleF(new PointF(
+                                                            playerI.Pos.X + 25 - animHitbox.hitbox.X - animHitbox.hitbox.Width,
+                                                            playerI.Pos.Y + 25 + animHitbox.hitbox.Y),
+                                                            animHitbox.hitbox.Size);
+                        }
+                        for (int j = 0; j < pCount; j++)
+                        {
+                            PlayerState playerJ = state.PStates[j];
+                            if (playerJ.Stocks == 0)
+                                continue;
+                            if (j != i)
+                            {
+                                if (new RectangleF(playerJ.Pos.ToPoint(), GameVariables.PlayerSize).IntersectsWith(actualHitbox))
+                                {
+                                    if (0 < playerJ.BFrame && playerJ.BFrame < GameVariables.BlockDur + 1)
+                                    {
+                                        playerI.AttackFrame = 0;
+                                        playerI.StunFrame = 30;
+                                        playerI.AttackName = AttackName.None;
+                                    }
+                                    else
+                                    {
+                                        if (playerJ.StunFrame == 0)
+                                        {
+                                            playerJ.StunFrame = attack.StunF;
+                                            playerJ.KBPercent += 2;
+                                        }
+                                        Vector2 knockback;
+                                        if (animHitbox.knockback != null)
+                                        {
+                                            knockback = animHitbox.knockback;
+                                        }
+                                        else
+                                        {
+                                            knockback = attack.Knockback;
+                                        }
+                                        if (!playerI.FacingLeft)
+                                        {
+                                            accArr[j].Add(knockback);
+                                        }
+                                        else
+                                        {
+                                            accArr[j].Add(new Vector2(-knockback.X, knockback.Y));
+                                        }
+                                        accArr[j].Scale((float)playerJ.KBPercent / 100);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        static void ProccessControlledMovement(Input[] prevInputs, Input[] curInputs, GameState state, int pCount, bool[] onFloorArr, Vector2[] accArr)
+        {
+            for (int i = 0; i < pCount; i++)
+            {
+                PlayerState playerI = state.PStates[i];
+                if (playerI.Stocks == 0)
+                    continue;
+                if (onFloorArr[i])
+                {
+                    playerI.Jumps = 2;
+                }
+                if (playerI.StunFrame == 0 && playerI.BFrame == 0 && playerI.AttackFrame < 2)
+                {
+                    if ((curInputs[i] & Input.Right) != 0)
+                    {
+                        accArr[i].X += GameVariables.BaseMS;
+                        playerI.FacingLeft = false;
+                    }
+                    else if ((curInputs[i] & Input.Left) != 0)
+                    {
+                        accArr[i].X += -GameVariables.BaseMS;
+                        playerI.FacingLeft = true;
+                    }
+                    if ((curInputs[i] & Input.Jump) != 0 && (prevInputs[i] & Input.Jump) == 0 && playerI.Jumps != 0)
+                    {
+                        accArr[i].Y += -GameVariables.BaseJS;
+                        playerI.Jumps -= 1;
+                    }
+                    if (playerI.AttackFrame == 1 && playerI.AttackName == AttackName.UAir)
+                    {
+                        accArr[i].Y += -GameVariables.BaseJS;
+                    }
+                }
+            }
+        }
+
+        static void ApplyMovement(Input[] prevInputs, Input[] curInputs, GameState state, int pCount, bool[] onFloorArr, Vector2[] accArr)
+        {
+            for (int i = 0; i < pCount; i++)
+            {
+                PlayerState playerI = state.PStates[i];
+                if (playerI.Stocks == 0)
+                    continue;
+                accArr[i].Y += GameVariables.Gravity;
+                if (accArr[i].Y < 0)
+                {
+                    playerI.Vel.Y = 0;
+                }
+                playerI.Vel.Add(accArr[i]);
+                if (onFloorArr[i] && Math.Abs(playerI.Vel.X) > GameVariables.BaseMS)
+                {
+                    playerI.Vel.X *= GameVariables.Friction;
+                }
+                if ((curInputs[i] & Input.Jump) == 0 && (prevInputs[i] & Input.Jump) != 0 && playerI.Vel.Y < 0)
+                {
+                    playerI.Vel.Y *= 0.4f;
+                }
+                playerI.Pos.Add(playerI.Vel);
+            }
+        }
+
+        static void ProccessFloorCollisions(GameState state, int pCount)
+        {
+            for (int i = 0; i < pCount; i++)
+            {
+                PlayerState playerI = state.PStates[i];
+                if (playerI.Stocks == 0)
+                    continue;
+                if (playerI.Pos.Y >= GameVariables.FloorY - GameVariables.PlayerSize.Height && playerI.Vel.Y > 0)
+                {
+                    playerI.Pos = new Vector2(playerI.Pos.X, GameVariables.FloorY - GameVariables.PlayerSize.Height);
+                    playerI.Vel.Y = 0;
+                }
+                if (!GameVariables.Bounds.IntersectsWith(new Rectangle(playerI.Pos.ToPoint(), GameVariables.PlayerSize)))
+                {
+                    playerI.Stocks -= 1;
+                    playerI.Pos = GameVariables.RespawnPos;
+                    playerI.Vel = new Vector2(0, 0);
+                    playerI.BFrame = 0;
+                    playerI.AttackFrame = 0;
+                    playerI.AttackName = 0;
+                    playerI.Jumps = 2;
+                    playerI.FacingLeft = false;
+                }
+            }
+        }
+
         public static GameState NextState(Input[] prevInputs, Input[] curInputs, GameState state)
         {
             GameState nextState = new GameState(state);
@@ -151,219 +324,10 @@ namespace RealTimeProject
             IncrementStunF(nextState);
             IncrementBlockF(prevInputs, curInputs, nextState, pCount);
             IncrementAttackF(prevInputs, curInputs, nextState, pCount, onFloorArr);
-            //attack handling
-            for (int i = 0; i < pCount; i++)
-            {
-                PlayerState playerI = nextState.PStates[i];
-                if (playerI.Stocks == 0)
-                    continue;
-                bool isOnFloor = false;
-                if (playerI.Pos.Y == GameVariables.FloorY - GameVariables.PlayerSize.Height)
-                {
-                    isOnFloor = true;
-                }
-                if ((curInputs[i] & Input.LAttack) != 0 && (prevInputs[i] & Input.LAttack) == 0 && playerI.AttackFrame == 0)
-                {
-                    if ((curInputs[i] & Input.Up) != 0)
-                    {
-                        if (isOnFloor)
-                            playerI.AttackName = AttackName.ULight;
-                        else
-                        {
-                            playerI.AttackName = AttackName.UAir;
-                            accArr[i].Y += -15;
-                        }
-                    }
-                    else if ((curInputs[i] & (Input.Down)) != 0)
-                    {
-                        if (isOnFloor)
-                            playerI.AttackName = AttackName.DLight;
-                        else
-                            playerI.AttackName = AttackName.DAir;
-                    }
-                    else if ((curInputs[i] & (Input.Right | Input.Left)) != 0)
-                    {
-                        if (isOnFloor)
-                            playerI.AttackName = AttackName.SLight;
-                        else
-                            playerI.AttackName = AttackName.SAir;
-                    }
-                    else
-                    {
-                        if (isOnFloor)
-                            playerI.AttackName = AttackName.NLight;
-                        else
-                            playerI.AttackName = AttackName.NAir;
-                    }
-                }
-                else if ((curInputs[i] & Input.HAttack) != 0 && (prevInputs[i] & Input.HAttack) == 0 && playerI.AttackFrame == 0)
-                {
-                    if (isOnFloor)
-                    {
-                        if ((curInputs[i] & Input.Up) != 0)
-                            playerI.AttackName = AttackName.UHeavy;
-                        else if ((curInputs[i] & (Input.Right | Input.Left)) != 0)
-                            playerI.AttackName = AttackName.SHeavy;
-                        else
-                            playerI.AttackName = AttackName.NHeavy;
-                    }
-                }
-                if (playerI.AttackName != AttackName.None)
-                {
-                    Attack attack = GameVariables.AttackDict[playerI.AttackName];
-                    AnimHitbox[] anim = attack.Animation;
-                    AnimHitbox ah = new AnimHitbox();
-                    playerI.AttackFrame++;
-                    if (attack.StartupF < playerI.AttackFrame && playerI.AttackFrame <= attack.StartupF + anim.Last().endF)
-                    {
-                        for (int j = 0; j < pCount; j++)
-                        {
-                            PlayerState playerJ = nextState.PStates[j];
-                            if (j != i)
-                            {
-                                for (int k = 0; k < anim.Length; k++)
-                                {
-                                    if (playerI.AttackFrame - attack.StartupF <= anim[k].endF)
-                                    {
-                                        ah = anim[k];
-                                        break;
-                                    }
-                                }
-                                RectangleF actualHitbox;
-                                if (!playerI.FacingLeft)
-                                {
-                                    actualHitbox = new RectangleF(new PointF(playerI.Pos.X + 25 + ah.hitbox.X, playerI.Pos.Y + 25 + ah.hitbox.Y),
-                                                                    ah.hitbox.Size);
-                                }
-                                else
-                                {
-                                    actualHitbox = new RectangleF(new PointF(playerI.Pos.X + 25 - ah.hitbox.X - ah.hitbox.Width,
-                                        playerI.Pos.Y + 25 + ah.hitbox.Y), ah.hitbox.Size);
-                                }
-                                if (new RectangleF(playerJ.Pos.ToPoint(), GameVariables.PlayerSize).IntersectsWith(actualHitbox))
-                                {
-                                    if (playerJ.BFrame > 0 && playerJ.BFrame < GameVariables.BlockDur + 1)
-                                    {
-                                        playerI.AttackFrame = 0;
-                                        playerI.StunFrame = 30;
-                                        playerI.AttackName = AttackName.None;
-                                    }
-                                    else
-                                    {
-                                        if (playerJ.StunFrame == 0)
-                                        {
-                                            playerJ.StunFrame = attack.StunF;
-                                            playerJ.KBPercent += 2;
-                                        }
-                                        if (!playerI.FacingLeft)
-                                        {
-                                            accArr[j].Add(attack.Knockback);
-                                        }
-                                        else
-                                        {
-                                            accArr[j].Add(new Vector2(-attack.Knockback.X, attack.Knockback.Y));
-                                        }
-                                        accArr[j].Scale((float)playerJ.KBPercent / 100);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (playerI.AttackFrame > 0)
-                    {
-                        if (playerI.AttackFrame == anim.Last().endF + attack.StartupF + attack.RecoveryF)
-                        {
-                            playerI.AttackName = AttackName.None;
-                            playerI.AttackFrame = 0;
-                        }
-                    }
-                }
-            }
-            //movement handeling
-            for (int i = 0; i < pCount; i++)
-            {
-                PlayerState playerI = nextState.PStates[i];
-                if (playerI.Stocks == 0)
-                    continue;
-                Vector2 playerV = playerI.Vel;
-                float WalkV = 0f;
-                bool isOnFloor = false;
-                if (playerI.Pos.Y == GameVariables.FloorY - GameVariables.PlayerSize.Height)
-                {
-                    isOnFloor = true;
-                }
-                if (playerI.StunFrame == 0)
-                {
-                    if (playerI.BFrame == 0 || playerI.BFrame > GameVariables.BlockDur)
-                    {
-                        if (playerI.AttackFrame == 0)
-                        {
-                            if ((curInputs[i] & Input.Right) != 0)
-                            {
-                                WalkV = GameVariables.BaseMS;
-                                playerI.FacingLeft = false;
-                            }
-                            else if ((curInputs[i] & Input.Left) != 0)
-                            {
-                                WalkV = -GameVariables.BaseMS;
-                                playerI.FacingLeft = true;
-                            }
-
-                            if ((curInputs[i] & Input.Jump) != 0 && (prevInputs[i] & Input.Jump) == 0 && playerI.Jumps != 0)
-                            {
-                                accArr[i].Y = -GameVariables.BaseJS;
-                                playerI.Jumps -= 1;
-                            }
-                            else if ((curInputs[i] & Input.Jump) == 0 && (prevInputs[i] & Input.Jump) != 0 && playerI.Vel.Y < 0)
-                            {
-                                playerI.Vel.Y = playerI.Vel.Y * 0.4f;
-                            }
-                        }
-                        else
-                        {
-                            if (!isOnFloor)
-                            {
-                                WalkV = playerI.Vel.X;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    playerI.StunFrame--;
-                }
-                if (accArr[i].X != 0 || accArr[i].Y != 0)
-                {
-                    playerI.Vel = accArr[i];
-                }
-                playerI.Vel.Y += GameVariables.Gravity;
-
-                if (playerV.X > GameVariables.BaseMS || playerV.X < -GameVariables.BaseMS || playerI.StunFrame > 0)
-                {
-                    if (playerI.Pos.Y >= GameVariables.FloorY - GameVariables.PlayerSize.Height)
-                    {
-                        playerV.X = (int)(playerV.X * GameVariables.Friction);
-                    }
-                }
-                else
-                {
-                    playerV.X = WalkV;
-                }
-                playerI.Pos.Add(playerV);
-
-                if (playerI.Pos.Y >= GameVariables.FloorY - GameVariables.PlayerSize.Height && playerI.Vel.Y > 0)
-                {
-                    playerI.Pos = new Vector2(playerI.Pos.X, GameVariables.FloorY - GameVariables.PlayerSize.Height);
-                    playerI.Vel.Y = 0;
-                    playerI.Jumps = 2;
-                }
-                if (!GameVariables.Bounds.IntersectsWith(new Rectangle(playerI.Pos.ToPoint(), GameVariables.PlayerSize)))
-                {
-                    playerI.Stocks -= 1;
-                    playerI.Pos = new Vector2(400, 250);
-                    playerI.Vel = new Vector2(0, 0);
-                }
-            }
+            ProccessAttackCollisions(nextState, pCount, accArr);
+            ProccessControlledMovement(prevInputs, curInputs, nextState, pCount, onFloorArr, accArr);
+            ApplyMovement(prevInputs, curInputs, nextState, pCount, onFloorArr, accArr);
+            ProccessFloorCollisions(nextState, pCount);
             return nextState;
         }
 
@@ -402,6 +366,7 @@ namespace RealTimeProject
         public class GameVariables
         {
             public static Rectangle Bounds { get; set; }
+            public static Vector2 RespawnPos { get; set; }
             public static int FloorY { get; set; }
             public static float Gravity { get; set; }
             public static Size PlayerSize { get; set; }
@@ -414,7 +379,8 @@ namespace RealTimeProject
             public static Dictionary<AttackName, Attack> AttackDict { get; }
             static GameVariables()
             {
-                Bounds = new Rectangle(-50, -50, 1086, 702);
+                Bounds = new Rectangle(0, 0, 986, 602);
+                RespawnPos = new Vector2(400, 250);
                 FloorY = 457;
                 Gravity = 0.8f;
                 PlayerSize = new Size(50, 50);
