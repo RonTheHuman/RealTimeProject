@@ -35,7 +35,12 @@
       "ProjectGuid": "c14c62f2-bed7-492b-8d2a-3c6af825d693",
       "DisplayName": "Server",
       "ColorIndex": 5
+    },
+    "a8300304-296b-4119-a630-298f072cd411": {
+      "ProjectGuid": "a8300304-296b-4119-a630-298f072cd411",
+      "DisplayName": "Server",
+      "ColorIndex": 6
     }
   },
-  "NextColorIndex": 6
+  "NextColorIndex": 7
 }

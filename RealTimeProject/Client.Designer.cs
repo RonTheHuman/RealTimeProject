@@ -98,7 +98,7 @@
             this.ScoreLabel.BackColor = System.Drawing.Color.DarkSeaGreen;
             this.ScoreLabel.Font = new System.Drawing.Font("Segoe UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.ScoreLabel.ForeColor = System.Drawing.Color.Black;
-            this.ScoreLabel.Location = new System.Drawing.Point(256, 486);
+            this.ScoreLabel.Location = new System.Drawing.Point(279, 486);
             this.ScoreLabel.Name = "ScoreLabel";
             this.ScoreLabel.Size = new System.Drawing.Size(428, 53);
             this.ScoreLabel.TabIndex = 4;
@@ -123,9 +123,9 @@
             // FloorLabel
             // 
             this.FloorLabel.BackColor = System.Drawing.Color.DarkSeaGreen;
-            this.FloorLabel.Location = new System.Drawing.Point(0, 457);
+            this.FloorLabel.Location = new System.Drawing.Point(243, 457);
             this.FloorLabel.Name = "FloorLabel";
-            this.FloorLabel.Size = new System.Drawing.Size(1035, 108);
+            this.FloorLabel.Size = new System.Drawing.Size(500, 108);
             this.FloorLabel.TabIndex = 6;
             // 
             // AttackLabel3
@@ -205,7 +205,7 @@
             this.Player4Label.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.Player4Label.Visible = false;
             // 
-            // Graphics
+            // Client
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -226,7 +226,7 @@
             this.Controls.Add(this.AttackLabel2);
             this.Controls.Add(this.AttackLabel1);
             this.Enabled = false;
-            this.Name = "Graphics";
+            this.Name = "Client";
             this.Text = "Form1";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Graphics_KeyDown);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Graphics_KeyUp);

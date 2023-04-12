@@ -456,7 +456,8 @@ namespace RealTimeProject
                 case Keys.L:
                     curInput |= Input.Block;
                     break;
-                case Keys.J:
+                case Keys.J: 
+                case Keys.H:
                     curInput |= Input.LAttack;
                     break;
                 case Keys.K:
@@ -488,7 +489,7 @@ namespace RealTimeProject
                     curInput &= ~Input.Up;
                     break;
                 case Keys.S:
-                    curInput |= Input.Down;
+                    curInput &= ~Input.Down;
                     break;
                 case Keys.Space:
                     curInput &= ~Input.Jump;
@@ -497,6 +498,7 @@ namespace RealTimeProject
                     curInput &= ~Input.Block;
                     break;
                 case Keys.J:
+                case Keys.H:
                     curInput &= ~Input.LAttack;
                     break;
                 case Keys.K:

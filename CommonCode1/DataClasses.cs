@@ -112,11 +112,13 @@ namespace RealTimeProject
     {
         public RectangleF hitbox;
         public int endF;
+        public Vector2? knockback;
 
-        public AnimHitbox(RectangleF hitbox, int endF)
+        public AnimHitbox(RectangleF hitbox, int endF, Vector2? knockback = null)
         {
             this.hitbox = hitbox;
             this.endF = endF;
+            this.knockback = knockback;
         }
 
     }
@@ -141,7 +143,7 @@ namespace RealTimeProject
 
     public enum AttackName : byte
     {
-        None = 0, NLight, SLight, ULight, NAir, NHeavy, SHeavy, UHeavy
+        None = 0, NLight, SLight, ULight, DLight, NAir, SAir, UAir, DAir, NHeavy, SHeavy, UHeavy, DHeavy
     }
 
     [Flags]
