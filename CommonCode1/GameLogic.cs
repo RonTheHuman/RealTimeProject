@@ -75,6 +75,11 @@ namespace RealTimeProject
                         playerI.AttackFrame = 0;
                         playerI.AttackName = AttackName.None;
                     }
+                    else if ((playerI.AttackName == AttackName.UAir || playerI.AttackName == AttackName.DAir || playerI.AttackName == AttackName.NAir) && onFloorArr[i])
+                    {
+                        playerI.AttackFrame = 0;
+                        playerI.AttackName = AttackName.None;
+                    }
                     else
                     {
                         playerI.AttackFrame++;
@@ -224,8 +229,9 @@ namespace RealTimeProject
             }
         }
 
-        static void ProccessControlledMovement(Input[] prevInputs, Input[] curInputs, GameState state, int pCount, bool[] onFloorArr, Vector2[] accArr)
+        static float[] ProccessControlledMovement(Input[] prevInputs, Input[] curInputs, GameState state, int pCount, bool[] onFloorArr, Vector2[] accArr)
         {
+            float[] walkVArr = new float[pCount];
             for (int i = 0; i < pCount; i++)
             {
                 PlayerState playerI = state.PStates[i];
@@ -233,18 +239,26 @@ namespace RealTimeProject
                     continue;
                 if (onFloorArr[i])
                 {
-                    playerI.Jumps = 2;
+                    playerI.Jumps = 3;
                 }
-                if (playerI.StunFrame == 0 && playerI.BFrame == 0 && playerI.AttackFrame < 2)
+                if (playerI.AttackName == AttackName.SAir && !onFloorArr[i])
+                {
+                    if (playerI.FacingLeft)
+                        walkVArr[i] = -GameVariables.BaseMS;
+                    else
+                        walkVArr[i] = GameVariables.BaseMS;
+                }
+                else if (playerI.StunFrame == 0 && playerI.BFrame == 0 && 
+                        (playerI.AttackName == AttackName.None || playerI.AttackName == AttackName.DAir || playerI.AttackName == AttackName.UAir || playerI.AttackName == AttackName.NAir))
                 {
                     if ((curInputs[i] & Input.Right) != 0)
                     {
-                        accArr[i].X += GameVariables.BaseMS;
+                        walkVArr[i] = GameVariables.BaseMS;
                         playerI.FacingLeft = false;
                     }
                     else if ((curInputs[i] & Input.Left) != 0)
                     {
-                        accArr[i].X += -GameVariables.BaseMS;
+                        walkVArr[i] = -GameVariables.BaseMS;
                         playerI.FacingLeft = true;
                     }
                     if ((curInputs[i] & Input.Jump) != 0 && (prevInputs[i] & Input.Jump) == 0 && playerI.Jumps != 0)
@@ -254,13 +268,14 @@ namespace RealTimeProject
                     }
                     if (playerI.AttackFrame == 1 && playerI.AttackName == AttackName.UAir)
                     {
-                        accArr[i].Y += -GameVariables.BaseJS;
+                        accArr[i].Y += -GameVariables.BaseJS*1.2f;
                     }
                 }
             }
+            return walkVArr;
         }
 
-        static void ApplyMovement(Input[] prevInputs, Input[] curInputs, GameState state, int pCount, bool[] onFloorArr, Vector2[] accArr)
+        static void ApplyMovement(Input[] prevInputs, Input[] curInputs, GameState state, int pCount, bool[] onFloorArr, Vector2[] accArr, float[] walkVArr)
         {
             for (int i = 0; i < pCount; i++)
             {
@@ -273,7 +288,7 @@ namespace RealTimeProject
                     playerI.Vel.Y = 0;
                 }
                 playerI.Vel.Add(accArr[i]);
-                if (onFloorArr[i] && Math.Abs(playerI.Vel.X) > GameVariables.BaseMS)
+                if (onFloorArr[i])
                 {
                     playerI.Vel.X *= GameVariables.Friction;
                 }
@@ -281,7 +296,8 @@ namespace RealTimeProject
                 {
                     playerI.Vel.Y *= 0.4f;
                 }
-                playerI.Pos.Add(playerI.Vel);
+                playerI.Pos.X += playerI.Vel.X + walkVArr[i];
+                playerI.Pos.Y += playerI.Vel.Y;
             }
         }
 
@@ -325,8 +341,8 @@ namespace RealTimeProject
             IncrementBlockF(prevInputs, curInputs, nextState, pCount);
             IncrementAttackF(prevInputs, curInputs, nextState, pCount, onFloorArr);
             ProccessAttackCollisions(nextState, pCount, accArr);
-            ProccessControlledMovement(prevInputs, curInputs, nextState, pCount, onFloorArr, accArr);
-            ApplyMovement(prevInputs, curInputs, nextState, pCount, onFloorArr, accArr);
+            float[] walkVArr = ProccessControlledMovement(prevInputs, curInputs, nextState, pCount, onFloorArr, accArr);
+            ApplyMovement(prevInputs, curInputs, nextState, pCount, onFloorArr, accArr, walkVArr);
             ProccessFloorCollisions(nextState, pCount);
             return nextState;
         }
@@ -367,6 +383,10 @@ namespace RealTimeProject
         {
             public static Rectangle Bounds { get; set; }
             public static Vector2 RespawnPos { get; set; }
+
+            public static Rectangle Stage { get; set; }
+
+            public static Rectangle[] Platforms { get; set; }
             public static int FloorY { get; set; }
             public static float Gravity { get; set; }
             public static Size PlayerSize { get; set; }
@@ -379,15 +399,16 @@ namespace RealTimeProject
             public static Dictionary<AttackName, Attack> AttackDict { get; }
             static GameVariables()
             {
-                Bounds = new Rectangle(0, 0, 986, 602);
+                Bounds = new Rectangle(0, -100, 986, 702);
                 RespawnPos = new Vector2(400, 250);
+                Stage = new Rectangle(243, 437, 500, 108);
                 FloorY = 457;
-                Gravity = 0.8f;
+                Gravity = 0.75f;
                 PlayerSize = new Size(50, 50);
                 BaseMS = 5;
                 Friction = 0.5f;
                 MaxMS = 5;
-                BaseJS = 16;
+                BaseJS = 15;
                 BlockCD = 40;
                 BlockDur = 10;
                 AttackDict = new Dictionary<AttackName, Attack>();
@@ -415,8 +436,8 @@ namespace RealTimeProject
                     new Vector2(10, -8), 20, 0, 5);
                 AttackDict[AttackName.NAir] = new Attack(new AnimHitbox[] { 
                     new AnimHitbox(new Rectangle(new Point(-30, -30), new Size(60, 60)), 5),
-                    new AnimHitbox(new Rectangle(new Point(-40, -40), new Size(80, 80)), 20)}, 
-                    new Vector2(0, -10), 20, 10, 10);
+                    new AnimHitbox(new Rectangle(new Point(-40, -40), new Size(80, 80)), 30)}, 
+                    new Vector2(0, -10), 20, 0, 10);
                 AttackDict[AttackName.SAir] = new Attack(new AnimHitbox[] {
                     new AnimHitbox(new Rectangle(new Point(43, -12), new Size(20, 20)), 3),
                     new AnimHitbox(new Rectangle(new Point(62, -24), new Size(25, 25)), 6),
@@ -433,9 +454,9 @@ namespace RealTimeProject
                     new AnimHitbox(new Rectangle(new Point(-22, -100), new Size(38, 38)), 16),
                     new AnimHitbox(new Rectangle(new Point(-37, -74), new Size(20, 29)), 20),
                     new AnimHitbox(new Rectangle(new Point(-45, -54), new Size(20, 20)), 24)},
-                    new Vector2(0, -10), 20, 10, 0);
+                    new Vector2(0, -10), 20, 5, 60);
                 AttackDict[AttackName.DAir] = new Attack(new AnimHitbox[] {
-                    new AnimHitbox(new Rectangle(new Point(-10, 25), new Size(20, 80)), 20)},
+                    new AnimHitbox(new Rectangle(new Point(-10, 25), new Size(20, 80)), 35)},
                     new Vector2(10, 0), 20, 0, 10);
                 AttackDict[AttackName.NHeavy] = new Attack(new AnimHitbox[] { 
                     new AnimHitbox(new Rectangle(new Point(-50, -37), new Size(100, 62)), 5),
