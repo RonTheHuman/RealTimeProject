@@ -43,6 +43,22 @@ namespace RealTimeProject
             }
         }
 
+        static void IncrementDownHoldF(Input[] curInputs, GameState state, int pCount)
+        {
+            for (int i = 0; i < pCount; i++)
+            {
+                PlayerState playerI = state.PStates[i];
+                if (playerI.Stocks == 0)
+                    continue;
+                if ((curInputs[i] & Input.Down) == 0 || playerI.AttackFrame > 0)
+                    playerI.DownHoldFrame = 0;
+                else
+                {
+                    if (playerI.DownHoldFrame < 255)
+                        playerI.DownHoldFrame++;
+                }
+            }
+        }
         static bool[] GetOnFloorArr(GameState state, int pCount)
         {
             bool[] OnFloorArr = new bool[pCount];
@@ -51,9 +67,24 @@ namespace RealTimeProject
                 PlayerState playerI = state.PStates[i];
                 if (playerI.Stocks == 0)
                     continue;
-                if (playerI.Pos.Y + GameVariables.PlayerSize.Height == GameVariables.FloorY)
+                if (playerI.Pos.Y + GameVariables.PlayerSize.Height == GameVariables.FloorY && 
+                    playerI.Pos.X + GameVariables.PlayerSize.Width >= GameVariables.Stage.X && playerI.Pos.X <= GameVariables.Stage.X + GameVariables.Stage.Width &&
+                    playerI.Vel.Y == 0)
                 {
                     OnFloorArr[i] = true;
+                }
+                if (!OnFloorArr[i])
+                {
+                    foreach (Rectangle platform in GameVariables.Platforms)
+                    {
+                        if (playerI.Pos.Y + GameVariables.PlayerSize.Height == platform.Y &&
+                            platform.X < playerI.Pos.X + GameVariables.PlayerSize.Width && playerI.Pos.X < platform.X + platform.Width &&
+                            playerI.Vel.Y == 0)
+                        {
+                            OnFloorArr[i] = true;
+                        }
+
+                    }
                 }
             }
             return OnFloorArr;
@@ -261,7 +292,7 @@ namespace RealTimeProject
                         walkVArr[i] = -GameVariables.BaseMS;
                         playerI.FacingLeft = true;
                     }
-                    if ((curInputs[i] & Input.Jump) != 0 && (prevInputs[i] & Input.Jump) == 0 && playerI.Jumps != 0)
+                    if ((curInputs[i] & Input.Jump) != 0 && (prevInputs[i] & Input.Jump) == 0 && playerI.Jumps != 0 && playerI.AttackFrame == 0)
                     {
                         accArr[i].Y += -GameVariables.BaseJS;
                         playerI.Jumps -= 1;
@@ -301,18 +332,51 @@ namespace RealTimeProject
             }
         }
 
-        static void ProccessFloorCollisions(GameState state, int pCount)
+        static void ProccessFloorCollisions(Input[] curInputs, GameState prevState, GameState state, int pCount)
         {
             for (int i = 0; i < pCount; i++)
             {
                 PlayerState playerI = state.PStates[i];
                 if (playerI.Stocks == 0)
                     continue;
-                if (playerI.Pos.Y >= GameVariables.FloorY - GameVariables.PlayerSize.Height && playerI.Vel.Y > 0)
+                float playerB = playerI.Pos.Y + GameVariables.PlayerSize.Height, 
+                      playerL = playerI.Pos.X, 
+                      playerR = playerL + GameVariables.PlayerSize.Width,
+                      stageT = GameVariables.Stage.Y,
+                      stageL = GameVariables.Stage.X,
+                      stageR = stageL + GameVariables.Stage.Width;
+                if (stageL <= playerR && playerL <= stageR)
                 {
-                    playerI.Pos = new Vector2(playerI.Pos.X, GameVariables.FloorY - GameVariables.PlayerSize.Height);
-                    playerI.Vel.Y = 0;
+                    if (-20 < stageT - playerB && stageT - playerB < 0)
+                    {
+                        playerI.Pos.Y = GameVariables.Stage.Y - GameVariables.PlayerSize.Height;
+                        playerI.Vel.Y = 0;
+                    }
+                    else if (stageT - playerB <= -20)
+                    {
+                        float playerM = (playerL + playerR) / 2f;
+                        if (Math.Abs(playerM - stageL) < Math.Abs(playerM - stageR))
+                        {
+                            playerI.Pos.X = stageL - GameVariables.PlayerSize.Width;
+                        }
+                        else
+                        {
+                            playerI.Pos.X = stageR;
+                        }
+                    }
                 }
+                foreach (Rectangle platform in GameVariables.Platforms)
+                {
+                    if (playerB >= platform.Y && platform.Y >= prevState.PStates[i].Pos.Y + GameVariables.PlayerSize.Height &&
+                        platform.X < playerR && playerL < platform.X + platform.Width &&
+                        playerI.DownHoldFrame < 10)
+                    {
+                        playerI.Pos.Y = platform.Y - GameVariables.PlayerSize.Height;
+                        playerI.Vel.Y = 0;
+                    }
+
+                }
+
                 if (!GameVariables.Bounds.IntersectsWith(new Rectangle(playerI.Pos.ToPoint(), GameVariables.PlayerSize)))
                 {
                     playerI.Stocks -= 1;
@@ -339,11 +403,12 @@ namespace RealTimeProject
             bool[] onFloorArr = GetOnFloorArr(state, pCount);
             IncrementStunF(nextState);
             IncrementBlockF(prevInputs, curInputs, nextState, pCount);
+            IncrementDownHoldF(curInputs, nextState, pCount);
             IncrementAttackF(prevInputs, curInputs, nextState, pCount, onFloorArr);
             ProccessAttackCollisions(nextState, pCount, accArr);
             float[] walkVArr = ProccessControlledMovement(prevInputs, curInputs, nextState, pCount, onFloorArr, accArr);
             ApplyMovement(prevInputs, curInputs, nextState, pCount, onFloorArr, accArr, walkVArr);
-            ProccessFloorCollisions(nextState, pCount);
+            ProccessFloorCollisions(curInputs, state, nextState, pCount);
             return nextState;
         }
 
@@ -399,9 +464,10 @@ namespace RealTimeProject
             public static Dictionary<AttackName, Attack> AttackDict { get; }
             static GameVariables()
             {
-                Bounds = new Rectangle(0, -100, 986, 702);
+                Bounds = new Rectangle(0, -100, 986, 881);
                 RespawnPos = new Vector2(400, 250);
-                Stage = new Rectangle(243, 437, 500, 108);
+                Stage = new Rectangle(243, 457, 500, 108);
+                Platforms = new Rectangle[1] { new Rectangle(300, 365, 386, 13) };
                 FloorY = 457;
                 Gravity = 0.75f;
                 PlayerSize = new Size(50, 50);

@@ -172,6 +172,7 @@ namespace RealTimeProject
         public byte KBPercent { get; set; }
         public byte Jumps { get; set; }
         public byte Stocks { get; set; }
+        public byte DownHoldFrame { get; set; }
 
         public PlayerState(Vector2 pos, bool facingLeft)
         {
@@ -186,6 +187,7 @@ namespace RealTimeProject
             KBPercent = 50;
             Jumps = 2;
             Stocks = 5;
+            DownHoldFrame = 0;
         }
 
         public PlayerState(PlayerState other)
@@ -200,6 +202,7 @@ namespace RealTimeProject
             KBPercent = other.KBPercent;
             Jumps = other.Jumps;
             Stocks = other.Stocks;
+            DownHoldFrame = other.DownHoldFrame;
         }
 
         public bool IsEqual(PlayerState other)
@@ -215,12 +218,13 @@ namespace RealTimeProject
             equal = equal && KBPercent == other.KBPercent;
             equal = equal && Jumps == other.Jumps;
             equal = equal && Stocks == other.Stocks;
+            equal = equal && DownHoldFrame == other.DownHoldFrame;
             return equal;
         }
 
         public byte[] ToBytes()
         {
-            byte[] bytes = new byte[25];
+            byte[] bytes = new byte[26];
             byte[] tempB = Pos.ToBytes();
             tempB.CopyTo(bytes, 0);
             tempB = Vel.ToBytes();
@@ -238,6 +242,7 @@ namespace RealTimeProject
             bytes[22] = KBPercent;
             bytes[23] = Jumps;
             bytes[24] = Stocks;
+            bytes[25] = DownHoldFrame;
             return bytes;
         }
 
@@ -255,6 +260,7 @@ namespace RealTimeProject
             pState.KBPercent = bytes[22];
             pState.Jumps = bytes[23];
             pState.Stocks = bytes[24];
+            pState.DownHoldFrame = bytes[25];
             return pState;
         }
         public override string ToString()
@@ -268,7 +274,8 @@ namespace RealTimeProject
             s += ", AFrame = " + AttackFrame;
             s += ", KBp = " + KBPercent;
             s += ", Jumps = " + Jumps;
-            s += ", Stocks = " + Stocks + "]";
+            s += ", Stocks = " + Stocks;
+            s+= ", DHold = " + DownHoldFrame + "]";
             return s;
         }
     }
@@ -294,10 +301,10 @@ namespace RealTimeProject
 
         public byte[] ToBytes()
         {
-            byte[] bytes = new byte[25 * PStates.Length];
+            byte[] bytes = new byte[26 * PStates.Length];
             for (int i = 0; i < PStates.Length; i++)
             {
-                PStates[i].ToBytes().CopyTo(bytes, i * 25);
+                PStates[i].ToBytes().CopyTo(bytes, i * 26);
             }
             return bytes;
         }
@@ -307,7 +314,7 @@ namespace RealTimeProject
             PlayerState[] pStates = new PlayerState[pCount];
             for (int i = 0; i < pCount; i++)
             {
-                pStates[i] = PlayerState.FromBytes(bytes[(i * 25)..((i + 1) * 25)]);
+                pStates[i] = PlayerState.FromBytes(bytes[(i * 26)..((i + 1) * 26)]);
             }
             return new GameState(pStates);
         }
@@ -360,7 +367,7 @@ namespace RealTimeProject
 
         public byte[] ToBytes()
         {
-            byte[] bytes = new byte[26 * State.PStates.Length + 8];
+            byte[] bytes = new byte[27 * State.PStates.Length + 8];
             BinaryPrimitives.WriteInt64BigEndian(bytes, StartTime.Ticks);
             for (int i = 0; i < Inputs.Length; i++)
             {
@@ -443,7 +450,7 @@ namespace RealTimeProject
             {
                 eICount = enemyInputs[0].Length;
             }
-            byte[] bytes = new byte[16 + 26 * pCount + eICount * (pCount - 1)];
+            byte[] bytes = new byte[16 + 27 * pCount + eICount * (pCount - 1)];
             BinaryPrimitives.WriteInt64BigEndian(bytes, timeStamp.Ticks);
             frame.ToBytes().CopyTo(bytes, 8);
             int eIStartI = 26 * pCount + 16;
@@ -460,12 +467,12 @@ namespace RealTimeProject
         public static ServerGamePacket Deserialize(byte[] packet, int pCount)
         {
             DateTime timeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packet[..8]));
-            Frame frame = Frame.FromBytes(packet[8..(26 * pCount + 16)], pCount);
+            Frame frame = Frame.FromBytes(packet[8..(27 * pCount + 16)], pCount);
             Input[][] enemyInputs = new Input[pCount - 1][];
             byte[] eIBytes = packet[(26 * pCount + 16)..];
             int eICount = 0;
             if (pCount > 1)
-                eICount  = (packet.Length - 16 - 26 * pCount) / (pCount - 1);
+                eICount  = (packet.Length - 16 - 27 * pCount) / (pCount - 1);
             for (int i = 0; i < pCount - 1; i++)
             {
                 Input[] oneEnemyInput = new Input[eICount];
