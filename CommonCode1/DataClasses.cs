@@ -453,7 +453,7 @@ namespace RealTimeProject
             byte[] bytes = new byte[16 + 27 * pCount + eICount * (pCount - 1)];
             BinaryPrimitives.WriteInt64BigEndian(bytes, timeStamp.Ticks);
             frame.ToBytes().CopyTo(bytes, 8);
-            int eIStartI = 26 * pCount + 16;
+            int eIStartI = 27 * pCount + 16;
             for (int i = 0; i < pCount - 1; i++)
             {
                 for (int j = 0; j < enemyInputs[i].Length; j++)
@@ -469,7 +469,7 @@ namespace RealTimeProject
             DateTime timeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packet[..8]));
             Frame frame = Frame.FromBytes(packet[8..(27 * pCount + 16)], pCount);
             Input[][] enemyInputs = new Input[pCount - 1][];
-            byte[] eIBytes = packet[(26 * pCount + 16)..];
+            byte[] eIBytes = packet[(27 * pCount + 16)..];
             int eICount = 0;
             if (pCount > 1)
                 eICount  = (packet.Length - 16 - 27 * pCount) / (pCount - 1);
@@ -497,4 +497,7 @@ namespace RealTimeProject
             Player = player;
         }
     }
+
+    public enum ClientMessageType : byte { GetMatchesWithUser, SignUp, CheckSignIn, JoinLobby, ExitLobby, ExitGame }
+    public enum ServerMessageType : byte { Success = 1, Failure = 2 }
 }

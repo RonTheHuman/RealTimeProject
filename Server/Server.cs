@@ -1,7 +1,9 @@
 using System.Buffers.Binary;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 
 namespace RealTimeProject
 {
@@ -9,9 +11,9 @@ namespace RealTimeProject
     {
         static int bufferSize = 1024, pCount = 0;
         static bool compensateLag = true;
-
+        static Server staticThis;
         static string settings = "";
-        static Socket serverSock;
+        static Socket serverSockUDP;
         static Dictionary<IPEndPoint, int> playerIPs = new Dictionary<IPEndPoint, int>();
         static List<Frame> history = new List<Frame>(200);
         //last recieved stamps for each player, 2 is for broken non lagcomp
@@ -19,6 +21,27 @@ namespace RealTimeProject
         static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
 
         bool keepPlayerJoining = true;
+        public static class NBConsole
+        {
+            private static BlockingCollection<string> m_Queue = new BlockingCollection<string>();
+
+            static NBConsole()
+            {
+                var thread = new Thread(
+                  () =>
+                  {
+                      while (true) Console.WriteLine(m_Queue.Take()); ;
+                  });
+                thread.IsBackground = true;
+                thread.Start();
+            }
+
+            public static void WriteLine(string value)
+            {
+                m_Queue.Add(value);
+            }
+        }
+
         static Socket CreateLocalSocket(string ipstr)
         {
             Socket sock = new Socket(SocketType.Dgram, ProtocolType.Udp);
@@ -75,9 +98,9 @@ namespace RealTimeProject
 
             foreach (var ip in playerIPs.Keys)
             {
-                serverSock.SendTo(Encoding.Latin1.GetBytes("a"), ip);
+                serverSockUDP.SendTo(Encoding.Latin1.GetBytes("a"), ip);
             }
-            serverSock.Close();
+            serverSockUDP.Close();
 
             ResetGameButton.Enabled = false;
             StopGameButton.Enabled = false;
@@ -91,11 +114,11 @@ namespace RealTimeProject
             NBConsole.WriteLine("Frame start " + frameStart.ToString("mm.ss.fff") + ", Frame num: " + curFNum);
 
             List<ClientPacket> packets = new List<ClientPacket>();
-            while (serverSock.Poll(1, SelectMode.SelectRead))
+            while (serverSockUDP.Poll(1, SelectMode.SelectRead))
             {
                 byte[] buffer = new byte[bufferSize];
                 EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
-                int bytesRecieved = serverSock.ReceiveFrom(buffer, ref clientEP);
+                int bytesRecieved = serverSockUDP.ReceiveFrom(buffer, ref clientEP);
                 if (playerIPs.ContainsKey((IPEndPoint)clientEP))
                     packets.Add(new ClientPacket(playerIPs[(IPEndPoint)clientEP], buffer[..bytesRecieved]));
             }
@@ -200,7 +223,7 @@ namespace RealTimeProject
                     }
 
                     Console.WriteLine("sending: " + new ServerGamePacket(saveNow, sendFrame, enemyInputs));
-                    serverSock.SendTo(ServerGamePacket.Serialize(saveNow, sendFrame, enemyInputs, pCount), ip);
+                    serverSockUDP.SendTo(ServerGamePacket.Serialize(saveNow, sendFrame, enemyInputs, pCount), ip);
                 }
             }
 
@@ -219,7 +242,7 @@ namespace RealTimeProject
         private void ListenToUsers(int maxPlayers)
         {
             EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
-            Task<SocketReceiveFromResult> playerJoinTask = serverSock.ReceiveFromAsync(new byte[64], SocketFlags.None, clientEP);
+            Task<SocketReceiveFromResult> playerJoinTask = serverSockUDP.ReceiveFromAsync(new byte[64], SocketFlags.None, clientEP);
             while (pCount < maxPlayers && keepPlayerJoining)
             {
                 if (playerJoinTask.IsCompleted)
@@ -230,16 +253,105 @@ namespace RealTimeProject
                     Invoke(new Action(() => PlayerListLabel.Text += "Player " + (pCount + 1) + ", " + clientEP.ToString() + " entered\n"));
                     playerIPs[new IPEndPoint(((IPEndPoint)clientEP).Address, ((IPEndPoint)clientEP).Port)] = pCount + 1;
                     pCount++;
-                    playerJoinTask = serverSock.ReceiveFromAsync(new byte[64], SocketFlags.None, clientEP);
+                    playerJoinTask = serverSockUDP.ReceiveFromAsync(new byte[64], SocketFlags.None, clientEP);
                 }
             }
             Invoke(new Action(() => InitGame()));
         }
 
+        byte [] TcpMessageResponse(byte[] data, int bytesRecieved)
+        {
+            byte[] msg = data[..bytesRecieved];
+            ClientMessageType msgType = (ClientMessageType)msg[0];
+            if (msgType == ClientMessageType.SignUp)
+            {
+                string[] uNamePass = JsonSerializer.Deserialize<string[]>(Encoding.Latin1.GetString(msg[1..]));
+                if (DatabaseAccess.CheckIfUserNameExists(uNamePass[0]))
+                {
+                    return new byte[1] { (byte)ServerMessageType.Failure };
+                }
+                else
+                {
+                    DatabaseAccess.AddUser(new DatabaseAccess.User(uNamePass[0], uNamePass[1]));
+                    return new byte[1] { (byte)ServerMessageType.Success };
+                }
+            }
+            if (msgType == ClientMessageType.CheckSignIn)
+            {
+                string[] uNamePass = Encoding.Latin1.GetString(msg[1..]).Split(' ');
+                if (DatabaseAccess.CheckIfUserExists(uNamePass[0], uNamePass[1]))
+                {
+                    return new byte[1] { (byte)ServerMessageType.Success };
+                }
+                else
+                {
+                    DatabaseAccess.AddUser(new DatabaseAccess.User(uNamePass[0], uNamePass[1]));
+                    return new byte[1] { (byte)ServerMessageType.Failure };
+                }
+            }
+            if (msgType == ClientMessageType.GetMatchesWithUser)
+            {
+                string uName = Encoding.Latin1.GetString(msg[1..]);
+                List<DatabaseAccess.Match> matchesWithUser = DatabaseAccess.GetMatchesWithUser(uName);
+                string[][] MatchArr = new string[matchesWithUser.Count][];
+                for (int i = 0; i < matchesWithUser.Count; i++)
+                {
+                    MatchArr[i] = matchesWithUser[i].GetProperyArray();
+                }
+                return Encoding.Latin1.GetBytes(JsonSerializer.Serialize(MatchArr));
+
+            }
+            return new byte[1] { (byte)ServerMessageType.Failure };
+        }
+
+        void HandleTcpSockets(string ipstr)
+        {
+            Socket serverSockTCP = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            serverSockTCP.Bind(new IPEndPoint(IPAddress.Parse(ipstr), 12345));
+            List<Socket> readSocks = new List<Socket>() { serverSockTCP };
+            List<Socket> writeSocks = new List<Socket>();
+            List<Socket> checkReadSocks = new List<Socket>(), checkWriteSocks = new List<Socket>();
+            byte[] buffer = new byte[1024];
+            while (true)
+            {
+                checkReadSocks.Clear();
+                checkWriteSocks.Clear();
+                checkReadSocks.AddRange(readSocks);
+                checkWriteSocks.AddRange(writeSocks);
+                Socket.Select(checkReadSocks, checkWriteSocks, null, -1);
+                foreach(Socket sock in checkReadSocks)
+                {
+                    if (sock == serverSockTCP)
+                    {
+                        Socket newClientSock = serverSockTCP.Accept();
+                        readSocks.Add(newClientSock);
+                        writeSocks.Add(newClientSock);
+                    }
+                    else
+                    {
+                        int bytesRecieved = sock.Receive(buffer);
+                        if (bytesRecieved == 0)
+                        {
+                            readSocks.Remove(sock);
+                            writeSocks.Remove(sock);
+                        }
+                        else
+                        {
+                            sock.Send(TcpMessageResponse(buffer, bytesRecieved));
+                        }
+                    }
+                }
+                // TODO maybe add writing check and queue?
+
+            }
+        }
+
         private void InitLobby()
         {
             int maxPlayers = int.Parse(settings.Split("\r\n")[1]);
-            serverSock = CreateLocalSocket(settings.Split("\r\n")[0]);
+            string ipStr = settings.Split("\r\n")[0];
+            serverSockUDP = CreateLocalSocket(ipStr);
+            Task.Factory.StartNew(() => HandleTcpSockets(ipStr));
             pCount = 0;
             history.Clear();
             playerIPs.Clear();
@@ -261,7 +373,7 @@ namespace RealTimeProject
 
             foreach (var ip in playerIPs.Keys)
             {
-                serverSock.SendTo(Encoding.Latin1.GetBytes(playerIPs[ip].ToString() + pCount.ToString()), ip);
+                serverSockUDP.SendTo(Encoding.Latin1.GetBytes(playerIPs[ip].ToString() + pCount.ToString()), ip);
             }
 
             history.Add(CreateInitFrame(pCount));
@@ -274,11 +386,16 @@ namespace RealTimeProject
         public Server()
         {
             InitializeComponent();
+            staticThis = this;
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             settings = File.ReadAllText(Path.GetFullPath("settings.txt"));
+            Frame testFrame = CreateInitFrame(2);
+            ServerGamePacket testPacket = new ServerGamePacket(DateTime.Now, testFrame, new Input[][] { new Input[] { Input.None } });
+            Console.WriteLine(testPacket);
+            Console.WriteLine(ServerGamePacket.Deserialize(ServerGamePacket.Serialize(DateTime.Now, testFrame, new Input[][] { new Input[] { Input.None } }, 2), 2));
             InitLobby();
         }
     }

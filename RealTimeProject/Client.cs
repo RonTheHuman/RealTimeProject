@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
+using System.Net.NetworkInformation;
 
 namespace RealTimeProject
 {
@@ -14,41 +15,99 @@ namespace RealTimeProject
         bool fullSim = true, clientSim = true, enemySim = false;
         Color[] playerColors = new Color[4] { Color.MediumTurquoise, Color.Coral, Color.FromArgb(255, 255, 90), Color.MediumPurple };
 
-        Input curInput = new Input();
-        List<Input> unackedInputs = new List<Input>(20);
-        Label[] playerLabels, blockLabels, attackLabels;
+        static Input curInput = new Input();
+        static List<Input> unackedInputs = new List<Input>(20);
+        static Label[]? playerLabels, blockLabels, attackLabels;
         static List<Frame> simHistory = new List<Frame>();
-        ServerGamePacket lastServerPacket;
-        Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
-        EndPoint serverEP;
+        static ServerGamePacket? lastServerPacket;
+        static Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
+        static EndPoint? serverEP;
          
         byte[] buffer = new byte[1024];
-        public static class NBConsole
+
+        private int FindAvailablePort(int startPort)
         {
-            private static BlockingCollection<string> m_Queue = new BlockingCollection<string>();
+            IPEndPoint[] endPoints;
+            List<int> portArray = new List<int>();
 
-            static NBConsole()
-            {
-                var thread = new Thread(
-                  () =>
-                  {
-                      while (true) Console.WriteLine(m_Queue.Take());
-                  });
-                thread.IsBackground = true;
-                thread.Start();
-            }
+            IPGlobalProperties properties = IPGlobalProperties.GetIPGlobalProperties();
 
-            public static void WriteLine(string value)
-            {
-                m_Queue.Add(value);
-            }
+            //getting active connections
+            TcpConnectionInformation[] connections = properties.GetActiveTcpConnections();
+            portArray.AddRange(from n in connections
+                               where n.LocalEndPoint.Port >= startPort
+                               select n.LocalEndPoint.Port);
+
+            //getting active tcp listners - WCF service listening in tcp
+            endPoints = properties.GetActiveTcpListeners();
+            portArray.AddRange(from n in endPoints
+                               where n.Port >= startPort
+                               select n.Port);
+
+            //getting active udp listeners
+            endPoints = properties.GetActiveUdpListeners();
+            portArray.AddRange(from n in endPoints
+                               where n.Port >= startPort
+                               select n.Port);
+
+            portArray.Sort();
+
+            for (int i = startPort; i < ushort.MaxValue; i++)
+                if (!portArray.Contains(i))
+                    return i;
+            return 0;
+        }
+
+        private void LoadStartupPanel()
+        {
+            GamePanel.Enabled = false;
+            GamePanel.Visible = false;
+            MainMenuPanel.Enabled = false;
+            MainMenuPanel.Visible = false;
+            StartupPanel.Enabled = true;
+            StartupPanel.Visible = true;
+        }
+
+        private void LoadMainMenuPanel()
+        {
+            GamePanel.Enabled = false;
+            GamePanel.Visible = false;
+            StartupPanel.Enabled = false;
+            StartupPanel.Visible = false;
+            MainMenuPanel.Enabled = true;
+            MainMenuPanel.Visible = true;
+        }
+
+        private void LoadGamePanel()
+        {
+            MainMenuPanel.Enabled = false;
+            MainMenuPanel.Visible = false;
+            StartupPanel.Enabled = false;
+            StartupPanel.Visible = false;
+            GamePanel.Enabled = true;
+            GamePanel.Visible = true;
+            InitializeConnection();
+            InitializeGame();
+        }
+
+        private void Client_Load(object sender, EventArgs e)
+        {
+            LoadStartupPanel();
+        }
+
+        private void SignInButton_Click(object sender, EventArgs e)
+        {
+            LoadMainMenuPanel();
+        }
+
+        private void EnterLobbyButton_Click(object sender, EventArgs e)
+        {
+            LoadGamePanel();
         }
 
         public Client()
         {
             InitializeComponent();
-            InitializeConnection();
-            InitializeGame();
         }
 
         private void InitializeConnection()
@@ -56,8 +115,8 @@ namespace RealTimeProject
             IPAddress autoAdress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[1];
             List<string> adresses = new List<string> { "172.16.2.167", "10.100.102.20", "192.168.68.112", "172.16.94.163", "172.16.5.133", "172.16.149.199" };
             int sPort = 12345;
-            NBConsole.WriteLine("Enter port for client: ");
-            int cPort = int.Parse(Console.ReadLine());
+            int cPort = FindAvailablePort(12346);
+            Console.WriteLine("Using port " + cPort);
             var sAddress = IPAddress.Parse(adresses[1]);
             var cAddress = IPAddress.Parse(adresses[1]);
             EndPoint clientEP = new IPEndPoint(cAddress, cPort);
@@ -65,6 +124,7 @@ namespace RealTimeProject
 
             clientSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             clientSock.Bind(clientEP);
+            Console.WriteLine("Binded Successfully");
             clientSock.SendTo(new byte[] { (byte)'a' }, serverEP);
             NBConsole.WriteLine("Waiting server reply");
             EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
