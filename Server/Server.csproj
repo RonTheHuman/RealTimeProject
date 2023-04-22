@@ -10,10 +10,14 @@
 
   <ItemGroup>
     <None Remove="GameDB.db" />
+    <None Remove="serverSettings.txt" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="GameDB.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="serverSettings.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

@@ -1,0 +1,5 @@
+{
+"serverIP": "10.100.102.20",
+"serverPort": "12345",
+"maxPlayers": "4"
+}

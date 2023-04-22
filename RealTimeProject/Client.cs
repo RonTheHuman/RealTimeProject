@@ -15,13 +15,14 @@ namespace RealTimeProject
         bool fullSim = true, clientSim = true, enemySim = false;
         Color[] playerColors = new Color[4] { Color.MediumTurquoise, Color.Coral, Color.FromArgb(255, 255, 90), Color.MediumPurple };
 
-        static Input curInput = new Input();
-        static List<Input> unackedInputs = new List<Input>(20);
-        static Label[]? playerLabels, blockLabels, attackLabels;
-        static List<Frame> simHistory = new List<Frame>();
-        static ServerGamePacket? lastServerPacket;
-        static Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp);
-        static EndPoint? serverEP;
+        Input curInput = new Input();
+        List<Input> unackedInputs = new List<Input>(20);
+        Label[]? playerLabels, blockLabels, attackLabels;
+        List<Frame> simHistory = new List<Frame>();
+        ServerGamePacket? lastServerPacket;
+        Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp), clientSockTcp = new Socket(SocketType.Stream, ProtocolType.Tcp);
+        EndPoint? serverEP;
+        Dictionary<string, string> settings;
          
         byte[] buffer = new byte[1024];
 
@@ -32,19 +33,16 @@ namespace RealTimeProject
 
             IPGlobalProperties properties = IPGlobalProperties.GetIPGlobalProperties();
 
-            //getting active connections
             TcpConnectionInformation[] connections = properties.GetActiveTcpConnections();
             portArray.AddRange(from n in connections
                                where n.LocalEndPoint.Port >= startPort
                                select n.LocalEndPoint.Port);
 
-            //getting active tcp listners - WCF service listening in tcp
             endPoints = properties.GetActiveTcpListeners();
             portArray.AddRange(from n in endPoints
                                where n.Port >= startPort
                                select n.Port);
 
-            //getting active udp listeners
             endPoints = properties.GetActiveUdpListeners();
             portArray.AddRange(from n in endPoints
                                where n.Port >= startPort
@@ -90,14 +88,19 @@ namespace RealTimeProject
             InitializeGame();
         }
 
-        private void Client_Load(object sender, EventArgs e)
-        {
-            LoadStartupPanel();
-        }
+        
 
         private void SignInButton_Click(object sender, EventArgs e)
         {
-            LoadMainMenuPanel();
+            List<byte> toSend = new List<byte> { (byte)ClientMessageType.CheckSignIn };
+            toSend.AddRange(Encoding.Latin1.GetBytes(UNameTextBox.Text + " " + PassTextBox.Text));
+            clientSockTcp.Send(toSend.ToArray());
+            byte[] tcpBuffer = new byte[1024];
+            clientSockTcp.Receive(tcpBuffer);
+            if (tcpBuffer[0] == (byte)ServerMessageType.Success)
+                LoadMainMenuPanel();
+            else
+                ResponseLabel.Text = "User name or password is incorrect";
         }
 
         private void EnterLobbyButton_Click(object sender, EventArgs e)
@@ -105,28 +108,24 @@ namespace RealTimeProject
             LoadGamePanel();
         }
 
-        public Client()
-        {
-            InitializeComponent();
-        }
-
         private void InitializeConnection()
         {
             IPAddress autoAdress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[1];
-            List<string> adresses = new List<string> { "172.16.2.167", "10.100.102.20", "192.168.68.112", "172.16.94.163", "172.16.5.133", "172.16.149.199" };
-            int sPort = 12345;
-            int cPort = FindAvailablePort(12346);
+            int sPort = int.Parse(settings["serverPort"]);
+            int cPort = FindAvailablePort(int.Parse(settings["clientPort"]));
             Console.WriteLine("Using port " + cPort);
-            var sAddress = IPAddress.Parse(adresses[1]);
-            var cAddress = IPAddress.Parse(adresses[1]);
+            var sAddress = IPAddress.Parse(settings["serverIP"]);
+            var cAddress = IPAddress.Parse(settings["clientIP"]);
             EndPoint clientEP = new IPEndPoint(cAddress, cPort);
             serverEP = new IPEndPoint(sAddress, sPort);
 
             clientSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             clientSock.Bind(clientEP);
+            clientSockTcp.Bind(clientEP);
             Console.WriteLine("Binded Successfully");
             clientSock.SendTo(new byte[] { (byte)'a' }, serverEP);
             NBConsole.WriteLine("Waiting server reply");
+            clientSockTcp.Connect(serverEP);
             EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
             clientSock.ReceiveFrom(buffer, ref recieveEP);
             thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0')[0] + "");
@@ -570,6 +569,17 @@ namespace RealTimeProject
         private void TimeTimer_Tick(object sender, EventArgs e)
         {
             TimeLabel.Text = "Time: " + DateTime.Now.ToString("mm.ss.fff") + ", Frame: " + curFNum;
+        }
+
+        private void Client_Load(object sender, EventArgs e)
+        {
+            settings = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.GetFullPath("clientSettings.txt")));
+            LoadStartupPanel();
+        }
+
+        public Client()
+        {
+            InitializeComponent();
         }
     }
 }

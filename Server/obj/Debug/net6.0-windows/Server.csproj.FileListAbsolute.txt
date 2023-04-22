@@ -48,3 +48,4 @@ C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\bin\Debug\
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\bin\Debug\net6.0-windows\runtimes\win-arm64\native\e_sqlite3.dll
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\bin\Debug\net6.0-windows\runtimes\win-x64\native\e_sqlite3.dll
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\bin\Debug\net6.0-windows\runtimes\win-x86\native\e_sqlite3.dll
+C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\bin\Debug\net6.0-windows\serverSettings.txt

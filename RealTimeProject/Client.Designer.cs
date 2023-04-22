@@ -53,13 +53,14 @@
             this.SignInButton = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.PassTextBox = new System.Windows.Forms.TextBox();
+            this.UNameTextBox = new System.Windows.Forms.TextBox();
             this.TitleLabel = new System.Windows.Forms.Label();
             this.MainMenuPanel = new System.Windows.Forms.Panel();
             this.button5 = new System.Windows.Forms.Button();
             this.EnterLobbyButton = new System.Windows.Forms.Button();
             this.GamePanel = new System.Windows.Forms.Panel();
+            this.ResponseLabel = new System.Windows.Forms.Label();
             this.StartupPanel.SuspendLayout();
             this.MainMenuPanel.SuspendLayout();
             this.GamePanel.SuspendLayout();
@@ -232,13 +233,14 @@
             // 
             // StartupPanel
             // 
+            this.StartupPanel.Controls.Add(this.ResponseLabel);
             this.StartupPanel.Controls.Add(this.button3);
             this.StartupPanel.Controls.Add(this.button2);
             this.StartupPanel.Controls.Add(this.SignInButton);
             this.StartupPanel.Controls.Add(this.label3);
             this.StartupPanel.Controls.Add(this.label2);
-            this.StartupPanel.Controls.Add(this.textBox2);
-            this.StartupPanel.Controls.Add(this.textBox1);
+            this.StartupPanel.Controls.Add(this.PassTextBox);
+            this.StartupPanel.Controls.Add(this.UNameTextBox);
             this.StartupPanel.Controls.Add(this.TitleLabel);
             this.StartupPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.StartupPanel.Location = new System.Drawing.Point(0, 0);
@@ -298,19 +300,19 @@
             this.label2.TabIndex = 3;
             this.label2.Text = "User Name:";
             // 
-            // textBox2
+            // PassTextBox
             // 
-            this.textBox2.Location = new System.Drawing.Point(372, 361);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(241, 23);
-            this.textBox2.TabIndex = 2;
+            this.PassTextBox.Location = new System.Drawing.Point(372, 361);
+            this.PassTextBox.Name = "PassTextBox";
+            this.PassTextBox.Size = new System.Drawing.Size(241, 23);
+            this.PassTextBox.TabIndex = 2;
             // 
-            // textBox1
+            // UNameTextBox
             // 
-            this.textBox1.Location = new System.Drawing.Point(372, 321);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(241, 23);
-            this.textBox1.TabIndex = 1;
+            this.UNameTextBox.Location = new System.Drawing.Point(372, 321);
+            this.UNameTextBox.Name = "UNameTextBox";
+            this.UNameTextBox.Size = new System.Drawing.Size(241, 23);
+            this.UNameTextBox.TabIndex = 1;
             // 
             // TitleLabel
             // 
@@ -377,13 +379,20 @@
             this.GamePanel.Size = new System.Drawing.Size(970, 692);
             this.GamePanel.TabIndex = 8;
             // 
+            // ResponseLabel
+            // 
+            this.ResponseLabel.Location = new System.Drawing.Point(648, 321);
+            this.ResponseLabel.Name = "ResponseLabel";
+            this.ResponseLabel.Size = new System.Drawing.Size(187, 57);
+            this.ResponseLabel.TabIndex = 8;
+            // 
             // Client
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(970, 692);
-            this.Controls.Add(this.GamePanel);
             this.Controls.Add(this.StartupPanel);
+            this.Controls.Add(this.GamePanel);
             this.Controls.Add(this.MainMenuPanel);
             this.Name = "Client";
             this.Text = "Form1";
@@ -425,12 +434,13 @@
         private Button SignInButton;
         private Label label3;
         private Label label2;
-        private TextBox textBox2;
-        private TextBox textBox1;
+        private TextBox PassTextBox;
+        private TextBox UNameTextBox;
         private Button button3;
         private Panel MainMenuPanel;
         private Button button5;
         private Button EnterLobbyButton;
         private Panel GamePanel;
+        private Label ResponseLabel;
     }
 }
