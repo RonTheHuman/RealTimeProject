@@ -48,8 +48,9 @@
             this.Player4Label = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.StartupPanel = new System.Windows.Forms.Panel();
+            this.ResponseLabel = new System.Windows.Forms.Label();
             this.button3 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
+            this.SignUpButton = new System.Windows.Forms.Button();
             this.SignInButton = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -60,7 +61,6 @@
             this.button5 = new System.Windows.Forms.Button();
             this.EnterLobbyButton = new System.Windows.Forms.Button();
             this.GamePanel = new System.Windows.Forms.Panel();
-            this.ResponseLabel = new System.Windows.Forms.Label();
             this.StartupPanel.SuspendLayout();
             this.MainMenuPanel.SuspendLayout();
             this.GamePanel.SuspendLayout();
@@ -235,7 +235,7 @@
             // 
             this.StartupPanel.Controls.Add(this.ResponseLabel);
             this.StartupPanel.Controls.Add(this.button3);
-            this.StartupPanel.Controls.Add(this.button2);
+            this.StartupPanel.Controls.Add(this.SignUpButton);
             this.StartupPanel.Controls.Add(this.SignInButton);
             this.StartupPanel.Controls.Add(this.label3);
             this.StartupPanel.Controls.Add(this.label2);
@@ -248,6 +248,13 @@
             this.StartupPanel.Size = new System.Drawing.Size(970, 692);
             this.StartupPanel.TabIndex = 16;
             // 
+            // ResponseLabel
+            // 
+            this.ResponseLabel.Location = new System.Drawing.Point(648, 321);
+            this.ResponseLabel.Name = "ResponseLabel";
+            this.ResponseLabel.Size = new System.Drawing.Size(187, 57);
+            this.ResponseLabel.TabIndex = 8;
+            // 
             // button3
             // 
             this.button3.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
@@ -259,15 +266,16 @@
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.EnterLobbyButton_Click);
             // 
-            // button2
+            // SignUpButton
             // 
-            this.button2.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.button2.Location = new System.Drawing.Point(422, 457);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(142, 42);
-            this.button2.TabIndex = 6;
-            this.button2.Text = "Sign Up";
-            this.button2.UseVisualStyleBackColor = true;
+            this.SignUpButton.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.SignUpButton.Location = new System.Drawing.Point(422, 457);
+            this.SignUpButton.Name = "SignUpButton";
+            this.SignUpButton.Size = new System.Drawing.Size(142, 42);
+            this.SignUpButton.TabIndex = 6;
+            this.SignUpButton.Text = "Sign Up";
+            this.SignUpButton.UseVisualStyleBackColor = true;
+            this.SignUpButton.Click += new System.EventHandler(this.SignUpButton_Click);
             // 
             // SignInButton
             // 
@@ -379,13 +387,6 @@
             this.GamePanel.Size = new System.Drawing.Size(970, 692);
             this.GamePanel.TabIndex = 8;
             // 
-            // ResponseLabel
-            // 
-            this.ResponseLabel.Location = new System.Drawing.Point(648, 321);
-            this.ResponseLabel.Name = "ResponseLabel";
-            this.ResponseLabel.Size = new System.Drawing.Size(187, 57);
-            this.ResponseLabel.TabIndex = 8;
-            // 
             // Client
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -430,7 +431,7 @@
         private Label label1;
         private Panel StartupPanel;
         private Label TitleLabel;
-        private Button button2;
+        private Button SignUpButton;
         private Button SignInButton;
         private Label label3;
         private Label label2;

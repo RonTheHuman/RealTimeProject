@@ -21,7 +21,7 @@ namespace RealTimeProject
         List<Frame> simHistory = new List<Frame>();
         ServerGamePacket? lastServerPacket;
         Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp), clientSockTcp = new Socket(SocketType.Stream, ProtocolType.Tcp);
-        EndPoint? serverEP;
+        EndPoint? serverEP, clientEP;
         Dictionary<string, string> settings;
          
         byte[] buffer = new byte[1024];
@@ -93,9 +93,9 @@ namespace RealTimeProject
         private void SignInButton_Click(object sender, EventArgs e)
         {
             List<byte> toSend = new List<byte> { (byte)ClientMessageType.CheckSignIn };
-            toSend.AddRange(Encoding.Latin1.GetBytes(UNameTextBox.Text + " " + PassTextBox.Text));
+            toSend.AddRange(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(new string[] { UNameTextBox.Text, PassTextBox.Text })));
             clientSockTcp.Send(toSend.ToArray());
-            byte[] tcpBuffer = new byte[1024];
+            byte[] tcpBuffer = new byte[8];
             clientSockTcp.Receive(tcpBuffer);
             if (tcpBuffer[0] == (byte)ServerMessageType.Success)
                 LoadMainMenuPanel();
@@ -108,24 +108,44 @@ namespace RealTimeProject
             LoadGamePanel();
         }
 
-        private void InitializeConnection()
+        private void SignUpButton_Click(object sender, EventArgs e)
         {
-            IPAddress autoAdress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[1];
+            List<byte> toSend = new List<byte> { (byte)ClientMessageType.SignUp };
+            toSend.AddRange(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(new string[] { UNameTextBox.Text, PassTextBox.Text })));
+            clientSockTcp.Send(toSend.ToArray());
+            byte[] tcpBuffer = new byte[8];
+            clientSockTcp.Receive(tcpBuffer);
+            if (tcpBuffer[0] == (byte)ServerMessageType.Success)
+                ResponseLabel.Text = "Signed up successfully";
+            else
+                ResponseLabel.Text = "User name already exists";
+
+        }
+
+        void CreateEndPoints()
+        {
             int sPort = int.Parse(settings["serverPort"]);
             int cPort = FindAvailablePort(int.Parse(settings["clientPort"]));
             Console.WriteLine("Using port " + cPort);
             var sAddress = IPAddress.Parse(settings["serverIP"]);
             var cAddress = IPAddress.Parse(settings["clientIP"]);
-            EndPoint clientEP = new IPEndPoint(cAddress, cPort);
+            clientEP = new IPEndPoint(cAddress, cPort);
             serverEP = new IPEndPoint(sAddress, sPort);
+        }
 
+        void ConnectToServerTcp()
+        {
+            clientSockTcp.Bind(clientEP);
+            clientSockTcp.Connect(serverEP);
+        }
+
+        private void InitializeConnection()
+        {
             clientSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             clientSock.Bind(clientEP);
-            clientSockTcp.Bind(clientEP);
             Console.WriteLine("Binded Successfully");
             clientSock.SendTo(new byte[] { (byte)'a' }, serverEP);
             NBConsole.WriteLine("Waiting server reply");
-            clientSockTcp.Connect(serverEP);
             EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
             clientSock.ReceiveFrom(buffer, ref recieveEP);
             thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0')[0] + "");
@@ -274,7 +294,6 @@ namespace RealTimeProject
             }
             ScoreLabel.Text = ScoreText;
         }
-
 
         private void GameLoopTimer_Tick(object sender, EventArgs e)
         {
@@ -493,6 +512,7 @@ namespace RealTimeProject
             //    simHistory.RemoveRange(0, 100);
             //}
         }
+        
         private void Graphics_KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
@@ -574,6 +594,8 @@ namespace RealTimeProject
         private void Client_Load(object sender, EventArgs e)
         {
             settings = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.GetFullPath("clientSettings.txt")));
+            CreateEndPoints();
+            ConnectToServerTcp();
             LoadStartupPanel();
         }
 

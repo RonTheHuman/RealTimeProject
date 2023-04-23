@@ -60,12 +60,14 @@ namespace RealTimeProject
                 checkWriteSocks.Clear();
                 checkReadSocks.AddRange(readSocks);
                 checkWriteSocks.AddRange(writeSocks);
+                Console.WriteLine("Select");
                 Socket.Select(checkReadSocks, checkWriteSocks, null, -1);
                 foreach(Socket sock in checkReadSocks)
                 {
                     if (sock == serverSockTcp)
                     {
                         Socket newClientSock = serverSockTcp.Accept();
+                        Console.WriteLine("Connected to socket");
                         readSocks.Add(newClientSock);
                         writeSocks.Add(newClientSock);
                     }
@@ -107,14 +109,13 @@ namespace RealTimeProject
             }
             if (msgType == ClientMessageType.CheckSignIn)
             {
-                string[] uNamePass = Encoding.Latin1.GetString(msg[1..]).Split(' ');
+                string[] uNamePass = JsonSerializer.Deserialize<string[]>(Encoding.Latin1.GetString(msg[1..]));
                 if (DatabaseAccess.CheckIfUserExists(uNamePass[0], uNamePass[1]))
                 {
                     return new byte[1] { (byte)ServerMessageType.Success };
                 }
                 else
                 {
-                    DatabaseAccess.AddUser(new DatabaseAccess.User(uNamePass[0], uNamePass[1]));
                     return new byte[1] { (byte)ServerMessageType.Failure };
                 }
             }
