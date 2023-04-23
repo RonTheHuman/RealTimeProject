@@ -232,25 +232,25 @@ namespace RealTimeProject
                                         {
                                             playerJ.StunFrame = attack.StunF;
                                             playerJ.KBPercent += 2;
+                                            Vector2 knockback;
+                                            if (animHitbox.knockback != null)
+                                            {
+                                                knockback = animHitbox.knockback;
+                                            }
+                                            else
+                                            {
+                                                knockback = attack.Knockback;
+                                            }
+                                            if (!playerI.FacingLeft)
+                                            {
+                                                accArr[j].Add(knockback);
+                                            }
+                                            else
+                                            {
+                                                accArr[j].Add(new Vector2(-knockback.X, knockback.Y));
+                                            }
+                                            accArr[j].Scale((float)playerJ.KBPercent / 100);
                                         }
-                                        Vector2 knockback;
-                                        if (animHitbox.knockback != null)
-                                        {
-                                            knockback = animHitbox.knockback;
-                                        }
-                                        else
-                                        {
-                                            knockback = attack.Knockback;
-                                        }
-                                        if (!playerI.FacingLeft)
-                                        {
-                                            accArr[j].Add(knockback);
-                                        }
-                                        else
-                                        {
-                                            accArr[j].Add(new Vector2(-knockback.X, knockback.Y));
-                                        }
-                                        accArr[j].Scale((float)playerJ.KBPercent / 100);
                                     }
                                 }
                             }

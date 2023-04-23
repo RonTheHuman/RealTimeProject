@@ -110,15 +110,26 @@ namespace RealTimeProject
 
         private void SignUpButton_Click(object sender, EventArgs e)
         {
-            List<byte> toSend = new List<byte> { (byte)ClientMessageType.SignUp };
-            toSend.AddRange(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(new string[] { UNameTextBox.Text, PassTextBox.Text })));
-            clientSockTcp.Send(toSend.ToArray());
-            byte[] tcpBuffer = new byte[8];
-            clientSockTcp.Receive(tcpBuffer);
-            if (tcpBuffer[0] == (byte)ServerMessageType.Success)
-                ResponseLabel.Text = "Signed up successfully";
+            if (UNameTextBox.Text.Length == 0)
+            {
+                ResponseLabel.Text = "No user name entered";
+            }
+            else if (PassTextBox.Text.Length < 8)
+            {
+                ResponseLabel.Text = "Password needs to be at least 8 characters long";
+            }
             else
-                ResponseLabel.Text = "User name already exists";
+            {
+                List<byte> toSend = new List<byte> { (byte)ClientMessageType.SignUp };
+                toSend.AddRange(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(new string[] { UNameTextBox.Text, PassTextBox.Text })));
+                clientSockTcp.Send(toSend.ToArray());
+                byte[] tcpBuffer = new byte[8];
+                clientSockTcp.Receive(tcpBuffer);
+                if (tcpBuffer[0] == (byte)ServerMessageType.Success)
+                    ResponseLabel.Text = "Signed up successfully";
+                else
+                    ResponseLabel.Text = "User name already exists";
+            }
 
         }
 
@@ -131,6 +142,11 @@ namespace RealTimeProject
             var cAddress = IPAddress.Parse(settings["clientIP"]);
             clientEP = new IPEndPoint(cAddress, cPort);
             serverEP = new IPEndPoint(sAddress, sPort);
+        }
+
+        private void BackButton_Click(object sender, EventArgs e)
+        {
+            LoadStartupPanel();
         }
 
         void ConnectToServerTcp()

@@ -61,6 +61,7 @@
             this.button5 = new System.Windows.Forms.Button();
             this.EnterLobbyButton = new System.Windows.Forms.Button();
             this.GamePanel = new System.Windows.Forms.Panel();
+            this.BackButton = new System.Windows.Forms.Button();
             this.StartupPanel.SuspendLayout();
             this.MainMenuPanel.SuspendLayout();
             this.GamePanel.SuspendLayout();
@@ -334,6 +335,7 @@
             // 
             // MainMenuPanel
             // 
+            this.MainMenuPanel.Controls.Add(this.BackButton);
             this.MainMenuPanel.Controls.Add(this.button5);
             this.MainMenuPanel.Controls.Add(this.EnterLobbyButton);
             this.MainMenuPanel.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -387,14 +389,25 @@
             this.GamePanel.Size = new System.Drawing.Size(970, 692);
             this.GamePanel.TabIndex = 8;
             // 
+            // BackButton
+            // 
+            this.BackButton.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.BackButton.Location = new System.Drawing.Point(407, 418);
+            this.BackButton.Name = "BackButton";
+            this.BackButton.Size = new System.Drawing.Size(178, 47);
+            this.BackButton.TabIndex = 2;
+            this.BackButton.Text = "Back";
+            this.BackButton.UseVisualStyleBackColor = true;
+            this.BackButton.Click += new System.EventHandler(this.BackButton_Click);
+            // 
             // Client
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(970, 692);
+            this.Controls.Add(this.MainMenuPanel);
             this.Controls.Add(this.StartupPanel);
             this.Controls.Add(this.GamePanel);
-            this.Controls.Add(this.MainMenuPanel);
             this.Name = "Client";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Client_Load);
@@ -443,5 +456,6 @@
         private Button EnterLobbyButton;
         private Panel GamePanel;
         private Label ResponseLabel;
+        private Button BackButton;
     }
 }
