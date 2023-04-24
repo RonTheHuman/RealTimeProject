@@ -103,7 +103,7 @@ namespace RealTimeProject
                 }
                 else
                 {
-                    DatabaseAccess.AddUser(new DatabaseAccess.User(uNamePass[0], uNamePass[1]));
+                    DatabaseAccess.AddUser(new User(uNamePass[0], uNamePass[1]));
                     return new byte[1] { (byte)ServerMessageType.Success };
                 }
             }
@@ -122,13 +122,13 @@ namespace RealTimeProject
             if (msgType == ClientMessageType.GetMatchesWithUser)
             {
                 string uName = Encoding.Latin1.GetString(msg[1..]);
-                List<DatabaseAccess.Match> matchesWithUser = DatabaseAccess.GetMatchesWithUser(uName);
+                List<Match> matchesWithUser = DatabaseAccess.GetMatchesWithUser(uName);
                 string[][] MatchArr = new string[matchesWithUser.Count][];
                 for (int i = 0; i < matchesWithUser.Count; i++)
                 {
                     MatchArr[i] = matchesWithUser[i].GetProperyArray();
                 }
-                return Encoding.Latin1.GetBytes(JsonSerializer.Serialize(MatchArr));
+                return Encoding.Latin1.GetBytes(JsonSerializer.Serialize(matchesWithUser) + "|");
 
             }
             return new byte[1] { (byte)ServerMessageType.Failure };

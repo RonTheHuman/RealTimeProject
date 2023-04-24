@@ -14,7 +14,7 @@ namespace RealTimeProject
         int curFNum = 1, recvFNum = 0, frameMS = 15, thisPlayer, pCount;
         bool fullSim = true, clientSim = true, enemySim = false;
         Color[] playerColors = new Color[4] { Color.MediumTurquoise, Color.Coral, Color.FromArgb(255, 255, 90), Color.MediumPurple };
-
+        string uName = "guest";
         Input curInput = new Input();
         List<Input> unackedInputs = new List<Input>(20);
         Label[]? playerLabels, blockLabels, attackLabels;
@@ -58,10 +58,14 @@ namespace RealTimeProject
 
         private void LoadStartupPanel()
         {
+            UNameTextBox.Text = "";
+            PassTextBox.Text = "";
             GamePanel.Enabled = false;
             GamePanel.Visible = false;
             MainMenuPanel.Enabled = false;
             MainMenuPanel.Visible = false;
+            GameHistoryPanel.Enabled = false;
+            GameHistoryPanel.Visible = false;
             StartupPanel.Enabled = true;
             StartupPanel.Visible = true;
         }
@@ -72,6 +76,9 @@ namespace RealTimeProject
             GamePanel.Visible = false;
             StartupPanel.Enabled = false;
             StartupPanel.Visible = false;
+            GameHistoryPanel.Enabled = false;
+            GameHistoryPanel.Visible = false;
+            MenuTextLabel.Text = "Welcome " + uName + "!";
             MainMenuPanel.Enabled = true;
             MainMenuPanel.Visible = true;
         }
@@ -82,10 +89,37 @@ namespace RealTimeProject
             MainMenuPanel.Visible = false;
             StartupPanel.Enabled = false;
             StartupPanel.Visible = false;
+            GameHistoryPanel.Enabled = false;
+            GameHistoryPanel.Visible = false;
             GamePanel.Enabled = true;
             GamePanel.Visible = true;
             InitializeConnection();
             InitializeGame();
+        }
+
+        private void LoadGameHistoryPanel()
+        {
+            MainMenuPanel.Enabled = false;
+            MainMenuPanel.Visible = false;
+            StartupPanel.Enabled = false;
+            StartupPanel.Visible = false;
+            GamePanel.Enabled = false;
+            GamePanel.Visible = false;
+            GameHistoryPanel.Enabled = true;
+            GameHistoryPanel.Visible = true;
+
+            List<byte> toSend = new List<byte> { (byte)ClientMessageType.GetMatchesWithUser };
+            toSend.AddRange(Encoding.Latin1.GetBytes(uName));
+            clientSockTcp.Send(toSend.ToArray());
+            byte[] tcpBuffer = new byte[1024];
+            int bytesRecieved = clientSockTcp.Receive(tcpBuffer);
+            string dataString = Encoding.Latin1.GetString(tcpBuffer[..bytesRecieved]);
+            while (dataString[dataString.Length - 1] != '|')
+            {
+                bytesRecieved = clientSockTcp.Receive(tcpBuffer);
+                dataString += Encoding.Latin1.GetString(tcpBuffer[..bytesRecieved]);
+            }
+            List<Match> MatchHistory = JsonSerializer.Deserialize<List<Match>>(dataString[..^1]);
         }
 
         
@@ -98,7 +132,10 @@ namespace RealTimeProject
             byte[] tcpBuffer = new byte[8];
             clientSockTcp.Receive(tcpBuffer);
             if (tcpBuffer[0] == (byte)ServerMessageType.Success)
+            {
+                uName = UNameTextBox.Text;
                 LoadMainMenuPanel();
+            }
             else
                 ResponseLabel.Text = "User name or password is incorrect";
         }
@@ -147,6 +184,16 @@ namespace RealTimeProject
         private void BackButton_Click(object sender, EventArgs e)
         {
             LoadStartupPanel();
+        }
+
+        private void ViewGameHistoryButton_Click(object sender, EventArgs e)
+        {
+            LoadGameHistoryPanel();
+        }
+
+        private void BackButtonGH_Click(object sender, EventArgs e)
+        {
+            LoadMainMenuPanel();
         }
 
         void ConnectToServerTcp()

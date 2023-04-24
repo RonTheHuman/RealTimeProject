@@ -58,13 +58,27 @@
             this.UNameTextBox = new System.Windows.Forms.TextBox();
             this.TitleLabel = new System.Windows.Forms.Label();
             this.MainMenuPanel = new System.Windows.Forms.Panel();
-            this.button5 = new System.Windows.Forms.Button();
+            this.MenuTextLabel = new System.Windows.Forms.Label();
+            this.BackButton = new System.Windows.Forms.Button();
+            this.ViewGameHistoryButton = new System.Windows.Forms.Button();
             this.EnterLobbyButton = new System.Windows.Forms.Button();
             this.GamePanel = new System.Windows.Forms.Panel();
-            this.BackButton = new System.Windows.Forms.Button();
+            this.GameHistoryPanel = new System.Windows.Forms.Panel();
+            this.BackButtonGH = new System.Windows.Forms.Button();
+            this.label8 = new System.Windows.Forms.Label();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.HistoryTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
             this.StartupPanel.SuspendLayout();
             this.MainMenuPanel.SuspendLayout();
             this.GamePanel.SuspendLayout();
+            this.GameHistoryPanel.SuspendLayout();
+            this.panel1.SuspendLayout();
+            this.HistoryTableLayoutPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // GameLoopTimer
@@ -335,8 +349,9 @@
             // 
             // MainMenuPanel
             // 
+            this.MainMenuPanel.Controls.Add(this.MenuTextLabel);
             this.MainMenuPanel.Controls.Add(this.BackButton);
-            this.MainMenuPanel.Controls.Add(this.button5);
+            this.MainMenuPanel.Controls.Add(this.ViewGameHistoryButton);
             this.MainMenuPanel.Controls.Add(this.EnterLobbyButton);
             this.MainMenuPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MainMenuPanel.Location = new System.Drawing.Point(0, 0);
@@ -344,15 +359,37 @@
             this.MainMenuPanel.Size = new System.Drawing.Size(970, 692);
             this.MainMenuPanel.TabIndex = 8;
             // 
-            // button5
+            // MenuTextLabel
             // 
-            this.button5.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.button5.Location = new System.Drawing.Point(407, 365);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(178, 47);
-            this.button5.TabIndex = 1;
-            this.button5.Text = "View Game History";
-            this.button5.UseVisualStyleBackColor = true;
+            this.MenuTextLabel.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.MenuTextLabel.Location = new System.Drawing.Point(347, 215);
+            this.MenuTextLabel.Name = "MenuTextLabel";
+            this.MenuTextLabel.Size = new System.Drawing.Size(291, 52);
+            this.MenuTextLabel.TabIndex = 3;
+            this.MenuTextLabel.Text = "Welcome User!";
+            this.MenuTextLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // BackButton
+            // 
+            this.BackButton.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.BackButton.Location = new System.Drawing.Point(407, 418);
+            this.BackButton.Name = "BackButton";
+            this.BackButton.Size = new System.Drawing.Size(178, 47);
+            this.BackButton.TabIndex = 2;
+            this.BackButton.Text = "Back";
+            this.BackButton.UseVisualStyleBackColor = true;
+            this.BackButton.Click += new System.EventHandler(this.BackButton_Click);
+            // 
+            // ViewGameHistoryButton
+            // 
+            this.ViewGameHistoryButton.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.ViewGameHistoryButton.Location = new System.Drawing.Point(407, 365);
+            this.ViewGameHistoryButton.Name = "ViewGameHistoryButton";
+            this.ViewGameHistoryButton.Size = new System.Drawing.Size(178, 47);
+            this.ViewGameHistoryButton.TabIndex = 1;
+            this.ViewGameHistoryButton.Text = "View Game History";
+            this.ViewGameHistoryButton.UseVisualStyleBackColor = true;
+            this.ViewGameHistoryButton.Click += new System.EventHandler(this.ViewGameHistoryButton_Click);
             // 
             // EnterLobbyButton
             // 
@@ -389,22 +426,120 @@
             this.GamePanel.Size = new System.Drawing.Size(970, 692);
             this.GamePanel.TabIndex = 8;
             // 
-            // BackButton
+            // GameHistoryPanel
             // 
-            this.BackButton.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.BackButton.Location = new System.Drawing.Point(407, 418);
-            this.BackButton.Name = "BackButton";
-            this.BackButton.Size = new System.Drawing.Size(178, 47);
-            this.BackButton.TabIndex = 2;
-            this.BackButton.Text = "Back";
-            this.BackButton.UseVisualStyleBackColor = true;
-            this.BackButton.Click += new System.EventHandler(this.BackButton_Click);
+            this.GameHistoryPanel.Controls.Add(this.BackButtonGH);
+            this.GameHistoryPanel.Controls.Add(this.label8);
+            this.GameHistoryPanel.Controls.Add(this.panel1);
+            this.GameHistoryPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.GameHistoryPanel.Location = new System.Drawing.Point(0, 0);
+            this.GameHistoryPanel.Name = "GameHistoryPanel";
+            this.GameHistoryPanel.Size = new System.Drawing.Size(970, 692);
+            this.GameHistoryPanel.TabIndex = 4;
+            // 
+            // BackButtonGH
+            // 
+            this.BackButtonGH.Location = new System.Drawing.Point(390, 619);
+            this.BackButtonGH.Name = "BackButtonGH";
+            this.BackButtonGH.Size = new System.Drawing.Size(187, 50);
+            this.BackButtonGH.TabIndex = 2;
+            this.BackButtonGH.Text = "Back";
+            this.BackButtonGH.UseVisualStyleBackColor = true;
+            this.BackButtonGH.Click += new System.EventHandler(this.BackButtonGH_Click);
+            // 
+            // label8
+            // 
+            this.label8.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.label8.Location = new System.Drawing.Point(390, 26);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(210, 43);
+            this.label8.TabIndex = 1;
+            this.label8.Text = "Game History:";
+            this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // panel1
+            // 
+            this.panel1.AutoScroll = true;
+            this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Controls.Add(this.HistoryTableLayoutPanel);
+            this.panel1.Location = new System.Drawing.Point(109, 80);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(757, 521);
+            this.panel1.TabIndex = 0;
+            // 
+            // HistoryTableLayoutPanel
+            // 
+            this.HistoryTableLayoutPanel.AutoSize = true;
+            this.HistoryTableLayoutPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.HistoryTableLayoutPanel.ColumnCount = 4;
+            this.HistoryTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.HistoryTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.HistoryTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.HistoryTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.HistoryTableLayoutPanel.Controls.Add(this.label7, 3, 0);
+            this.HistoryTableLayoutPanel.Controls.Add(this.label6, 2, 0);
+            this.HistoryTableLayoutPanel.Controls.Add(this.label5, 1, 0);
+            this.HistoryTableLayoutPanel.Controls.Add(this.label4, 0, 0);
+            this.HistoryTableLayoutPanel.Controls.Add(this.label9, 0, 1);
+            this.HistoryTableLayoutPanel.Location = new System.Drawing.Point(21, 19);
+            this.HistoryTableLayoutPanel.Name = "HistoryTableLayoutPanel";
+            this.HistoryTableLayoutPanel.RowCount = 2;
+            this.HistoryTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.HistoryTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.HistoryTableLayoutPanel.Size = new System.Drawing.Size(715, 52);
+            this.HistoryTableLayoutPanel.TabIndex = 0;
+            // 
+            // label7
+            // 
+            this.label7.Location = new System.Drawing.Point(626, 0);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(84, 49);
+            this.label7.TabIndex = 5;
+            this.label7.Text = "Length";
+            this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label6
+            // 
+            this.label6.Location = new System.Drawing.Point(419, 0);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(201, 49);
+            this.label6.TabIndex = 4;
+            this.label6.Text = "Winner";
+            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label5
+            // 
+            this.label5.Location = new System.Drawing.Point(153, 0);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(260, 49);
+            this.label5.TabIndex = 3;
+            this.label5.Text = "Players";
+            this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label4
+            // 
+            this.label4.Location = new System.Drawing.Point(3, 0);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(144, 49);
+            this.label4.TabIndex = 2;
+            this.label4.Text = "Date";
+            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label9
+            // 
+            this.label9.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.HistoryTableLayoutPanel.SetColumnSpan(this.label9, 4);
+            this.label9.Location = new System.Drawing.Point(3, 49);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(709, 3);
+            this.label9.TabIndex = 6;
             // 
             // Client
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(970, 692);
+            this.Controls.Add(this.GameHistoryPanel);
             this.Controls.Add(this.MainMenuPanel);
             this.Controls.Add(this.StartupPanel);
             this.Controls.Add(this.GamePanel);
@@ -418,6 +553,10 @@
             this.MainMenuPanel.ResumeLayout(false);
             this.GamePanel.ResumeLayout(false);
             this.GamePanel.PerformLayout();
+            this.GameHistoryPanel.ResumeLayout(false);
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
+            this.HistoryTableLayoutPanel.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -452,10 +591,21 @@
         private TextBox UNameTextBox;
         private Button button3;
         private Panel MainMenuPanel;
-        private Button button5;
+        private Button ViewGameHistoryButton;
         private Button EnterLobbyButton;
         private Panel GamePanel;
         private Label ResponseLabel;
         private Button BackButton;
+        private Label MenuTextLabel;
+        private Panel GameHistoryPanel;
+        private Panel panel1;
+        private TableLayoutPanel HistoryTableLayoutPanel;
+        private Label label7;
+        private Label label6;
+        private Label label5;
+        private Label label4;
+        private Button BackButtonGH;
+        private Label label8;
+        private Label label9;
     }
 }

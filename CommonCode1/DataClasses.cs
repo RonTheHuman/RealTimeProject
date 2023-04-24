@@ -500,4 +500,32 @@ namespace RealTimeProject
 
     public enum ClientMessageType : byte { GetMatchesWithUser, SignUp, CheckSignIn, JoinLobby, ExitLobby, ExitGame }
     public enum ServerMessageType : byte { Success = 1, Failure = 2 }
+
+    public class User
+    {
+        public int Id { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
+
+        public User(string userName, string password)
+        {
+            UserName = userName;
+            Password = password;
+        }
+
+    }
+
+    public class Match
+    {
+        public int Id { get; set; }
+        public string StartTime { get; set; }
+        public string Players { get; set; }
+        public string Winner { get; set; }
+        public string Length { get; set; }
+
+        public string[] GetProperyArray()
+        {
+            return new string[3] { StartTime, Players, Winner };
+        }
+    }
 }
