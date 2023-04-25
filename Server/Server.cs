@@ -10,11 +10,11 @@ namespace RealTimeProject
     public partial class Server : Form
     {
         static int bufferSize = 1024, pCount = 0;
-        static bool compensateLag = true;
+        static bool compensateLag = true, gameRunning = false;
         static Server staticThis;
         static Dictionary<string, string> settings;
         static Socket serverSockUDP;
-        static Dictionary<IPEndPoint, int> playerIPs = new Dictionary<IPEndPoint, int>();
+        static ConcurrentDictionary<IPEndPoint, LobbyPlayer> lobbyPlayerDict = new ConcurrentDictionary<IPEndPoint, LobbyPlayer>();
         static List<Frame> history = new List<Frame>(200);
         //last recieved stamps for each player, 2 is for broken non lagcomp
         static DateTime[] playerLRS = new DateTime[pCount], playerLRS2 = new DateTime[pCount];
@@ -29,7 +29,8 @@ namespace RealTimeProject
 
             pCount = 0;
             history.Clear();
-            playerIPs.Clear();
+            lobbyPlayerDict.Clear();
+            gameRunning = false;
             keepPlayerJoining = true;
             InfoTextLabel.Text = "Opened lobby, waiting for players. Starts automatically at max or with button";
             PlayerListLabel.Text = "";
@@ -61,7 +62,7 @@ namespace RealTimeProject
                 checkReadSocks.AddRange(readSocks);
                 checkWriteSocks.AddRange(writeSocks);
                 Console.WriteLine("Select");
-                Socket.Select(checkReadSocks, checkWriteSocks, null, -1);
+                Socket.Select(checkReadSocks, null, null, -1);
                 foreach(Socket sock in checkReadSocks)
                 {
                     if (sock == serverSockTcp)
@@ -81,7 +82,7 @@ namespace RealTimeProject
                         }
                         else
                         {
-                            sock.Send(TcpMessageResponse(buffer, bytesRecieved));
+                            sock.Send(TcpMessageResponse(buffer, bytesRecieved, sock));
                         }
                     }
                 }
@@ -90,7 +91,7 @@ namespace RealTimeProject
             }
         }
 
-        byte[] TcpMessageResponse(byte[] data, int bytesRecieved)
+        byte[] TcpMessageResponse(byte[] data, int bytesRecieved, Socket pSock)
         {
             byte[] msg = data[..bytesRecieved];
             ClientMessageType msgType = (ClientMessageType)msg[0];
@@ -131,27 +132,23 @@ namespace RealTimeProject
                 return Encoding.Latin1.GetBytes(JsonSerializer.Serialize(matchesWithUser) + "|");
 
             }
-            return new byte[1] { (byte)ServerMessageType.Failure };
-        }
-
-        private void ListenToUsers(int maxPlayers)
-        {
-            EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
-            Task<SocketReceiveFromResult> playerJoinTask = serverSockUDP.ReceiveFromAsync(new byte[64], SocketFlags.None, clientEP);
-            while (pCount < maxPlayers && keepPlayerJoining)
+            if (msgType == ClientMessageType.JoinLobby)
             {
-                if (playerJoinTask.IsCompleted)
+                string uName = Encoding.Latin1.GetString(msg[1..]);
+                if (!gameRunning)
                 {
+                    lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint] = new LobbyPlayer(uName, pCount + 1, pSock);
                     Invoke(new Action(() => StartGameButton.Enabled = true));
-                    SocketReceiveFromResult playerJoinTaskResult = playerJoinTask.Result;
-                    clientEP = playerJoinTaskResult.RemoteEndPoint;
-                    Invoke(new Action(() => PlayerListLabel.Text += "Player " + (pCount + 1) + ", " + clientEP.ToString() + " entered\n"));
-                    playerIPs[new IPEndPoint(((IPEndPoint)clientEP).Address, ((IPEndPoint)clientEP).Port)] = pCount + 1;
-                    pCount++;
-                    playerJoinTask = serverSockUDP.ReceiveFromAsync(new byte[64], SocketFlags.None, clientEP);
+                    Invoke(new Action(() => PlayerListLabel.Text += "Player " + (pCount + 1) + ", " + pSock.RemoteEndPoint.ToString() + " entered\n"));
+                    pCount += 1;
+                    return new byte[2] { (byte)ServerMessageType.Success, (byte)pCount };
+                }
+                else
+                {
+                    return new byte[1] { (byte)ServerMessageType.Failure };
                 }
             }
-            Invoke(new Action(() => InitGame()));
+            return new byte[1] { (byte)ServerMessageType.Failure };
         }
 
         private void InitGame()
@@ -164,9 +161,9 @@ namespace RealTimeProject
                 playerLRS2[i] = DateTime.MinValue;
             }
 
-            foreach (var ip in playerIPs.Keys)
+            foreach (var ip in lobbyPlayerDict.Keys)
             {
-                serverSockUDP.SendTo(Encoding.Latin1.GetBytes(playerIPs[ip].ToString() + pCount.ToString()), ip);
+                serverSockUDP.SendTo(Encoding.Latin1.GetBytes(lobbyPlayerDict[ip].ToString() + pCount.ToString()), ip);
             }
 
             history.Add(CreateInitFrame(pCount));
@@ -175,6 +172,7 @@ namespace RealTimeProject
             GameLoopTimer.Enabled = true;
             ResetGameButton.Enabled = true;
             StopGameButton.Enabled = true;
+            gameRunning = true;
         }
 
         private void GameLoopTimer_Tick(object sender, EventArgs e)
@@ -189,8 +187,8 @@ namespace RealTimeProject
                 byte[] buffer = new byte[bufferSize];
                 EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
                 int bytesRecieved = serverSockUDP.ReceiveFrom(buffer, ref clientEP);
-                if (playerIPs.ContainsKey((IPEndPoint)clientEP))
-                    packets.Add(new ClientPacket(playerIPs[(IPEndPoint)clientEP], buffer[..bytesRecieved]));
+                if (lobbyPlayerDict.ContainsKey((IPEndPoint)clientEP))
+                    packets.Add(new ClientPacket(lobbyPlayerDict[(IPEndPoint)clientEP], buffer[..bytesRecieved]));
             }
             if (packets.Count == 0) { NBConsole.WriteLine("no user inputs recieved"); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
@@ -248,9 +246,9 @@ namespace RealTimeProject
                     history.Last().State = GameLogic.NextState(history[history.Count - 2].Inputs, latestInputs, history[history.Count - 2].State);
             }
 
-            foreach (var ip in playerIPs.Keys) // send state to players
+            foreach (var ip in lobbyPlayerDict.Keys) // send state to players
             {
-                int thisPlayer = playerIPs[ip];
+                int thisPlayer = lobbyPlayerDict[ip];
                 if (playerLRS[thisPlayer - 1] != DateTime.MinValue)
                 {
                     DateTime saveNow = DateTime.Now;
@@ -352,7 +350,7 @@ namespace RealTimeProject
             GameLoopTimer.Enabled = false;
             Thread.Sleep(15);
 
-            foreach (var ip in playerIPs.Keys)
+            foreach (var ip in lobbyPlayerDict.Keys)
             {
                 serverSockUDP.SendTo(Encoding.Latin1.GetBytes("a"), ip);
             }

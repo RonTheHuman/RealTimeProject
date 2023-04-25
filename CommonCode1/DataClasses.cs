@@ -275,7 +275,7 @@ namespace RealTimeProject
             s += ", KBp = " + KBPercent;
             s += ", Jumps = " + Jumps;
             s += ", Stocks = " + Stocks;
-            s+= ", DHold = " + DownHoldFrame + "]";
+            s += ", DHold = " + DownHoldFrame + "]";
             return s;
         }
     }
@@ -472,7 +472,7 @@ namespace RealTimeProject
             byte[] eIBytes = packet[(27 * pCount + 16)..];
             int eICount = 0;
             if (pCount > 1)
-                eICount  = (packet.Length - 16 - 27 * pCount) / (pCount - 1);
+                eICount = (packet.Length - 16 - 27 * pCount) / (pCount - 1);
             for (int i = 0; i < pCount - 1; i++)
             {
                 Input[] oneEnemyInput = new Input[eICount];
@@ -526,6 +526,20 @@ namespace RealTimeProject
         public string[] GetProperyArray()
         {
             return new string[3] { StartTime, Players, Winner };
+        }
+    }
+
+    public class LobbyPlayer
+    {
+        public string UName { get; set; }
+        public int Number { get; set; }
+        public Socket Sock { get; set; }
+
+        public LobbyPlayer(string uName, int number, Socket sock)
+        {
+            UName = uName;
+            Number = number;
+            Sock = sock;
         }
     }
 }
