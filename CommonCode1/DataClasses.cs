@@ -173,6 +173,7 @@ namespace RealTimeProject
         public byte Jumps { get; set; }
         public byte Stocks { get; set; }
         public byte DownHoldFrame { get; set; }
+        public const int sizeInBytes = 26;
 
         public PlayerState(Vector2 pos, bool facingLeft)
         {
@@ -224,7 +225,7 @@ namespace RealTimeProject
 
         public byte[] ToBytes()
         {
-            byte[] bytes = new byte[26];
+            byte[] bytes = new byte[sizeInBytes];
             byte[] tempB = Pos.ToBytes();
             tempB.CopyTo(bytes, 0);
             tempB = Vel.ToBytes();
@@ -283,10 +284,12 @@ namespace RealTimeProject
     public class GameState
     {
         public PlayerState[] PStates { get; }
+        public int  sizeInBytes;
 
         public GameState(PlayerState[] pStates)
         {
             PStates = pStates;
+            sizeInBytes = PlayerState.sizeInBytes*PStates.Length;
         }
 
         public GameState(GameState other)
@@ -297,14 +300,15 @@ namespace RealTimeProject
                 pStates[i] = new PlayerState(other.PStates[i]);
             }
             PStates = pStates;
+            sizeInBytes = PlayerState.sizeInBytes * PStates.Length
         }
 
         public byte[] ToBytes()
         {
-            byte[] bytes = new byte[26 * PStates.Length];
+            byte[] bytes = new byte[sizeInBytes];
             for (int i = 0; i < PStates.Length; i++)
             {
-                PStates[i].ToBytes().CopyTo(bytes, i * 26);
+                PStates[i].ToBytes().CopyTo(bytes, i * PlayerState.sizeInBytes);
             }
             return bytes;
         }
@@ -314,7 +318,7 @@ namespace RealTimeProject
             PlayerState[] pStates = new PlayerState[pCount];
             for (int i = 0; i < pCount; i++)
             {
-                pStates[i] = PlayerState.FromBytes(bytes[(i * 26)..((i + 1) * 26)]);
+                pStates[i] = PlayerState.FromBytes(bytes[(i * PlayerState.sizeInBytes)..((i + 1) * PlayerState.sizeInBytes)]);
             }
             return new GameState(pStates);
         }

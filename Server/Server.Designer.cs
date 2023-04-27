@@ -35,6 +35,8 @@
             this.StopGameButton = new System.Windows.Forms.Button();
             this.PlayerListLabel = new System.Windows.Forms.Label();
             this.InfoTextLabel = new System.Windows.Forms.Label();
+            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.SuspendLayout();
             // 
             // GameLoopTimer
@@ -83,9 +85,9 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.PlayerListLabel.BackColor = System.Drawing.SystemColors.ButtonHighlight;
             this.PlayerListLabel.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.PlayerListLabel.Location = new System.Drawing.Point(58, 153);
+            this.PlayerListLabel.Location = new System.Drawing.Point(154, 153);
             this.PlayerListLabel.Name = "PlayerListLabel";
-            this.PlayerListLabel.Size = new System.Drawing.Size(883, 360);
+            this.PlayerListLabel.Size = new System.Drawing.Size(581, 360);
             this.PlayerListLabel.TabIndex = 1;
             // 
             // InfoTextLabel
@@ -99,11 +101,34 @@
             this.InfoTextLabel.Text = "Info Text";
             this.InfoTextLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // numericUpDown1
+            // 
+            this.numericUpDown1.Location = new System.Drawing.Point(832, 173);
+            this.numericUpDown1.Maximum = new decimal(new int[] {
+            16,
+            0,
+            0,
+            0});
+            this.numericUpDown1.Minimum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            this.numericUpDown1.Name = "numericUpDown1";
+            this.numericUpDown1.Size = new System.Drawing.Size(71, 23);
+            this.numericUpDown1.TabIndex = 5;
+            this.numericUpDown1.Value = new decimal(new int[] {
+            15,
+            0,
+            0,
+            0});
+            // 
             // Server
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(989, 668);
+            this.Controls.Add(this.numericUpDown1);
             this.Controls.Add(this.ResetGameButton);
             this.Controls.Add(this.StartGameButton);
             this.Controls.Add(this.StopGameButton);
@@ -112,6 +137,7 @@
             this.Name = "Server";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -123,5 +149,6 @@
         private Button StopGameButton;
         private Label PlayerListLabel;
         private Label InfoTextLabel;
+        private NumericUpDown numericUpDown1;
     }
 }
