@@ -207,10 +207,15 @@ namespace RealTimeProject
             clientSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             clientSock.Bind(clientEP);
             Console.WriteLine("Binded Successfully");
-            clientSock.SendTo(new byte[] { (byte)'a' }, serverEP);
+            List<byte> toSend = new List<byte> { (byte)ClientMessageType.JoinLobby };
+            toSend.AddRange(Encoding.Latin1.GetBytes(uName));
+            clientSockTcp.Send(toSend.ToArray());
             NBConsole.WriteLine("Waiting server reply");
-            EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
-            clientSock.ReceiveFrom(buffer, ref recieveEP);
+            clientSockTcp.Receive(buffer);
+            if (buffer[0] == (byte)ServerMessageType.Success)
+            {
+
+            }
             thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0')[0] + "");
             pCount = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0')[1] + "");
             NBConsole.WriteLine("You are player " + thisPlayer);

@@ -138,9 +138,13 @@ namespace RealTimeProject
                 if (!gameRunning)
                 {
                     lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint] = new LobbyPlayer(uName, pCount + 1, pSock);
-                    Invoke(new Action(() => StartGameButton.Enabled = true));
-                    Invoke(new Action(() => PlayerListLabel.Text += "Player " + (pCount + 1) + ", " + pSock.RemoteEndPoint.ToString() + " entered\n"));
+                    Invoke(() => StartGameButton.Enabled = true);
+                    Invoke(() => PlayerListLabel.Text += "Player " + (pCount + 1) + ", " + pSock.RemoteEndPoint.ToString() + " entered\n");
                     pCount += 1;
+                    if (pCount == int.Parse(settings["maxPlayers"]))
+                    {
+                        Invoke(() => InitGame());
+                    }
                     return new byte[2] { (byte)ServerMessageType.Success, (byte)pCount };
                 }
                 else
@@ -153,6 +157,7 @@ namespace RealTimeProject
 
         private void InitGame()
         {
+            gameRunning = true;
             playerLRS = new DateTime[pCount];
             playerLRS2 = new DateTime[pCount];
             for (int i = 0; i < pCount; i++)
@@ -161,9 +166,9 @@ namespace RealTimeProject
                 playerLRS2[i] = DateTime.MinValue;
             }
 
-            foreach (var ip in lobbyPlayerDict.Keys)
+            foreach (LobbyPlayer lp in lobbyPlayerDict.Values)
             {
-                serverSockUDP.SendTo(Encoding.Latin1.GetBytes(lobbyPlayerDict[ip].ToString() + pCount.ToString()), ip);
+                lp.Sock.Send(Encoding.Latin1.GetBytes(lp.Number.ToString() + pCount.ToString()));
             }
 
             history.Add(CreateInitFrame(pCount));
@@ -172,7 +177,6 @@ namespace RealTimeProject
             GameLoopTimer.Enabled = true;
             ResetGameButton.Enabled = true;
             StopGameButton.Enabled = true;
-            gameRunning = true;
         }
 
         private void GameLoopTimer_Tick(object sender, EventArgs e)
