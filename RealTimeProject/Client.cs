@@ -85,16 +85,18 @@ namespace RealTimeProject
 
         private void LoadGamePanel()
         {
-            MainMenuPanel.Enabled = false;
-            MainMenuPanel.Visible = false;
-            StartupPanel.Enabled = false;
-            StartupPanel.Visible = false;
-            GameHistoryPanel.Enabled = false;
-            GameHistoryPanel.Visible = false;
-            GamePanel.Enabled = true;
-            GamePanel.Visible = true;
-            InitializeConnection();
-            InitializeGame();
+            if (InitializeConnection())
+            {
+                MainMenuPanel.Enabled = false;
+                MainMenuPanel.Visible = false;
+                StartupPanel.Enabled = false;
+                StartupPanel.Visible = false;
+                GameHistoryPanel.Enabled = false;
+                GameHistoryPanel.Visible = false;
+                GamePanel.Enabled = true;
+                GamePanel.Visible = true;
+                InitializeGame();
+            }
         }
 
         private void LoadGameHistoryPanel()
@@ -202,10 +204,8 @@ namespace RealTimeProject
             clientSockTcp.Connect(serverEP);
         }
 
-        private void InitializeConnection()
+        private bool InitializeConnection()
         {
-            clientSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            clientSock.Bind(clientEP);
             Console.WriteLine("Binded Successfully");
             List<byte> toSend = new List<byte> { (byte)ClientMessageType.JoinLobby };
             toSend.AddRange(Encoding.Latin1.GetBytes(uName));
@@ -214,20 +214,28 @@ namespace RealTimeProject
             clientSockTcp.Receive(buffer);
             if (buffer[0] == (byte)ServerMessageType.Success)
             {
+                clientSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                clientSock.Bind(clientEP);
+                clientSockTcp.Receive(buffer);
+                thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0')[0] + "");
+                pCount = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0')[1] + "");
+                NBConsole.WriteLine("You are player " + thisPlayer);
+            
+                GameLoopTimer.Interval = frameMS;
+                Thread.Sleep(200);
+                GameLoopTimer.Enabled = true;
+                if (fullSim)
+                    Text = "Simulating";
+                else
+                    Text = "Not Simulating";
+                return true;
 
             }
-            thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0')[0] + "");
-            pCount = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0')[1] + "");
-            NBConsole.WriteLine("You are player " + thisPlayer);
-            
-            GameLoopTimer.Interval = frameMS;
-            Thread.Sleep(200);
-            GameLoopTimer.Enabled = true;
-
-            if (fullSim)
-                Text = "Simulating";
             else
-                Text = "Not Simulating";
+            {
+                NBConsole.WriteLine("Game is already running.");
+                return false;
+            }
         }
 
         private void InitializeGame()

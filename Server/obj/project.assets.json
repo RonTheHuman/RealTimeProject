@@ -5,10 +5,14 @@
       "Dapper/2.0.123": {
         "type": "package",
         "compile": {
-          "lib/net5.0/Dapper.dll": {}
+          "lib/net5.0/Dapper.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/net5.0/Dapper.dll": {}
+          "lib/net5.0/Dapper.dll": {
+            "related": ".xml"
+          }
         }
       },
       "Microsoft.Data.Sqlite/7.0.5": {
@@ -30,10 +34,14 @@
           "SQLitePCLRaw.core": "2.1.4"
         },
         "compile": {
-          "lib/net6.0/Microsoft.Data.Sqlite.dll": {}
+          "lib/net6.0/Microsoft.Data.Sqlite.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/net6.0/Microsoft.Data.Sqlite.dll": {}
+          "lib/net6.0/Microsoft.Data.Sqlite.dll": {
+            "related": ".xml"
+          }
         }
       },
       "SQLitePCLRaw.bundle_e_sqlite3/2.1.4": {
@@ -373,23 +381,27 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\USER\\.nuget\\packages\\": {}
+    "C:\\Users\\u101040.DESHALIT\\.nuget\\packages\\": {},
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\Server\\Server.csproj",
+      "projectUniqueName": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\Server\\Server.csproj",
       "projectName": "Server",
-      "projectPath": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\Server\\Server.csproj",
-      "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\Server\\obj\\",
+      "projectPath": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\Server\\Server.csproj",
+      "packagesPath": "C:\\Users\\u101040.DESHALIT\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\Server\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+      ],
       "configFilePaths": [
-        "C:\\Users\\USER\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\u101040.DESHALIT\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
-        "net6.0-windows7.0"
+        "net6.0-windows"
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
@@ -399,8 +411,8 @@
         "net6.0-windows7.0": {
           "targetAlias": "net6.0-windows",
           "projectReferences": {
-            "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\CommonCode1\\CommonCode.csproj": {
-              "projectPath": "C:\\Users\\USER\\Desktop\\Coding\\SchoolProgramming\\RealTimeProject\\CommonCode1\\CommonCode.csproj"
+            "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\CommonCode1\\CommonCode.csproj": {
+              "projectPath": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\CommonCode1\\CommonCode.csproj"
             }
           }
         }
@@ -443,7 +455,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.407\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.402\\RuntimeIdentifierGraph.json"
       }
     }
   }

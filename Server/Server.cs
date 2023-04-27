@@ -20,7 +20,6 @@ namespace RealTimeProject
         static DateTime[] playerLRS = new DateTime[pCount], playerLRS2 = new DateTime[pCount];
         static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
 
-        bool keepPlayerJoining = true;
         private void InitLobby()
         {
             int maxPlayers = int.Parse(settings["maxPlayers"]);
@@ -31,13 +30,11 @@ namespace RealTimeProject
             history.Clear();
             lobbyPlayerDict.Clear();
             gameRunning = false;
-            keepPlayerJoining = true;
             InfoTextLabel.Text = "Opened lobby, waiting for players. Starts automatically at max or with button";
             PlayerListLabel.Text = "";
 
             serverSockUDP = CreateLocalSocket(ipStr, port);
             Task.Factory.StartNew(() => HandleTcpSockets(ipStr, port));
-            Task.Factory.StartNew(() => ListenToUsers(maxPlayers));
         }
 
         static Socket CreateLocalSocket(string ipstr, int port)
@@ -82,7 +79,7 @@ namespace RealTimeProject
                         }
                         else
                         {
-                            sock.Send(TcpMessageResponse(buffer, bytesRecieved, sock));
+                            TcpMessageResponse(buffer, bytesRecieved, sock);
                         }
                     }
                 }
@@ -91,7 +88,7 @@ namespace RealTimeProject
             }
         }
 
-        byte[] TcpMessageResponse(byte[] data, int bytesRecieved, Socket pSock)
+        void TcpMessageResponse(byte[] data, int bytesRecieved, Socket pSock)
         {
             byte[] msg = data[..bytesRecieved];
             ClientMessageType msgType = (ClientMessageType)msg[0];
@@ -100,12 +97,12 @@ namespace RealTimeProject
                 string[] uNamePass = JsonSerializer.Deserialize<string[]>(Encoding.Latin1.GetString(msg[1..]));
                 if (DatabaseAccess.CheckIfUserNameExists(uNamePass[0]))
                 {
-                    return new byte[1] { (byte)ServerMessageType.Failure };
+                    pSock.Send(new byte[1] { (byte)ServerMessageType.Failure });
                 }
                 else
                 {
                     DatabaseAccess.AddUser(new User(uNamePass[0], uNamePass[1]));
-                    return new byte[1] { (byte)ServerMessageType.Success };
+                    pSock.Send(new byte[1] { (byte)ServerMessageType.Success });
                 }
             }
             if (msgType == ClientMessageType.CheckSignIn)
@@ -113,11 +110,11 @@ namespace RealTimeProject
                 string[] uNamePass = JsonSerializer.Deserialize<string[]>(Encoding.Latin1.GetString(msg[1..]));
                 if (DatabaseAccess.CheckIfUserExists(uNamePass[0], uNamePass[1]))
                 {
-                    return new byte[1] { (byte)ServerMessageType.Success };
+                    pSock.Send(new byte[1] { (byte)ServerMessageType.Success });
                 }
                 else
                 {
-                    return new byte[1] { (byte)ServerMessageType.Failure };
+                    pSock.Send(new byte[1] { (byte)ServerMessageType.Failure });
                 }
             }
             if (msgType == ClientMessageType.GetMatchesWithUser)
@@ -129,7 +126,7 @@ namespace RealTimeProject
                 {
                     MatchArr[i] = matchesWithUser[i].GetProperyArray();
                 }
-                return Encoding.Latin1.GetBytes(JsonSerializer.Serialize(matchesWithUser) + "|");
+                pSock.Send(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(matchesWithUser) + "|"));
 
             }
             if (msgType == ClientMessageType.JoinLobby)
@@ -145,14 +142,14 @@ namespace RealTimeProject
                     {
                         Invoke(() => InitGame());
                     }
-                    return new byte[2] { (byte)ServerMessageType.Success, (byte)pCount };
+                    pSock.Send(new byte[1] { (byte)ServerMessageType.Success });
                 }
                 else
                 {
-                    return new byte[1] { (byte)ServerMessageType.Failure };
+                    pSock.Send(new byte[1] { (byte)ServerMessageType.Failure });
                 }
             }
-            return new byte[1] { (byte)ServerMessageType.Failure };
+            pSock.Send(new byte[1] { (byte)ServerMessageType.Failure });
         }
 
         private void InitGame()
@@ -192,7 +189,7 @@ namespace RealTimeProject
                 EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
                 int bytesRecieved = serverSockUDP.ReceiveFrom(buffer, ref clientEP);
                 if (lobbyPlayerDict.ContainsKey((IPEndPoint)clientEP))
-                    packets.Add(new ClientPacket(lobbyPlayerDict[(IPEndPoint)clientEP], buffer[..bytesRecieved]));
+                    packets.Add(new ClientPacket(lobbyPlayerDict[(IPEndPoint)clientEP].Number, buffer[..bytesRecieved]));
             }
             if (packets.Count == 0) { NBConsole.WriteLine("no user inputs recieved"); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
@@ -252,7 +249,7 @@ namespace RealTimeProject
 
             foreach (var ip in lobbyPlayerDict.Keys) // send state to players
             {
-                int thisPlayer = lobbyPlayerDict[ip];
+                int thisPlayer = lobbyPlayerDict[ip].Number;
                 if (playerLRS[thisPlayer - 1] != DateTime.MinValue)
                 {
                     DateTime saveNow = DateTime.Now;
@@ -342,7 +339,7 @@ namespace RealTimeProject
 
         private void StartGameButton_Click(object sender, EventArgs e)
         {
-            keepPlayerJoining = false;
+            InitGame();
         }
         private void ResetGameButton_Click(object sender, EventArgs e)
         {
