@@ -83,7 +83,7 @@
             // 
             // GameLoopTimer
             // 
-            this.GameLoopTimer.Interval = 17;
+            this.GameLoopTimer.Interval = 15;
             this.GameLoopTimer.Tick += new System.EventHandler(this.GameLoopTimer_Tick);
             // 
             // Player1Label

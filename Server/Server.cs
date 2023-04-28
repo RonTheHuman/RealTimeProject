@@ -16,6 +16,7 @@ namespace RealTimeProject
         static Socket serverSockUDP;
         static ConcurrentDictionary<IPEndPoint, LobbyPlayer> lobbyPlayerDict = new ConcurrentDictionary<IPEndPoint, LobbyPlayer>();
         static List<Frame> history = new List<Frame>(200);
+        static byte frameMS = 15;
         //last recieved stamps for each player, 2 is for broken non lagcomp
         static DateTime[] playerLRS = new DateTime[pCount], playerLRS2 = new DateTime[pCount];
         static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
@@ -149,7 +150,6 @@ namespace RealTimeProject
                     pSock.Send(new byte[1] { (byte)ServerMessageType.Failure });
                 }
             }
-            pSock.Send(new byte[1] { (byte)ServerMessageType.Failure });
         }
 
         private void InitGame()
@@ -290,9 +290,9 @@ namespace RealTimeProject
                         sendFrame = new Frame(sendFrame);
                         sendFrame.StartTime = playerLRS2[thisPlayer - 1];
                     }
-
-                    Console.WriteLine("sending: " + new ServerGamePacket(saveNow, sendFrame, enemyInputs));
-                    serverSockUDP.SendTo(ServerGamePacket.Serialize(saveNow, sendFrame, enemyInputs, pCount), ip);
+                    ServerGamePacket sendPacket = new ServerGamePacket(saveNow, sendFrame, enemyInputs, frameMS);
+                    Console.WriteLine("sending: " + sendPacket);
+                    serverSockUDP.SendTo(sendPacket.Serialize(pCount), ip);
                 }
             }
 
@@ -341,6 +341,13 @@ namespace RealTimeProject
         {
             InitGame();
         }
+
+        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        {
+            frameMS = (byte)numericUpDown1.Value;
+            GameLoopTimer.Interval = frameMS;
+        }
+
         private void ResetGameButton_Click(object sender, EventArgs e)
         {
             history[history.Count - 1] = CreateInitFrame(pCount);
@@ -361,9 +368,6 @@ namespace RealTimeProject
             StopGameButton.Enabled = false;
             InitLobby();
         }
-
-        
-
         
         public Server()
         {

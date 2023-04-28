@@ -284,12 +284,9 @@ namespace RealTimeProject
     public class GameState
     {
         public PlayerState[] PStates { get; }
-        public int  sizeInBytes;
-
         public GameState(PlayerState[] pStates)
         {
             PStates = pStates;
-            sizeInBytes = PlayerState.sizeInBytes*PStates.Length;
         }
 
         public GameState(GameState other)
@@ -300,12 +297,11 @@ namespace RealTimeProject
                 pStates[i] = new PlayerState(other.PStates[i]);
             }
             PStates = pStates;
-            sizeInBytes = PlayerState.sizeInBytes * PStates.Length
         }
 
         public byte[] ToBytes()
         {
-            byte[] bytes = new byte[sizeInBytes];
+            byte[] bytes = new byte[SizeInBytes(PStates.Length)];
             for (int i = 0; i < PStates.Length; i++)
             {
                 PStates[i].ToBytes().CopyTo(bytes, i * PlayerState.sizeInBytes);
@@ -321,6 +317,11 @@ namespace RealTimeProject
                 pStates[i] = PlayerState.FromBytes(bytes[(i * PlayerState.sizeInBytes)..((i + 1) * PlayerState.sizeInBytes)]);
             }
             return new GameState(pStates);
+        }
+
+        public static int SizeInBytes(int pCount)
+        {
+            return PlayerState.sizeInBytes * pCount;
         }
 
         public override string ToString()
@@ -371,7 +372,7 @@ namespace RealTimeProject
 
         public byte[] ToBytes()
         {
-            byte[] bytes = new byte[27 * State.PStates.Length + 8];
+            byte[] bytes = new byte[SizeInBytes(Inputs.Length)];
             BinaryPrimitives.WriteInt64BigEndian(bytes, StartTime.Ticks);
             for (int i = 0; i < Inputs.Length; i++)
             {
@@ -409,6 +410,11 @@ namespace RealTimeProject
             s += "state: " + State.ToString();
             return s;
         }
+
+        public static int SizeInBytes(int pCount)
+        {
+            return 8 + pCount + GameState.SizeInBytes(pCount);
+        }
     }
 
     public class ServerGamePacket
@@ -416,12 +422,14 @@ namespace RealTimeProject
         public DateTime TimeStamp { get; set; }
         public Frame Frame { get; set; }
         public Input[][] EnemyInputs { get; set; }
+        public byte FrameMS { get; set; }
 
-        public ServerGamePacket(DateTime timeStamp, Frame frame, Input[][] enemyInputs)
+        public ServerGamePacket(DateTime timeStamp, Frame frame, Input[][] enemyInputs, byte frameMS)
         {
-            this.TimeStamp = timeStamp;
-            this.Frame = frame;
-            this.EnemyInputs = enemyInputs;
+            TimeStamp = timeStamp;
+            Frame = frame;
+            EnemyInputs = enemyInputs;
+            FrameMS = frameMS;
         }
 
         public override string ToString()
@@ -443,40 +451,42 @@ namespace RealTimeProject
             return s;
         }
 
-        public static byte[] Serialize(DateTime timeStamp, Frame frame, Input[][] enemyInputs, int pCount)
+        public byte[] Serialize(int pCount)
         {
             int eICount;
-            if (enemyInputs.Length == 0)
+            if (EnemyInputs.Length == 0)
             {
                 eICount = 0;
             }
             else
             {
-                eICount = enemyInputs[0].Length;
+                eICount = EnemyInputs[0].Length;
             }
-            byte[] bytes = new byte[16 + 27 * pCount + eICount * (pCount - 1)];
-            BinaryPrimitives.WriteInt64BigEndian(bytes, timeStamp.Ticks);
-            frame.ToBytes().CopyTo(bytes, 8);
-            int eIStartI = 27 * pCount + 16;
+            byte[] bytes = new byte[SizeInBytes(pCount, eICount)];
+            BinaryPrimitives.WriteInt64BigEndian(bytes, TimeStamp.Ticks);
+            Frame.ToBytes().CopyTo(bytes, 8);
+            int eIStartI = 8 + Frame.SizeInBytes(pCount);
             for (int i = 0; i < pCount - 1; i++)
             {
-                for (int j = 0; j < enemyInputs[i].Length; j++)
+                for (int j = 0; j < EnemyInputs[i].Length; j++)
                 {
-                    bytes[eIStartI + i * enemyInputs[i].Length + j] = (byte)enemyInputs[i][j];
+                    bytes[eIStartI + i * EnemyInputs[i].Length + j] = (byte)EnemyInputs[i][j];
                 }
             }
+            bytes[^1] = FrameMS;
             return bytes;
         }
 
         public static ServerGamePacket Deserialize(byte[] packet, int pCount)
         {
             DateTime timeStamp = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packet[..8]));
-            Frame frame = Frame.FromBytes(packet[8..(27 * pCount + 16)], pCount);
+            int frameEndIndex = 8 + Frame.SizeInBytes(pCount); // actually one after frame ends
+            Frame frame = Frame.FromBytes(packet[8..frameEndIndex], pCount);
             Input[][] enemyInputs = new Input[pCount - 1][];
-            byte[] eIBytes = packet[(27 * pCount + 16)..];
+            byte[] eIBytes = packet[frameEndIndex..^1];
             int eICount = 0;
             if (pCount > 1)
-                eICount = (packet.Length - 16 - 27 * pCount) / (pCount - 1);
+                eICount = (packet.Length - frameEndIndex) / (pCount - 1);
             for (int i = 0; i < pCount - 1; i++)
             {
                 Input[] oneEnemyInput = new Input[eICount];
@@ -486,7 +496,13 @@ namespace RealTimeProject
                 }
                 enemyInputs[i] = oneEnemyInput;
             }
-            return new ServerGamePacket(timeStamp, frame, enemyInputs);
+            byte frameMS = packet[^1];
+            return new ServerGamePacket(timeStamp, frame, enemyInputs, frameMS);
+        }
+
+        public static int SizeInBytes(int pCount, int enemyInputCount)
+        {
+            return 8 + Frame.SizeInBytes(pCount) + (pCount * enemyInputCount) + 1;
         }
 
     }

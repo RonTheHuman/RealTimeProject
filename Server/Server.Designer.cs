@@ -103,14 +103,19 @@
             // 
             // numericUpDown1
             // 
+            this.numericUpDown1.Increment = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
             this.numericUpDown1.Location = new System.Drawing.Point(832, 173);
             this.numericUpDown1.Maximum = new decimal(new int[] {
-            16,
+            200,
             0,
             0,
             0});
             this.numericUpDown1.Minimum = new decimal(new int[] {
-            5,
+            15,
             0,
             0,
             0});
@@ -122,6 +127,7 @@
             0,
             0,
             0});
+            this.numericUpDown1.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
             // 
             // Server
             // 

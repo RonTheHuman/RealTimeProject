@@ -11,7 +11,8 @@ namespace RealTimeProject
 {
     public partial class Client : Form
     {
-        int curFNum = 1, recvFNum = 0, frameMS = 15, thisPlayer, pCount;
+        int curFNum = 1, recvFNum = 0, thisPlayer, pCount;
+        byte frameMS = 15;
         bool fullSim = true, clientSim = true, enemySim = false;
         Color[] playerColors = new Color[4] { Color.MediumTurquoise, Color.Coral, Color.FromArgb(255, 255, 90), Color.MediumPurple };
         string uName = "guest";
@@ -23,7 +24,7 @@ namespace RealTimeProject
         Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp), clientSockTcp = new Socket(SocketType.Stream, ProtocolType.Tcp);
         EndPoint? serverEP, clientEP;
         Dictionary<string, string> settings;
-         
+
         byte[] buffer = new byte[1024];
 
         private int FindAvailablePort(int startPort)
@@ -415,7 +416,6 @@ namespace RealTimeProject
 
             if (packets.Count() > 0) // deserialize packets and apply to simulated history
             {
-                bool foundFrame = false;
                 foreach (byte[] packet in packets)
                 {
                     if (packet.Length == 1)
@@ -435,9 +435,11 @@ namespace RealTimeProject
                     }
                 }
                 lastServerPacket = servPacket;
+                GameLoopTimer.Interval = lastServerPacket.FrameMS;
                 unackedInputs.Clear();
                 NBConsole.WriteLine("applying data from " + servPacket.TimeStamp.ToString("mm.ss.fff") + ". data:\n" + servPacket.ToString());
                 //client simulation and lagcomp on enemies
+                bool foundFrame = false;
                 for (int i = simHistory.Count() - 1; i > 0; i--)
                 {
                     if (simHistory[i - 1].StartTime <= servPacket.Frame.StartTime)
@@ -670,6 +672,7 @@ namespace RealTimeProject
         private void Client_Load(object sender, EventArgs e)
         {
             settings = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.GetFullPath("clientSettings.txt")));
+            frameMS = (byte)GameLoopTimer.Interval;
             CreateEndPoints();
             ConnectToServerTcp();
             LoadStartupPanel();
