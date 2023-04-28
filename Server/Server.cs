@@ -247,6 +247,20 @@ namespace RealTimeProject
                     history.Last().State = GameLogic.NextState(history[history.Count - 2].Inputs, latestInputs, history[history.Count - 2].State);
             }
 
+            //check if the game is over even for the laggiest player (so there's is no lag compensation guessing involved)
+            DateTime oldestStamp = playerLRS.Min();
+            for (int i = history.Count - 1; i >= 0; i--)
+            {
+                if (history[i].StartTime <= oldestStamp)
+                {
+                    int winner = 0;
+                    if (GameLogic.IsGameOver(history[i].State, ref winner))
+                    {
+                        EndGame(winner);
+                    }
+                }
+            }
+
             foreach (var ip in lobbyPlayerDict.Keys) // send state to players
             {
                 int thisPlayer = lobbyPlayerDict[ip].Number;
@@ -367,6 +381,12 @@ namespace RealTimeProject
             ResetGameButton.Enabled = false;
             StopGameButton.Enabled = false;
             InitLobby();
+        }
+
+        private void EndGame(int winner)
+        {
+            GameLoopTimer.Enabled = false;
+            
         }
         
         public Server()

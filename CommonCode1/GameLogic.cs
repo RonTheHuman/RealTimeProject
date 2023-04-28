@@ -429,6 +429,25 @@ namespace RealTimeProject
             return new GameState(pStates);
         }
 
+        public static bool IsGameOver(GameState state, ref int player)
+        {
+            bool oneAlive = false;
+            player = 0;
+            for (int i = 0; i < state.PStates.Length; i++)
+            {
+                if (state.PStates[i].Stocks != 0)
+                {
+                    if (oneAlive)
+                    {
+                        return false;
+                    }
+                    oneAlive = true;
+                    player = i + 1;
+                }
+            }
+            return true;
+        }
+
         private static GameState _NextPlayerState(GameState state, Input prevInput, Input curInput)
         {
             return NextState(new Input[] { prevInput }, new Input[] { curInput }, state);
