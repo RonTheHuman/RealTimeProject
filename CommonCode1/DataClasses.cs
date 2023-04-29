@@ -486,7 +486,7 @@ namespace RealTimeProject
             byte[] eIBytes = packet[frameEndIndex..^1];
             int eICount = 0;
             if (pCount > 1)
-                eICount = (packet.Length - frameEndIndex) / (pCount - 1);
+                eICount = (packet.Length - frameEndIndex - 1) / (pCount - 1);
             for (int i = 0; i < pCount - 1; i++)
             {
                 Input[] oneEnemyInput = new Input[eICount];

@@ -270,6 +270,7 @@ namespace RealTimeProject
                     if (GameLogic.IsGameOver(history[i].State, ref winner))
                     {
                         EndGame(winner);
+                        return;
                     }
                 }
             }
