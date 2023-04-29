@@ -59,7 +59,7 @@ namespace RealTimeProject
                 }
             }
         }
-        static bool[] GetOnFloorArr(GameState state, int pCount)
+        static bool[] GetOnFloorArr(GameState state, int pCount, int levelLayout)
         {
             bool[] OnFloorArr = new bool[pCount];
             for (int i = 0; i < pCount; i++)
@@ -75,7 +75,7 @@ namespace RealTimeProject
                 }
                 if (!OnFloorArr[i])
                 {
-                    foreach (Rectangle platform in GameVariables.Platforms)
+                    foreach (Rectangle platform in GameVariables.PlatformLayouts[levelLayout])
                     {
                         if (playerI.Pos.Y + GameVariables.PlayerSize.Height == platform.Y &&
                             platform.X < playerI.Pos.X + GameVariables.PlayerSize.Width && playerI.Pos.X < platform.X + platform.Width &&
@@ -332,7 +332,7 @@ namespace RealTimeProject
             }
         }
 
-        static void ProccessFloorCollisions(Input[] curInputs, GameState prevState, GameState state, int pCount)
+        static void ProccessFloorCollisions(Input[] curInputs, GameState prevState, GameState state, int pCount, int levelLayout)
         {
             for (int i = 0; i < pCount; i++)
             {
@@ -365,7 +365,7 @@ namespace RealTimeProject
                         }
                     }
                 }
-                foreach (Rectangle platform in GameVariables.Platforms)
+                foreach (Rectangle platform in GameVariables.PlatformLayouts[levelLayout])
                 {
                     if (playerB >= platform.Y && platform.Y >= prevState.PStates[i].Pos.Y + GameVariables.PlayerSize.Height &&
                         platform.X < playerR && playerL < platform.X + platform.Width &&
@@ -391,7 +391,7 @@ namespace RealTimeProject
             }
         }
 
-        public static GameState NextState(Input[] prevInputs, Input[] curInputs, GameState state)
+        public static GameState NextState(Input[] prevInputs, Input[] curInputs, GameState state, int levelLayout)
         {
             GameState nextState = new GameState(state);
             int pCount = prevInputs.Length;
@@ -400,7 +400,7 @@ namespace RealTimeProject
             {
                 accArr[i] = new Vector2(0, 0);
             }
-            bool[] onFloorArr = GetOnFloorArr(state, pCount);
+            bool[] onFloorArr = GetOnFloorArr(state, pCount, levelLayout);
             IncrementStunF(nextState);
             IncrementBlockF(prevInputs, curInputs, nextState, pCount);
             IncrementDownHoldF(curInputs, nextState, pCount);
@@ -408,7 +408,7 @@ namespace RealTimeProject
             ProccessAttackCollisions(nextState, pCount, accArr);
             float[] walkVArr = ProccessControlledMovement(prevInputs, curInputs, nextState, pCount, onFloorArr, accArr);
             ApplyMovement(prevInputs, curInputs, nextState, pCount, onFloorArr, accArr, walkVArr);
-            ProccessFloorCollisions(curInputs, state, nextState, pCount);
+            ProccessFloorCollisions(curInputs, state, nextState, pCount, levelLayout);
             return nextState;
         }
 
@@ -418,13 +418,13 @@ namespace RealTimeProject
             for (int i = 0; i < pCount; i++)
             {
                 if (i == 0)
-                    pStates[i] = new PlayerState(new Vector2(304, 407), false);
+                    pStates[i] = new PlayerState(new Vector2(258, 395), false);
                 else if (i == 1)
-                    pStates[i] = new PlayerState(new Vector2(604, 407), true);
+                    pStates[i] = new PlayerState(new Vector2(677, 395), true);
                 else if (i == 2)
-                    pStates[i] = new PlayerState(new Vector2(180, 407), false);
+                    pStates[i] = new PlayerState(new Vector2(332, 395), false);
                 else if (i == 3)
-                    pStates[i] = new PlayerState(new Vector2(710, 407), true);
+                    pStates[i] = new PlayerState(new Vector2(605, 395), true);
             }
             return new GameState(pStates);
         }
@@ -452,17 +452,17 @@ namespace RealTimeProject
             return true;
         }
 
-        private static GameState _NextPlayerState(GameState state, Input prevInput, Input curInput)
+        private static GameState _NextPlayerState(GameState state, Input prevInput, Input curInput, int levelLayout)
         {
-            return NextState(new Input[] { prevInput }, new Input[] { curInput }, state);
+            return NextState(new Input[] { prevInput }, new Input[] { curInput }, state, levelLayout);
         }
 
-        public static PlayerState SimulatePlayerState(PlayerState startState, Input[] inputs)
+        public static PlayerState SimulatePlayerState(PlayerState startState, Input[] inputs, int levelLayout)
         {
             GameState finalState = new GameState(new PlayerState[] { startState });
             for (int i = 1; i < inputs.Length; i++)
             {
-                finalState = _NextPlayerState(finalState, inputs[i - 1], inputs[i]);
+                finalState = _NextPlayerState(finalState, inputs[i - 1], inputs[i], levelLayout);
             }
             return finalState.PStates[0];
         }
@@ -474,7 +474,7 @@ namespace RealTimeProject
 
             public static Rectangle Stage { get; set; }
 
-            public static Rectangle[] Platforms { get; set; }
+            public static Rectangle[][] PlatformLayouts { get; set; }
             public static int FloorY { get; set; }
             public static float Gravity { get; set; }
             public static Size PlayerSize { get; set; }
@@ -490,7 +490,9 @@ namespace RealTimeProject
                 Bounds = new Rectangle(0, -100, 986, 881);
                 RespawnPos = new Vector2(400, 250);
                 Stage = new Rectangle(243, 457, 500, 108);
-                Platforms = new Rectangle[1] { new Rectangle(300, 365, 386, 13) };
+                PlatformLayouts =  new Rectangle[][] { new Rectangle[1] { new Rectangle(300, 365, 386, 13) }, 
+                                                       new Rectangle[2] { new Rectangle(300, 365, 130, 13), new Rectangle(556, 365, 130, 13)}, 
+                                                       new Rectangle[2] { new Rectangle(328, 365, 330, 13), new Rectangle(428, 273, 130, 13)} };
                 FloorY = 457;
                 Gravity = 0.75f;
                 PlayerSize = new Size(50, 50);

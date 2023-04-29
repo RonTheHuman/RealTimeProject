@@ -11,14 +11,14 @@ namespace RealTimeProject
 {
     public partial class Client : Form
     {
-        int curFNum = 1, recvFNum = 0, thisPlayer, pCount;
+        int curFNum = 1, recvFNum = 0, thisPlayer, pCount, levelLayout;
         byte frameMS = 15;
         bool fullSim = true, clientSim = true, enemySim = false;
         Color[] playerColors = new Color[4] { Color.MediumTurquoise, Color.Coral, Color.FromArgb(255, 255, 90), Color.MediumPurple };
         string uName = "guest";
         Input curInput = new Input();
         List<Input> unackedInputs = new List<Input>(20);
-        Label[]? playerLabels, blockLabels, attackLabels;
+        Label[]? playerLabels, blockLabels, attackLabels, platformLabels;
         List<Frame> simHistory = new List<Frame>();
         ServerGamePacket? lastServerPacket;
         Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp), clientSockTcp = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -247,8 +247,9 @@ namespace RealTimeProject
             if (tcpBuffer[0] == (byte)ServerMessageType.Success)
             {
                 clientSockTcp.Receive(tcpBuffer);
-                thisPlayer = int.Parse(Encoding.Latin1.GetString(tcpBuffer).TrimEnd('\0')[0] + "");
-                pCount = int.Parse(Encoding.Latin1.GetString(tcpBuffer).TrimEnd('\0')[1] + "");
+                thisPlayer = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[0] + "");
+                pCount = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[1] + "");
+                levelLayout = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[2] + "");
                 NBConsole.WriteLine("You are player " + thisPlayer);
                 gameEndMsgTask = clientSockTcp.ReceiveAsync(tcpBuffer, SocketFlags.None);
                 GameLoopTimer.Interval = frameMS;
@@ -277,6 +278,9 @@ namespace RealTimeProject
             playerLabels[0] = Player1Label;
             attackLabels[0] = AttackLabel1;
             blockLabels[0] = BlockLabel1;
+            Player2Label.Visible = false;
+            Player3Label.Visible = false;
+            Player4Label.Visible = false;
             if (pCount >= 2)
             {
                 Player2Label.Visible = true;
@@ -297,6 +301,25 @@ namespace RealTimeProject
                 playerLabels[3] = Player4Label;
                 attackLabels[3] = AttackLabel4;
                 blockLabels[3] = BlockLabel4;
+            }
+
+            Rectangle[] platformLayout = GameLogic.GameVariables.PlatformLayouts[levelLayout];
+            if (platformLabels != null)
+            {
+                foreach (Label l in platformLabels)
+                {
+                    GamePanel.Controls.Remove(l);
+                }
+            }
+            platformLabels = new Label[platformLayout.Length];
+            for (int i = 0; i < platformLayout.Length; i++)
+            {
+                platformLabels[i] = new Label();
+                platformLabels[i].Text = "";
+                platformLabels[i].BackColor = Color.OliveDrab;
+                platformLabels[i].Location = platformLayout[i].Location;
+                platformLabels[i].Size = platformLayout[i].Size;
+                GamePanel.Controls.Add(platformLabels[i]);
             }
         }
 
@@ -447,7 +470,7 @@ namespace RealTimeProject
             Input[] simInputs = new Input[pCount]; // create simulated frame
             simHistory.Last().Inputs.CopyTo(simInputs, 0);
             simInputs[thisPlayer - 1] = curInput;
-            simHistory.Add(new Frame(frameStart, simInputs, GameLogic.NextState(simHistory.Last().Inputs, simInputs, simHistory.Last().State)));
+            simHistory.Add(new Frame(frameStart, simInputs, GameLogic.NextState(simHistory.Last().Inputs, simInputs, simHistory.Last().State, levelLayout)));
             curFNum++;
 
             if (packets.Count() > 0) // deserialize packets and apply to simulated history
@@ -503,7 +526,7 @@ namespace RealTimeProject
                                     }
                                 }
                             }
-                            simHistory[j].State = GameLogic.NextState(simHistory[j - 1].Inputs, correctInputs, simHistory[j - 1].State);
+                            simHistory[j].State = GameLogic.NextState(simHistory[j - 1].Inputs, correctInputs, simHistory[j - 1].State, levelLayout);
                             simHistory[j].Inputs = correctInputs;
                             //NBConsole.WriteLine("P" + thisPlayer + ": pInput= (" + simHistory[j - 1].Inputs[thisPlayer - 1] + "), cInput= (" + correctInputs[thisPlayer - 1] + "), " +
                             //    "start state = " + simHistory[j - 1].State + ", after: Pos= " + simHistory[j].State.PStates[thisPlayer - 1].Pos + ", Vel= " + simHistory[j].State.PStates[thisPlayer - 1].Vel);
@@ -561,13 +584,13 @@ namespace RealTimeProject
                                 Input[] enemyInputs  = new Input[lastServerPacket.EnemyInputs[i + offset].Length + 1];
                                 enemyInputs[0] = lastServerPacket.Frame.Inputs[i];
                                 lastServerPacket.EnemyInputs[i + offset].CopyTo(enemyInputs, 1);
-                                stateToDraw.PStates[i] = GameLogic.SimulatePlayerState(stateToDraw.PStates[i], enemyInputs);
+                                stateToDraw.PStates[i] = GameLogic.SimulatePlayerState(stateToDraw.PStates[i], enemyInputs, levelLayout);
                             }
                         }
                         //simulate client inputs that didn't reach the server
                         if (clientSim)
                         {
-                            stateToDraw.PStates[thisPlayer - 1] = GameLogic.SimulatePlayerState(stateToDraw.PStates[thisPlayer - 1], unackedInputs.ToArray());
+                            stateToDraw.PStates[thisPlayer - 1] = GameLogic.SimulatePlayerState(stateToDraw.PStates[thisPlayer - 1], unackedInputs.ToArray(), levelLayout);
                         }
                         if (enemySim && lastServerPacket.EnemyInputs.Length != 0)
                         {
@@ -587,7 +610,7 @@ namespace RealTimeProject
                                         {
                                             enemyInputs[j] = lastServerPacket.EnemyInputs[i + offset][^1];
                                         }
-                                        stateToDraw.PStates[i] = GameLogic.SimulatePlayerState(stateToDraw.PStates[i], enemyInputs);
+                                        stateToDraw.PStates[i] = GameLogic.SimulatePlayerState(stateToDraw.PStates[i], enemyInputs, levelLayout);
                                     }
                                 }
                             }

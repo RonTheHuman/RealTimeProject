@@ -9,7 +9,7 @@ namespace RealTimeProject
 {
     public partial class Server : Form
     {
-        static int bufferSize = 1024, pCount = 0;
+        static int bufferSize = 1024, pCount = 0, levelLayout;
         static bool compensateLag = true, gameRunning = false;
         static Server staticThis;
         static Dictionary<string, string> settings;
@@ -175,9 +175,11 @@ namespace RealTimeProject
                 playerLRS2[i] = DateTime.MinValue;
             }
 
+            levelLayout = int.Parse(LevelLayoutComboBox.Text);
             foreach (LobbyPlayer lp in lobbyPlayerDict.Values)
             {
-                lp.Sock.Send(Encoding.Latin1.GetBytes(lp.Number.ToString() + pCount.ToString()));
+                Console.WriteLine(LevelLayoutComboBox.Text);
+                lp.Sock.Send(Encoding.Latin1.GetBytes(lp.Number.ToString() + pCount.ToString() + LevelLayoutComboBox.Text));
             }
 
             history.Add(CreateInitFrame(pCount));
@@ -213,7 +215,7 @@ namespace RealTimeProject
             {
                 prevInputs[i] = history.Last().Inputs[i];
             }
-            history.Add(new Frame(frameStart, prevInputs, GameLogic.NextState(prevInputs, prevInputs, history.Last().State)));
+            history.Add(new Frame(frameStart, prevInputs, GameLogic.NextState(prevInputs, prevInputs, history.Last().State, levelLayout)));
 
             int packetPlayer;
             DateTime packetTime;
@@ -257,7 +259,7 @@ namespace RealTimeProject
                 }
                 history.Last().Inputs = latestInputs;
                 if (history.Count > 4)
-                    history.Last().State = GameLogic.NextState(history[history.Count - 2].Inputs, latestInputs, history[history.Count - 2].State);
+                    history.Last().State = GameLogic.NextState(history[history.Count - 2].Inputs, latestInputs, history[history.Count - 2].State, levelLayout);
             }
 
             //check if the game is over even for the laggiest player (so there's is no lag compensation guessing involved)
@@ -357,7 +359,7 @@ namespace RealTimeProject
                         for (int j = i; j < history.Count; j++)
                         {
                             history[j].Inputs[player - 1] = input;
-                            history[j].State = GameLogic.NextState(history[j - 1].Inputs, history[j].Inputs, history[j - 1].State);
+                            history[j].State = GameLogic.NextState(history[j - 1].Inputs, history[j].Inputs, history[j - 1].State, levelLayout);
                         }
                     }
                     break;

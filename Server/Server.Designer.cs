@@ -36,6 +36,9 @@
             this.PlayerListLabel = new System.Windows.Forms.Label();
             this.InfoTextLabel = new System.Windows.Forms.Label();
             this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.LevelLayoutComboBox = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -108,7 +111,7 @@
             0,
             0,
             0});
-            this.numericUpDown1.Location = new System.Drawing.Point(832, 173);
+            this.numericUpDown1.Location = new System.Drawing.Point(830, 182);
             this.numericUpDown1.Maximum = new decimal(new int[] {
             200,
             0,
@@ -129,11 +132,45 @@
             0});
             this.numericUpDown1.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(799, 153);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(129, 15);
+            this.label1.TabIndex = 6;
+            this.label1.Text = "Milliseconds per Frame";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(828, 233);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(73, 15);
+            this.label2.TabIndex = 7;
+            this.label2.Text = "Level Layout";
+            // 
+            // LevelLayoutComboBox
+            // 
+            this.LevelLayoutComboBox.FormattingEnabled = true;
+            this.LevelLayoutComboBox.Items.AddRange(new object[] {
+            "0",
+            "1",
+            "2"});
+            this.LevelLayoutComboBox.Location = new System.Drawing.Point(816, 263);
+            this.LevelLayoutComboBox.Name = "LevelLayoutComboBox";
+            this.LevelLayoutComboBox.Size = new System.Drawing.Size(101, 23);
+            this.LevelLayoutComboBox.TabIndex = 9;
+            this.LevelLayoutComboBox.Text = "0";
+            // 
             // Server
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(989, 668);
+            this.Controls.Add(this.LevelLayoutComboBox);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.numericUpDown1);
             this.Controls.Add(this.ResetGameButton);
             this.Controls.Add(this.StartGameButton);
@@ -145,6 +182,7 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -156,5 +194,8 @@
         private Label PlayerListLabel;
         private Label InfoTextLabel;
         private NumericUpDown numericUpDown1;
+        private Label label1;
+        private Label label2;
+        private ComboBox LevelLayoutComboBox;
     }
 }

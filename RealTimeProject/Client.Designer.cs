@@ -46,7 +46,6 @@
             this.BlockLabel4 = new System.Windows.Forms.Label();
             this.Player3Label = new System.Windows.Forms.Label();
             this.Player4Label = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
             this.StartupPanel = new System.Windows.Forms.Panel();
             this.ResponseLabel = new System.Windows.Forms.Label();
             this.button3 = new System.Windows.Forms.Button();
@@ -89,7 +88,7 @@
             // Player1Label
             // 
             this.Player1Label.BackColor = System.Drawing.Color.MediumTurquoise;
-            this.Player1Label.Location = new System.Drawing.Point(220, 395);
+            this.Player1Label.Location = new System.Drawing.Point(258, 395);
             this.Player1Label.Name = "Player1Label";
             this.Player1Label.Size = new System.Drawing.Size(50, 50);
             this.Player1Label.TabIndex = 0;
@@ -100,7 +99,7 @@
             // 
             this.Player2Label.BackColor = System.Drawing.Color.Coral;
             this.Player2Label.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.Player2Label.Location = new System.Drawing.Point(591, 395);
+            this.Player2Label.Location = new System.Drawing.Point(605, 395);
             this.Player2Label.Name = "Player2Label";
             this.Player2Label.Size = new System.Drawing.Size(50, 50);
             this.Player2Label.TabIndex = 1;
@@ -218,7 +217,7 @@
             // Player3Label
             // 
             this.Player3Label.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(90)))));
-            this.Player3Label.Location = new System.Drawing.Point(109, 395);
+            this.Player3Label.Location = new System.Drawing.Point(332, 395);
             this.Player3Label.Name = "Player3Label";
             this.Player3Label.Size = new System.Drawing.Size(50, 50);
             this.Player3Label.TabIndex = 13;
@@ -230,21 +229,13 @@
             // 
             this.Player4Label.BackColor = System.Drawing.Color.MediumPurple;
             this.Player4Label.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.Player4Label.Location = new System.Drawing.Point(713, 395);
+            this.Player4Label.Location = new System.Drawing.Point(677, 395);
             this.Player4Label.Name = "Player4Label";
             this.Player4Label.Size = new System.Drawing.Size(50, 50);
             this.Player4Label.TabIndex = 14;
             this.Player4Label.Text = "O";
             this.Player4Label.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.Player4Label.Visible = false;
-            // 
-            // label1
-            // 
-            this.label1.BackColor = System.Drawing.Color.OliveDrab;
-            this.label1.Location = new System.Drawing.Point(300, 365);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(386, 13);
-            this.label1.TabIndex = 15;
             // 
             // StartupPanel
             // 
@@ -404,7 +395,6 @@
             // 
             // GamePanel
             // 
-            this.GamePanel.Controls.Add(this.label1);
             this.GamePanel.Controls.Add(this.BlockLabel4);
             this.GamePanel.Controls.Add(this.BlockLabel3);
             this.GamePanel.Controls.Add(this.BlockLabel2);
@@ -540,10 +530,10 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(970, 692);
-            this.Controls.Add(this.GameHistoryPanel);
-            this.Controls.Add(this.MainMenuPanel);
-            this.Controls.Add(this.StartupPanel);
             this.Controls.Add(this.GamePanel);
+            this.Controls.Add(this.MainMenuPanel);
+            this.Controls.Add(this.GameHistoryPanel);
+            this.Controls.Add(this.StartupPanel);
             this.Name = "Client";
             this.Text = "Form1";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Client_FormClosed);
@@ -582,7 +572,6 @@
         private Label BlockLabel4;
         private Label Player3Label;
         private Label Player4Label;
-        private Label label1;
         private Panel StartupPanel;
         private Label TitleLabel;
         private Button SignUpButton;
