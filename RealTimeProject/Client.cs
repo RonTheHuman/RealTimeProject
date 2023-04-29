@@ -127,20 +127,23 @@ namespace RealTimeProject
             }
             List<Match> MatchHistory = JsonSerializer.Deserialize<List<Match>>(dataString[..^1]);
             Console.WriteLine("Recieved " + MatchHistory.Count() + " matches");
+            SuspendLayout();
             foreach (Match match in MatchHistory)
             {
                 AddMatchToTable(match);
             }
+            ResumeLayout();
         }
 
         public void AddMatchToTable(Match match)
         {
             int row = HistoryTableLayoutPanel.RowCount;
-            HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.StartTime, StartTimeHeaderLabel.Width), row, 0);
-            //HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.Players, PlayersHeaderLabel.Width), row, 1);
-            //HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.Winner, WinnerHeaderLabel.Width), row, 2);
-            //HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.Length, LengthHeaderLabel.Width), row, 3);
-            Console.WriteLine("Adding Match To Table");
+            HistoryTableLayoutPanel.RowCount++;
+            Console.WriteLine("Adding Match To Table at row " + row);
+            HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.StartTime, StartTimeHeaderLabel.Width), 0, row);
+            HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.Players, PlayersHeaderLabel.Width), 1, row);
+            HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.Winner, WinnerHeaderLabel.Width), 2, row);
+            HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.Length, LengthHeaderLabel.Width), 3, row);
         }
 
         public Label CreateTableLabel(string text, int width)
