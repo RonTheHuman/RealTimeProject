@@ -61,7 +61,7 @@ namespace RealTimeProject
         {
             using (IDbConnection cnn = new SqliteConnection(LoadConnectionString()))
             {
-                cnn.Execute("INSERT INTO Matches (StartTime, Players, Winner) VALUES (@StartTime, @Players, @Winner)", match);
+                cnn.Execute("INSERT INTO Matches (StartTime, Players, Winner, Length) VALUES (@StartTime, @Players, @Winner, @Length)", match);
             }
         }
 
@@ -78,7 +78,7 @@ namespace RealTimeProject
         {
             using (IDbConnection cnn = new SqliteConnection(LoadConnectionString()))
             {
-                var output = cnn.Query<Match>("SELECT * FROM Matches WHERE instr(Players, '" + userName + "') > 0 ORDER BY StartTime");
+                var output = cnn.Query<Match>("SELECT StartTime, Players, Winner, Length FROM Matches WHERE instr(Players, '" + userName + "') > 0 ORDER BY StartTime");
                 return output.ToList();
             }
         }

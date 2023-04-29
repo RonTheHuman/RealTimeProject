@@ -24,8 +24,10 @@ namespace RealTimeProject
         Socket clientSock = new Socket(SocketType.Dgram, ProtocolType.Udp), clientSockTcp = new Socket(SocketType.Stream, ProtocolType.Tcp);
         EndPoint? serverEP, clientEP;
         Dictionary<string, string> settings;
+        Task<int> gameEndMsgTask;
+        TableLayoutPanel emptyPanel;
 
-        byte[] buffer = new byte[1024];
+        byte[] tcpBuffer = new byte[1024];
 
         private int FindAvailablePort(int startPort)
         {
@@ -86,7 +88,7 @@ namespace RealTimeProject
 
         private void LoadGamePanel()
         {
-            if (InitializeConnection())
+            if (InitLobbyConnection())
             {
                 MainMenuPanel.Enabled = false;
                 MainMenuPanel.Visible = false;
@@ -96,7 +98,8 @@ namespace RealTimeProject
                 GameHistoryPanel.Visible = false;
                 GamePanel.Enabled = true;
                 GamePanel.Visible = true;
-                InitializeGame();
+                InitGameGraphics();
+                InitSimulatedHistory();
             }
         }
 
@@ -110,7 +113,7 @@ namespace RealTimeProject
             GamePanel.Visible = false;
             GameHistoryPanel.Enabled = true;
             GameHistoryPanel.Visible = true;
-
+            HistoryTableLayoutPanel.RowCount = 2;
             List<byte> toSend = new List<byte> { (byte)ClientMessageType.GetMatchesWithUser };
             toSend.AddRange(Encoding.Latin1.GetBytes(uName));
             clientSockTcp.Send(toSend.ToArray());
@@ -123,9 +126,32 @@ namespace RealTimeProject
                 dataString += Encoding.Latin1.GetString(tcpBuffer[..bytesRecieved]);
             }
             List<Match> MatchHistory = JsonSerializer.Deserialize<List<Match>>(dataString[..^1]);
+            Console.WriteLine("Recieved " + MatchHistory.Count() + " matches");
+            foreach (Match match in MatchHistory)
+            {
+                AddMatchToTable(match);
+            }
         }
 
-        
+        public void AddMatchToTable(Match match)
+        {
+            int row = HistoryTableLayoutPanel.RowCount;
+            HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.StartTime, StartTimeHeaderLabel.Width), row, 0);
+            //HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.Players, PlayersHeaderLabel.Width), row, 1);
+            //HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.Winner, WinnerHeaderLabel.Width), row, 2);
+            //HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.Length, LengthHeaderLabel.Width), row, 3);
+            Console.WriteLine("Adding Match To Table");
+        }
+
+        public Label CreateTableLabel(string text, int width)
+        {
+            Label outLabel = new Label();
+            outLabel.Text = text;
+            outLabel.AutoSize = false;
+            outLabel.Width = width;
+            outLabel.Font = StartTimeHeaderLabel.Font;
+            return outLabel;
+        }
 
         private void SignInButton_Click(object sender, EventArgs e)
         {
@@ -154,6 +180,10 @@ namespace RealTimeProject
             {
                 ResponseLabel.Text = "No user name entered";
             }
+            else if (UNameTextBox.Text == "guest")
+            {
+                ResponseLabel.Text = "User name can't be 'guest'";
+            }
             else if (PassTextBox.Text.Length < 8)
             {
                 ResponseLabel.Text = "Password needs to be at least 8 characters long";
@@ -173,17 +203,6 @@ namespace RealTimeProject
 
         }
 
-        void CreateEndPoints()
-        {
-            int sPort = int.Parse(settings["serverPort"]);
-            int cPort = FindAvailablePort(int.Parse(settings["clientPort"]));
-            Console.WriteLine("Using port " + cPort);
-            var sAddress = IPAddress.Parse(settings["serverIP"]);
-            var cAddress = IPAddress.Parse(settings["clientIP"]);
-            clientEP = new IPEndPoint(cAddress, cPort);
-            serverEP = new IPEndPoint(sAddress, sPort);
-        }
-
         private void BackButton_Click(object sender, EventArgs e)
         {
             LoadStartupPanel();
@@ -199,32 +218,40 @@ namespace RealTimeProject
             LoadMainMenuPanel();
         }
 
-        void ConnectToServerTcp()
+        void InitSockets()
         {
+            int sPort = int.Parse(settings["serverPort"]);
+            int cPort = FindAvailablePort(int.Parse(settings["clientPort"]));
+            Console.WriteLine("Using port " + cPort);
+            var sAddress = IPAddress.Parse(settings["serverIP"]);
+            var cAddress = IPAddress.Parse(settings["clientIP"]);
+            clientEP = new IPEndPoint(cAddress, cPort);
+            serverEP = new IPEndPoint(sAddress, sPort);
+
             clientSockTcp.Bind(clientEP);
             clientSockTcp.Connect(serverEP);
+            clientSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            clientSock.Bind(clientEP);
         }
 
-        private bool InitializeConnection()
+        private bool InitLobbyConnection()
         {
-            Console.WriteLine("Binded Successfully");
             List<byte> toSend = new List<byte> { (byte)ClientMessageType.JoinLobby };
             toSend.AddRange(Encoding.Latin1.GetBytes(uName));
             clientSockTcp.Send(toSend.ToArray());
             NBConsole.WriteLine("Waiting server reply");
-            clientSockTcp.Receive(buffer);
-            if (buffer[0] == (byte)ServerMessageType.Success)
+            clientSockTcp.Receive(tcpBuffer);
+            if (tcpBuffer[0] == (byte)ServerMessageType.Success)
             {
-                clientSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                clientSock.Bind(clientEP);
-                clientSockTcp.Receive(buffer);
-                thisPlayer = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0')[0] + "");
-                pCount = int.Parse(Encoding.Latin1.GetString(buffer).TrimEnd('\0')[1] + "");
+                clientSockTcp.Receive(tcpBuffer);
+                thisPlayer = int.Parse(Encoding.Latin1.GetString(tcpBuffer).TrimEnd('\0')[0] + "");
+                pCount = int.Parse(Encoding.Latin1.GetString(tcpBuffer).TrimEnd('\0')[1] + "");
                 NBConsole.WriteLine("You are player " + thisPlayer);
-            
+                gameEndMsgTask = clientSockTcp.ReceiveAsync(tcpBuffer, SocketFlags.None);
                 GameLoopTimer.Interval = frameMS;
                 Thread.Sleep(200);
                 GameLoopTimer.Enabled = true;
+
                 if (fullSim)
                     Text = "Simulating";
                 else
@@ -239,12 +266,8 @@ namespace RealTimeProject
             }
         }
 
-        private void InitializeGame()
+        private void InitGameGraphics()
         {
-            GameLogic.GameVariables.Bounds = new Rectangle(Bounds.X - 50, Bounds.Y - 50, Bounds.Width + 100, Bounds.Height + 100);
-            GameLogic.GameVariables.Gravity = 0.8f;
-            GameLogic.GameVariables.FloorY = FloorLabel.Location.Y;
-
             playerLabels = new Label[pCount];
             attackLabels = new Label[pCount];
             blockLabels = new Label[pCount];
@@ -272,6 +295,11 @@ namespace RealTimeProject
                 attackLabels[3] = AttackLabel4;
                 blockLabels[3] = BlockLabel4;
             }
+        }
+
+        public void InitSimulatedHistory()
+        {
+            simHistory.Clear();
             if (pCount == 1)
                 simHistory.Add(new Frame(DateTime.MinValue, new Input[] { Input.None }, GameLogic.InitialState(1)));
             else if (pCount == 2)
@@ -416,15 +444,6 @@ namespace RealTimeProject
 
             if (packets.Count() > 0) // deserialize packets and apply to simulated history
             {
-                foreach (byte[] packet in packets)
-                {
-                    if (packet.Length == 1)
-                    {
-                        NBConsole.WriteLine("Server Closed");
-                        GameLoopTimer.Enabled = false;
-                        return;
-                    }
-                }
                 ServerGamePacket servPacket = ServerGamePacket.Deserialize(packets.Last(), pCount); // pick the latest frame because can arrive out of order
                 for (int i = 0; i < packets.Count - 1; i++)
                 {
@@ -571,6 +590,18 @@ namespace RealTimeProject
                 }
             }
 
+            if (gameEndMsgTask.IsCompleted)
+            {
+                if (tcpBuffer[0] == (byte)ServerMessageType.GameEnd)
+                {
+                    EndGame();
+                }
+                else
+                {
+                    throw new Exception("wrong tcp message while in game");
+                }
+            }
+
             if (fullSim)
                 Text = "Fully simulating";
             else
@@ -591,6 +622,19 @@ namespace RealTimeProject
             //}
         }
         
+        private void EndGame()
+        {
+            GameLoopTimer.Enabled = false;
+            if (uName == "guest")
+            {
+                LoadStartupPanel();
+            }
+            else
+            {
+                LoadMainMenuPanel();
+            }
+        }
+
         private void Graphics_KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
@@ -673,8 +717,7 @@ namespace RealTimeProject
         {
             settings = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.GetFullPath("clientSettings.txt")));
             frameMS = (byte)GameLoopTimer.Interval;
-            CreateEndPoints();
-            ConnectToServerTcp();
+            InitSockets();
             LoadStartupPanel();
         }
 

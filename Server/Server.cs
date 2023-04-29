@@ -19,14 +19,12 @@ namespace RealTimeProject
         static byte frameMS = 15;
         //last recieved stamps for each player, 2 is for broken non lagcomp
         static DateTime[] playerLRS = new DateTime[pCount], playerLRS2 = new DateTime[pCount];
+        static DateTime gameStartTime;
+        static TimeSpan gameLength;
         static int curFNum = 0, hSFNum = 0; //current frame number, history start frame number
 
         private void InitLobby()
         {
-            int maxPlayers = int.Parse(settings["maxPlayers"]);
-            string ipStr = settings["serverIP"];
-            int port = int.Parse(settings["serverPort"]);
-
             pCount = 0;
             history.Clear();
             lobbyPlayerDict.Clear();
@@ -34,8 +32,7 @@ namespace RealTimeProject
             InfoTextLabel.Text = "Opened lobby, waiting for players. Starts automatically at max or with button";
             PlayerListLabel.Text = "";
 
-            serverSockUDP = CreateLocalSocket(ipStr, port);
-            Task.Factory.StartNew(() => HandleTcpSockets(ipStr, port));
+            serverSockUDP = CreateLocalSocket(settings["serverIP"], int.Parse(settings["serverPort"]));
         }
 
         static Socket CreateLocalSocket(string ipstr, int port)
@@ -174,6 +171,7 @@ namespace RealTimeProject
             GameLoopTimer.Enabled = true;
             ResetGameButton.Enabled = true;
             StopGameButton.Enabled = true;
+            gameStartTime = DateTime.Now;
         }
 
         private void GameLoopTimer_Tick(object sender, EventArgs e)
@@ -369,26 +367,38 @@ namespace RealTimeProject
 
         private void StopGameButton_Click(object sender, EventArgs e)
         {
-            GameLoopTimer.Enabled = false;
-            Thread.Sleep(15);
-
-            foreach (var ip in lobbyPlayerDict.Keys)
-            {
-                serverSockUDP.SendTo(Encoding.Latin1.GetBytes("a"), ip);
-            }
-            serverSockUDP.Close();
-
-            ResetGameButton.Enabled = false;
-            StopGameButton.Enabled = false;
-            InitLobby();
+            EndGame(0);
         }
 
         private void EndGame(int winner)
         {
+            gameLength = DateTime.Now - gameStartTime;
             GameLoopTimer.Enabled = false;
-            
+            Thread.Sleep(15);
+            string playerString = "", winnerString = "Tie";
+            foreach (var lp in lobbyPlayerDict.Values)
+            {
+                playerString += lp.UName + ", ";
+                if (lp.Number == winner)
+                    winnerString = lp.UName;
+                lp.Sock.Send(new byte[1] { (byte)ServerMessageType.GameEnd });
+            }
+            playerString.TrimEnd(new char[] { ',', ' '});
+
+            DatabaseAccess.AddMatch(new Match(gameStartTime.ToString("d/M/yyyy HH:mm"), playerString, winnerString, MinutesToString(gameLength.TotalMinutes)));
+            serverSockUDP.Close();
+            ResetGameButton.Enabled = false;
+            StopGameButton.Enabled = false;
+            InitLobby();
         }
         
+        string MinutesToString(double totalMinutes)
+        {
+            int mins = (int)totalMinutes;
+            int secs = (int)((totalMinutes - mins)*60);
+            return "" + mins + ":" + secs;
+        }
+
         public Server()
         {
             InitializeComponent();
@@ -398,6 +408,7 @@ namespace RealTimeProject
         private void Form1_Load(object sender, EventArgs e)
         {
             settings = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.GetFullPath("serverSettings.txt")));
+            Task.Factory.StartNew(() => HandleTcpSockets(settings["serverIP"], int.Parse(settings["serverPort"])));
             InitLobby();
         }
     }

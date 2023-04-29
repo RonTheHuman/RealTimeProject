@@ -429,10 +429,10 @@ namespace RealTimeProject
             return new GameState(pStates);
         }
 
-        public static bool IsGameOver(GameState state, ref int player)
+        public static bool IsGameOver(GameState state, ref int winner)
         {
             bool oneAlive = false;
-            player = 0;
+            winner = 0;
             for (int i = 0; i < state.PStates.Length; i++)
             {
                 if (state.PStates[i].Stocks != 0)
@@ -442,8 +442,12 @@ namespace RealTimeProject
                         return false;
                     }
                     oneAlive = true;
-                    player = i + 1;
+                    winner = i + 1;
                 }
+            }
+            if (state.PStates.Length == 1 && oneAlive)
+            {
+                return false;
             }
             return true;
         }
