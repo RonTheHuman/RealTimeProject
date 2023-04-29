@@ -300,6 +300,11 @@ namespace RealTimeProject
             }
         }
 
+        private void Client_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            clientSockTcp.Close();
+        }
+
         public void InitSimulatedHistory()
         {
             simHistory.Clear();

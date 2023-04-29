@@ -546,6 +546,7 @@
             this.Controls.Add(this.GamePanel);
             this.Name = "Client";
             this.Text = "Form1";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Client_FormClosed);
             this.Load += new System.EventHandler(this.Client_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Graphics_KeyDown);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Graphics_KeyUp);

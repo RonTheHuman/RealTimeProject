@@ -47,17 +47,22 @@ namespace RealTimeProject
             serverSockTcp.Bind(new IPEndPoint(IPAddress.Parse(ipstr), port));
             serverSockTcp.Listen(5);
             List<Socket> readSocks = new List<Socket>() { serverSockTcp };
-            List<Socket> writeSocks = new List<Socket>();
-            List<Socket> checkReadSocks = new List<Socket>(), checkWriteSocks = new List<Socket>();
+            List<Socket> errorSocks = new List<Socket>();
+            List<Socket> checkReadSocks = new List<Socket>(), checkErrorSocks = new List<Socket>();
             byte[] buffer = new byte[1024];
             while (true)
             {
                 checkReadSocks.Clear();
-                checkWriteSocks.Clear();
+                checkErrorSocks.Clear();
                 checkReadSocks.AddRange(readSocks);
-                checkWriteSocks.AddRange(writeSocks);
+                checkErrorSocks.AddRange(errorSocks);
                 Console.WriteLine("Select");
-                Socket.Select(checkReadSocks, null, null, -1);
+                Socket.Select(checkReadSocks, null, checkErrorSocks, -1);
+                foreach(Socket sock in checkErrorSocks)
+                {
+                    readSocks.Remove(sock);
+                    errorSocks.Remove(sock);
+                }
                 foreach(Socket sock in checkReadSocks)
                 {
                     if (sock == serverSockTcp)
@@ -65,20 +70,30 @@ namespace RealTimeProject
                         Socket newClientSock = serverSockTcp.Accept();
                         Console.WriteLine("Connected to socket");
                         readSocks.Add(newClientSock);
-                        writeSocks.Add(newClientSock);
+                        errorSocks.Add(newClientSock);
                     }
                     else
                     {
-                        int bytesRecieved = sock.Receive(buffer);
-                        if (bytesRecieved == 0)
+                        try { 
+                            int bytesRecieved = sock.Receive(buffer);
+                            if (bytesRecieved == 0)
+                            {
+                                Console.WriteLine("" + sock.RemoteEndPoint + " closed");
+                                readSocks.Remove(sock);
+                                errorSocks.Remove(sock);
+                            }
+                            else
+                            {
+                                TcpMessageResponse(buffer, bytesRecieved, sock);
+                            }
+                        }
+                        catch 
                         {
+                            Console.WriteLine("" + sock.RemoteEndPoint + " crashed");
                             readSocks.Remove(sock);
-                            writeSocks.Remove(sock);
+                            errorSocks.Remove(sock);
                         }
-                        else
-                        {
-                            TcpMessageResponse(buffer, bytesRecieved, sock);
-                        }
+                        
                     }
                 }
                 // TODO maybe add writing check and queue?
@@ -383,7 +398,7 @@ namespace RealTimeProject
                     winnerString = lp.UName;
                 lp.Sock.Send(new byte[1] { (byte)ServerMessageType.GameEnd });
             }
-            playerString.TrimEnd(new char[] { ',', ' '});
+            playerString = playerString.Substring(0, playerString.Length - 2);
 
             DatabaseAccess.AddMatch(new Match(gameStartTime.ToString("d/M/yyyy HH:mm"), playerString, winnerString, MinutesToString(gameLength.TotalMinutes)));
             serverSockUDP.Close();
