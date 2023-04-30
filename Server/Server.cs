@@ -202,9 +202,19 @@ namespace RealTimeProject
             {
                 byte[] buffer = new byte[bufferSize];
                 EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
-                int bytesRecieved = serverSockUDP.ReceiveFrom(buffer, ref clientEP);
-                if (lobbyPlayerDict.ContainsKey((IPEndPoint)clientEP))
-                    packets.Add(new ClientPacket(lobbyPlayerDict[(IPEndPoint)clientEP].Number, buffer[..bytesRecieved]));
+                try
+                {
+                    int bytesRecieved = serverSockUDP.ReceiveFrom(buffer, ref clientEP);
+                    if (lobbyPlayerDict.ContainsKey((IPEndPoint)clientEP))
+                        packets.Add(new ClientPacket(lobbyPlayerDict[(IPEndPoint)clientEP].Number, buffer[..bytesRecieved]));
+                }
+                catch (Exception ex)
+                {
+                    if (ex is SocketException)
+                    {
+                        Console.WriteLine("Client Disconnected, stopped stupid error");
+                    }
+                }
             }
             if (packets.Count == 0) { NBConsole.WriteLine("no user inputs recieved"); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
@@ -280,7 +290,7 @@ namespace RealTimeProject
             foreach (var ip in lobbyPlayerDict.Keys) // send state to players
             {
                 int thisPlayer = lobbyPlayerDict[ip].Number;
-                if (playerLRS[thisPlayer - 1] != DateTime.MinValue)
+                if (playerLRS[thisPlayer - 1] != DateTime.MinValue && DateTime.Now - playerLRS[thisPlayer - 1] < TimeSpan.FromSeconds(2))
                 {
                     DateTime saveNow = DateTime.Now;
                     int startI = 1;

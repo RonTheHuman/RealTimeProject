@@ -215,7 +215,6 @@ namespace RealTimeProject
         {
             LoadGameHistoryPanel();
         }
-
         private void BackButtonGH_Click(object sender, EventArgs e)
         {
             LoadMainMenuPanel();
