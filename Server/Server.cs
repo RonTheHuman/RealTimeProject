@@ -154,9 +154,11 @@ namespace RealTimeProject
                             lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint].Sock = pSock;
                         }
                     }
-                    else if (IsUserNameInLobby(uName, out LobbyPlayer lpWithName))
+                    else if (IsUserNameInLobby(uName, out IPEndPoint ipWithName))
                     {
-                        
+                        lobbyPlayerDict.Remove(ipWithName, out LobbyPlayer removedPlayer);
+                        removedPlayer.Sock = pSock;
+                        lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint] = removedPlayer;
                     }
                     lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint] = new LobbyPlayer(uName, pCount + 1, pSock);
                     Invoke(() => StartGameButton.Enabled = true);
@@ -175,17 +177,17 @@ namespace RealTimeProject
             }
         }
 
-        private bool IsUserNameInLobby(string uName, out LobbyPlayer lpWithName)
+        private bool IsUserNameInLobby(string uName, out IPEndPoint ipWithName)
         {
-            foreach (LobbyPlayer lp in lobbyPlayerDict.Values)
+            foreach (var ip in lobbyPlayerDict.Keys)
             {
-                if (lp.UName == uName)
+                if (lobbyPlayerDict[ip].UName == uName)
                 {
-                    lpWithName = lp;
+                    ipWithName = ip;
                     return true;
                 }
             }
-            lpWithName = null;
+            ipWithName = null;
             return false;
         }
 
