@@ -242,13 +242,23 @@ namespace RealTimeProject
             toSend.AddRange(Encoding.Latin1.GetBytes(uName));
             clientSockTcp.Send(toSend.ToArray());
             NBConsole.WriteLine("Waiting server reply");
-            clientSockTcp.Receive(tcpBuffer);
+            int recievedBytes = clientSockTcp.Receive(tcpBuffer);
             if (tcpBuffer[0] == (byte)ServerMessageType.Success)
             {
-                clientSockTcp.Receive(tcpBuffer);
-                thisPlayer = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[0] + "");
-                pCount = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[1] + "");
-                levelLayout = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[2] + "");
+                if (recievedBytes == 1)
+                {
+                    clientSockTcp.Receive(tcpBuffer);
+                    thisPlayer = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[0] + "");
+                    pCount = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[1] + "");
+                    levelLayout = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[2] + "");
+                }
+                else
+                {
+                    Console.WriteLine("Hah!");
+                    thisPlayer = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[1] + "");
+                    pCount = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[2] + "");
+                    levelLayout = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[3] + "");
+                }
                 NBConsole.WriteLine("You are player " + thisPlayer);
                 gameEndMsgTask = clientSockTcp.ReceiveAsync(tcpBuffer, SocketFlags.None);
                 GameLoopTimer.Interval = frameMS;

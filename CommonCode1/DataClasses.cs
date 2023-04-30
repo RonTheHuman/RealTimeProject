@@ -561,12 +561,14 @@ namespace RealTimeProject
         public string UName { get; set; }
         public int Number { get; set; }
         public Socket Sock { get; set; }
+        public bool Disconnected { get; set; }
 
         public LobbyPlayer(string uName, int number, Socket sock)
         {
             UName = uName;
             Number = number;
             Sock = sock;
+            Disconnected = false;
         }
     }
 }
