@@ -147,6 +147,17 @@ namespace RealTimeProject
                 string uName = Encoding.Latin1.GetString(msg[1..]);
                 if (!gameRunning)
                 {
+                    if (lobbyPlayerDict.ContainsKey((IPEndPoint)pSock.RemoteEndPoint))
+                    {
+                        if (lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint].UName == uName)
+                        {
+                            lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint].Sock = pSock;
+                        }
+                    }
+                    else if (IsUserNameInLobby(uName, out LobbyPlayer lpWithName))
+                    {
+                        
+                    }
                     lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint] = new LobbyPlayer(uName, pCount + 1, pSock);
                     Invoke(() => StartGameButton.Enabled = true);
                     Invoke(() => PlayerListLabel.Text += "Player " + (pCount + 1) + ", " + pSock.RemoteEndPoint.ToString() + " entered\n");
@@ -162,6 +173,20 @@ namespace RealTimeProject
                     pSock.Send(new byte[1] { (byte)ServerMessageType.Failure });
                 }
             }
+        }
+
+        private bool IsUserNameInLobby(string uName, out LobbyPlayer lpWithName)
+        {
+            foreach (LobbyPlayer lp in lobbyPlayerDict.Values)
+            {
+                if (lp.UName == uName)
+                {
+                    lpWithName = lp;
+                    return true;
+                }
+            }
+            lpWithName = null;
+            return false;
         }
 
         private void InitGame()
