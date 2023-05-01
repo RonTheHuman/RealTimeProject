@@ -199,6 +199,10 @@ namespace RealTimeProject
             {
                 lobbyPlayerDict.Remove((IPEndPoint)pSock.RemoteEndPoint, out LobbyPlayer removedPlayer);
                 pCount -= 1;
+                if (pCount == 0)
+                {
+                    Invoke(() => StartGameButton.Enabled = false);
+                }
                 pSock.Send(new byte[1] { (byte)ServerMessageType.Failure });
             }
         }
@@ -346,8 +350,9 @@ namespace RealTimeProject
             foreach (var ip in lobbyPlayerDict.Keys) // send state to players
             {
                 int thisPlayer = lobbyPlayerDict[ip].Number;
-                if (DateTime.Now - playerLRS[thisPlayer - 1] < TimeSpan.FromSeconds(2))
+                if (DateTime.Now - playerLRS[thisPlayer - 1] > TimeSpan.FromSeconds(2))
                 {
+                    NBConsole.WriteLine("Disconnected for time reasons");
                     lobbyPlayerDict[ip].Disconnected = true;
                 }
                 else
@@ -406,7 +411,7 @@ namespace RealTimeProject
             {
                 printMsg += f.ToString() + "\n";
             }
-            NBConsole.WriteLine(printMsg);
+            //NBConsole.WriteLine(printMsg);
             TimeSpan duration = (DateTime.Now - frameStart);
             printMsg += "took " + duration.TotalMilliseconds + " ms\n";
         }
@@ -464,26 +469,30 @@ namespace RealTimeProject
 
         private void EndGame(int winner)
         {
+            Console.WriteLine("Game ended");
             gameLength = DateTime.Now - gameStartTime;
             GameLoopTimer.Enabled = false;
             Thread.Sleep(15);
             string playerString = "", winnerString = "Tie";
             foreach (var lp in lobbyPlayerDict.Values)
             {
+                Console.WriteLine("Got to loop " + lp.Disconnected);
                 playerString += lp.UName + ", ";
                 if (lp.Number == winner)
                     winnerString = lp.UName;
                 if (!lp.Disconnected)
                 {
+                    Console.WriteLine("Sent end message");
                     lp.Sock.Send(new byte[1] { (byte)ServerMessageType.GameEnd });
                 }
             }
             playerString = playerString.Substring(0, playerString.Length - 2);
-
+            Console.WriteLine("Got To database");
             DatabaseAccess.AddMatch(new Match(gameStartTime.ToString("d/M/yyyy HH:mm"), playerString, winnerString, MinutesToString(gameLength.TotalMinutes)));
             serverSockUDP.Close();
             ResetGameButton.Enabled = false;
             StopGameButton.Enabled = false;
+            Console.WriteLine("Got to init lobby");
             InitLobby();
         }
         

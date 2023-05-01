@@ -91,8 +91,9 @@ namespace RealTimeProject
             {
                 Invoke(() =>
                 {
-                    InitSimulatedHistory();
+                    Console.WriteLine("Lobby connected, timer is " + GameLoopTimer.Enabled);
                     LoadGamePanel();
+                    InitSimulatedHistory();
                 });
             }
         }
@@ -284,9 +285,9 @@ namespace RealTimeProject
                 }
                 NBConsole.WriteLine("You are player " + thisPlayer);
                 gameEndMsgTask = clientSockTcp.ReceiveAsync(tcpBuffer, SocketFlags.None);
-                GameLoopTimer.Interval = frameMS;
+                Invoke(() => GameLoopTimer.Interval = frameMS);
                 Thread.Sleep(200);
-                GameLoopTimer.Enabled = true;
+                Invoke(() => GameLoopTimer.Enabled = true);
                 return true;
 
             }
@@ -315,15 +316,22 @@ namespace RealTimeProject
 
         private void InitGameGraphics()
         {
+            Player2Label.Visible = false;
+            Player3Label.Visible = false;
+            Player4Label.Visible = false;
+            BlockLabel2.Visible = false;
+            BlockLabel3.Visible = false;
+            BlockLabel4.Visible = false;
+            AttackLabel2.Visible = false;
+            AttackLabel3.Visible = false;
+            AttackLabel4.Visible = false;
+            
             playerLabels = new Label[pCount];
             attackLabels = new Label[pCount];
             blockLabels = new Label[pCount];
             playerLabels[0] = Player1Label;
             attackLabels[0] = AttackLabel1;
             blockLabels[0] = BlockLabel1;
-            Player2Label.Visible = false;
-            Player3Label.Visible = false;
-            Player4Label.Visible = false;
             if (pCount >= 2)
             {
                 Player2Label.Visible = true;
