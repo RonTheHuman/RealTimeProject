@@ -72,12 +72,16 @@
             this.PlayersHeaderLabel = new System.Windows.Forms.Label();
             this.StartTimeHeaderLabel = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
+            this.TransitionPanel = new System.Windows.Forms.Panel();
+            this.TransitionTextLabel = new System.Windows.Forms.Label();
+            this.TransitionButton = new System.Windows.Forms.Button();
             this.StartupPanel.SuspendLayout();
             this.MainMenuPanel.SuspendLayout();
             this.GamePanel.SuspendLayout();
             this.GameHistoryPanel.SuspendLayout();
             this.panel1.SuspendLayout();
             this.HistoryTableLayoutPanel.SuspendLayout();
+            this.TransitionPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // GameLoopTimer
@@ -525,11 +529,42 @@
             this.label9.Size = new System.Drawing.Size(709, 3);
             this.label9.TabIndex = 6;
             // 
+            // TransitionPanel
+            // 
+            this.TransitionPanel.Controls.Add(this.TransitionButton);
+            this.TransitionPanel.Controls.Add(this.TransitionTextLabel);
+            this.TransitionPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.TransitionPanel.Location = new System.Drawing.Point(0, 0);
+            this.TransitionPanel.Name = "TransitionPanel";
+            this.TransitionPanel.Size = new System.Drawing.Size(970, 692);
+            this.TransitionPanel.TabIndex = 15;
+            // 
+            // TransitionTextLabel
+            // 
+            this.TransitionTextLabel.Font = new System.Drawing.Font("Segoe UI", 21.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.TransitionTextLabel.Location = new System.Drawing.Point(258, 158);
+            this.TransitionTextLabel.Name = "TransitionTextLabel";
+            this.TransitionTextLabel.Size = new System.Drawing.Size(425, 90);
+            this.TransitionTextLabel.TabIndex = 0;
+            this.TransitionTextLabel.Text = "Game Over\r\nPlayer1 Won!\r\n";
+            this.TransitionTextLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // TransitionButton
+            // 
+            this.TransitionButton.Location = new System.Drawing.Point(390, 437);
+            this.TransitionButton.Name = "TransitionButton";
+            this.TransitionButton.Size = new System.Drawing.Size(138, 65);
+            this.TransitionButton.TabIndex = 1;
+            this.TransitionButton.Text = "Return";
+            this.TransitionButton.UseVisualStyleBackColor = true;
+            this.TransitionButton.Click += new System.EventHandler(this.TransitionButton_Click);
+            // 
             // Client
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(970, 692);
+            this.Controls.Add(this.TransitionPanel);
             this.Controls.Add(this.GamePanel);
             this.Controls.Add(this.MainMenuPanel);
             this.Controls.Add(this.GameHistoryPanel);
@@ -549,6 +584,7 @@
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.HistoryTableLayoutPanel.ResumeLayout(false);
+            this.TransitionPanel.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -598,5 +634,8 @@
         private Button BackButtonGH;
         private Label label8;
         private Label label9;
+        private Panel TransitionPanel;
+        private Label TransitionTextLabel;
+        private Button TransitionButton;
     }
 }

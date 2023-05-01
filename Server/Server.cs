@@ -130,7 +130,7 @@ namespace RealTimeProject
                     pSock.Send(new byte[1] { (byte)ServerMessageType.Success });
                 }
             }
-            if (msgType == ClientMessageType.CheckSignIn)
+            else if (msgType == ClientMessageType.CheckSignIn)
             {
                 string[] uNamePass = JsonSerializer.Deserialize<string[]>(Encoding.Latin1.GetString(msg[1..]));
                 if (DatabaseAccess.CheckIfUserExists(uNamePass[0], uNamePass[1]))
@@ -142,7 +142,7 @@ namespace RealTimeProject
                     pSock.Send(new byte[1] { (byte)ServerMessageType.Failure });
                 }
             }
-            if (msgType == ClientMessageType.GetMatchesWithUser)
+            else if (msgType == ClientMessageType.GetMatchesWithUser)
             {
                 string uName = Encoding.Latin1.GetString(msg[1..]);
                 List<Match> matchesWithUser = DatabaseAccess.GetMatchesWithUser(uName);
@@ -154,7 +154,7 @@ namespace RealTimeProject
                 pSock.Send(Encoding.Latin1.GetBytes(JsonSerializer.Serialize(matchesWithUser) + "|"));
 
             }
-            if (msgType == ClientMessageType.JoinLobby)
+            else if (msgType == ClientMessageType.JoinLobby)
             {
                 string uName = Encoding.Latin1.GetString(msg[1..]);
                 if (!gameRunning)
@@ -194,6 +194,12 @@ namespace RealTimeProject
                         pSock.Send(new byte[1] { (byte)ServerMessageType.Failure });
                 }
 
+            }
+            else if (msgType == ClientMessageType.ExitLobby)
+            {
+                lobbyPlayerDict.Remove((IPEndPoint)pSock.RemoteEndPoint, out LobbyPlayer removedPlayer);
+                pCount -= 1;
+                pSock.Send(new byte[1] { (byte)ServerMessageType.Failure });
             }
         }
 

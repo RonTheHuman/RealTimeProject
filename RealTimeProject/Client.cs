@@ -14,6 +14,7 @@ namespace RealTimeProject
         int curFNum = 1, recvFNum = 0, thisPlayer, pCount, levelLayout;
         byte frameMS = 15;
         bool fullSim = true, clientSim = true, enemySim = false;
+        bool inLobby = false;
         Color[] playerColors = new Color[4] { Color.MediumTurquoise, Color.Coral, Color.FromArgb(255, 255, 90), Color.MediumPurple };
         string uName = "guest";
         Input curInput = new Input();
@@ -63,54 +64,57 @@ namespace RealTimeProject
         {
             UNameTextBox.Text = "";
             PassTextBox.Text = "";
-            GamePanel.Enabled = false;
-            GamePanel.Visible = false;
-            MainMenuPanel.Enabled = false;
-            MainMenuPanel.Visible = false;
-            GameHistoryPanel.Enabled = false;
-            GameHistoryPanel.Visible = false;
+            DisablePanels();
             StartupPanel.Enabled = true;
             StartupPanel.Visible = true;
         }
 
         private void LoadMainMenuPanel()
         {
-            GamePanel.Enabled = false;
-            GamePanel.Visible = false;
-            StartupPanel.Enabled = false;
-            StartupPanel.Visible = false;
-            GameHistoryPanel.Enabled = false;
-            GameHistoryPanel.Visible = false;
+            DisablePanels();
             MenuTextLabel.Text = "Welcome " + uName + "!";
             MainMenuPanel.Enabled = true;
             MainMenuPanel.Visible = true;
         }
 
-        private void LoadGamePanel()
+        private void EnterLobby()
+        {
+            inLobby = true;
+            TransitionTextLabel.Text = "Waiting For Server..";
+            LoadTransitionPanel();
+            Task.Factory.StartNew(() => WaitForGameStart());
+        }
+
+        private void WaitForGameStart()
         {
             if (InitLobbyConnection())
             {
-                MainMenuPanel.Enabled = false;
-                MainMenuPanel.Visible = false;
-                StartupPanel.Enabled = false;
-                StartupPanel.Visible = false;
-                GameHistoryPanel.Enabled = false;
-                GameHistoryPanel.Visible = false;
-                GamePanel.Enabled = true;
-                GamePanel.Visible = true;
-                InitGameGraphics();
-                InitSimulatedHistory();
+                Invoke(() =>
+                {
+                    InitSimulatedHistory();
+                    LoadGamePanel();
+                });
             }
+        }
+
+        private void LoadGamePanel()
+        {
+            DisablePanels();
+            GamePanel.Enabled = true;
+            GamePanel.Visible = true;
+            InitGameGraphics();
+        }
+
+        private void LoadTransitionPanel()
+        {
+            DisablePanels();
+            TransitionPanel.Enabled = true;
+            TransitionPanel.Visible = true;
         }
 
         private void LoadGameHistoryPanel()
         {
-            MainMenuPanel.Enabled = false;
-            MainMenuPanel.Visible = false;
-            StartupPanel.Enabled = false;
-            StartupPanel.Visible = false;
-            GamePanel.Enabled = false;
-            GamePanel.Visible = false;
+            DisablePanels();
             GameHistoryPanel.Enabled = true;
             GameHistoryPanel.Visible = true;
             HistoryTableLayoutPanel.RowCount = 2;
@@ -133,6 +137,20 @@ namespace RealTimeProject
                 AddMatchToTable(match);
             }
             ResumeLayout();
+        }
+
+        public void DisablePanels()
+        {
+            MainMenuPanel.Enabled = false;
+            MainMenuPanel.Visible = false;
+            StartupPanel.Enabled = false;
+            StartupPanel.Visible = false;
+            GameHistoryPanel.Enabled = false;
+            GameHistoryPanel.Visible = false;
+            GamePanel.Enabled = false;
+            GamePanel.Visible = false;
+            TransitionPanel.Enabled = false;
+            TransitionPanel.Visible = false;
         }
 
         public void AddMatchToTable(Match match)
@@ -174,7 +192,7 @@ namespace RealTimeProject
 
         private void EnterLobbyButton_Click(object sender, EventArgs e)
         {
-            LoadGamePanel();
+            EnterLobby();
         }
 
         private void SignUpButton_Click(object sender, EventArgs e)
@@ -248,6 +266,11 @@ namespace RealTimeProject
                 if (recievedBytes == 1)
                 {
                     clientSockTcp.Receive(tcpBuffer);
+                    if (tcpBuffer[0] == (byte)ServerMessageType.Failure)
+                    {
+                        Console.WriteLine("You quit the lobby");
+                        return false;
+                    }
                     thisPlayer = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[0] + "");
                     pCount = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[1] + "");
                     levelLayout = int.Parse(Encoding.Latin1.GetString(tcpBuffer)[2] + "");
@@ -264,11 +287,6 @@ namespace RealTimeProject
                 GameLoopTimer.Interval = frameMS;
                 Thread.Sleep(200);
                 GameLoopTimer.Enabled = true;
-
-                if (fullSim)
-                    Text = "Simulating";
-                else
-                    Text = "Not Simulating";
                 return true;
 
             }
@@ -276,6 +294,22 @@ namespace RealTimeProject
             {
                 NBConsole.WriteLine("Game is already running.");
                 return false;
+            }
+        }
+
+        private void TransitionButton_Click(object sender, EventArgs e)
+        {
+            if (inLobby)
+            {
+                clientSockTcp.Send(new byte[1] { (byte)ClientMessageType.ExitLobby });
+            }
+            if (uName == "guest")
+            {
+                LoadStartupPanel();
+            }
+            else
+            {
+                LoadMainMenuPanel();
             }
         }
 
@@ -664,6 +698,7 @@ namespace RealTimeProject
         
         private void EndGame()
         {
+            inLobby = false;
             GameLoopTimer.Enabled = false;
             if (uName == "guest")
             {
@@ -750,7 +785,7 @@ namespace RealTimeProject
 
         private void TimeTimer_Tick(object sender, EventArgs e)
         {
-            TimeLabel.Text = "Time: " + DateTime.Now.ToString("mm.ss.fff") + ", Frame: " + curFNum;
+            //TimeLabel.Text = "Time: " + DateTime.Now.ToString("mm.ss.fff") + ", Frame: " + curFNum;
         }
 
         private void Client_Load(object sender, EventArgs e)
