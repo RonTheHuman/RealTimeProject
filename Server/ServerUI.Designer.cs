@@ -154,16 +154,17 @@
             // 
             this.LevelLayoutComboBox.FormattingEnabled = true;
             this.LevelLayoutComboBox.Items.AddRange(new object[] {
-            "0",
-            "1",
-            "2"});
-            this.LevelLayoutComboBox.Location = new System.Drawing.Point(816, 263);
+            "Single Platform",
+            "Two Small Platforms",
+            "Platform Tower"});
+            this.LevelLayoutComboBox.Location = new System.Drawing.Point(799, 262);
             this.LevelLayoutComboBox.Name = "LevelLayoutComboBox";
-            this.LevelLayoutComboBox.Size = new System.Drawing.Size(101, 23);
+            this.LevelLayoutComboBox.Size = new System.Drawing.Size(129, 23);
             this.LevelLayoutComboBox.TabIndex = 9;
-            this.LevelLayoutComboBox.Text = "0";
+            this.LevelLayoutComboBox.Text = "Single Platform";
+            this.LevelLayoutComboBox.SelectedIndexChanged += new System.EventHandler(this.LevelLayoutComboBox_SelectedIndexChanged);
             // 
-            // Server
+            // ServerUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -177,7 +178,7 @@
             this.Controls.Add(this.StopGameButton);
             this.Controls.Add(this.PlayerListLabel);
             this.Controls.Add(this.InfoTextLabel);
-            this.Name = "Server";
+            this.Name = "ServerUI";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();

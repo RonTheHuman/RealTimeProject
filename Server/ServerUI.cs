@@ -26,6 +26,10 @@ namespace RealTimeProject
             GameLoopTimer.Interval = (byte)numericUpDown1.Value;
             ServerFuncs.frameMS = (byte)numericUpDown1.Value;
         }
+        private void LevelLayoutComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ServerFuncs.levelLayout = LevelLayoutComboBox.SelectedIndex;
+        }
 
         private void ResetGameButton_Click(object sender, EventArgs e)
         {
@@ -39,7 +43,7 @@ namespace RealTimeProject
 
         private void OnLobbyUpdate(string msg)
         {
-            StartGameButton.Enabled = !(ServerFuncs.lobbyPlayerDict.Count() == 0);
+            StartGameButton.Enabled = !(SocketFuncs.lobbyPlayerDict.Count() == 0);
             PlayerListLabel.Text += msg;
         }
 
@@ -74,9 +78,12 @@ namespace RealTimeProject
             ServerFuncs.OnLobbyUpdate = OnLobbyUpdate;
             ServerFuncs.OnInitGame = OnInitGame;
             ServerFuncs.OnEndGame = OnEndGame;
+            ServerFuncs.frameMS = (byte)numericUpDown1.Value;
+            ServerFuncs.levelLayout = 0;
             ServerFuncs.InitServer();
             InfoTextLabel.Text = "Opened lobby, waiting for players. Starts automatically at max or with button";
             PlayerListLabel.Text = "";
         }
+
     }
 }
