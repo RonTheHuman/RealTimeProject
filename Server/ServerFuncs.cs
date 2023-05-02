@@ -74,8 +74,8 @@ namespace RealTimeProject
 
         static public void OnPlayerJoinLobby(string ipStr)
         {
-            UI.Invoke(OnLobbyUpdate, new string[] { "Player " + (pCount + 1) + ", " + ipStr + " entered\n" });
             pCount += 1;
+            UI.Invoke(OnLobbyUpdate, new string[] { "Player " + pCount + ", " + ipStr + " entered\n" });
             if (pCount == int.Parse(settings["maxPlayers"]))
             {
                 InitGame();
@@ -84,7 +84,7 @@ namespace RealTimeProject
 
         static public void OnPlayerLeaveLobby(string ipStr)
         {
-            UI.Invoke(OnLobbyUpdate, new string[] { "Player " + (pCount + 1) + ", " + ipStr + " left\n" });
+            UI.Invoke(OnLobbyUpdate, new string[] { "Player " + pCount + ", " + ipStr + " left\n" });
             pCount -= 1;
         }
 
