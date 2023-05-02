@@ -80,8 +80,7 @@ namespace RealTimeProject
         private void EnterLobby()
         {
             inLobby = true;
-            TransitionTextLabel.Text = "Waiting For Server..";
-            LoadTransitionPanel();
+            LoadTransitionPanel("Waiting for server...");
             Task.Factory.StartNew(() => WaitForGameStart());
         }
 
@@ -106,11 +105,13 @@ namespace RealTimeProject
             InitGameGraphics();
         }
 
-        private void LoadTransitionPanel()
+        private void LoadTransitionPanel(string labelText)
         {
             DisablePanels();
             TransitionPanel.Enabled = true;
             TransitionPanel.Visible = true;
+            TransitionTextLabel.Text = labelText;
+
         }
 
         private void LoadGameHistoryPanel()
@@ -675,8 +676,8 @@ namespace RealTimeProject
             if (gameEndMsgTask.IsCompleted)
             {
                 if (tcpBuffer[0] == (byte)ServerMessageType.GameEnd)
-                {
-                    EndGame();
+                { 
+                    EndGame(Encoding.Latin1.GetString(tcpBuffer[1..gameEndMsgTask.Result]));
                 }
                 else
                 {
@@ -704,17 +705,17 @@ namespace RealTimeProject
             //}
         }
         
-        private void EndGame()
+        private void EndGame(string winner)
         {
             inLobby = false;
             GameLoopTimer.Enabled = false;
-            if (uName == "guest")
+            if (winner == "Tie")
             {
-                LoadStartupPanel();
+                LoadTransitionPanel("Game Over\nIt was a tie! (or the server ended early)");
             }
             else
             {
-                LoadMainMenuPanel();
+                LoadTransitionPanel("Game Over\n" + winner + " Won!");
             }
         }
 

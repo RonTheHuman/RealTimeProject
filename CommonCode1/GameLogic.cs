@@ -500,8 +500,8 @@ namespace RealTimeProject
                 Friction = 0.5f;
                 MaxMS = 5;
                 BaseJS = 15;
-                BlockCD = 40;
-                BlockDur = 10;
+                BlockCD = 50;
+                BlockDur = 20;
                 AttackDict = new Dictionary<AttackName, Attack>();
                 AttackDict[AttackName.NLight] = new Attack( new AnimHitbox[] { 
                     new AnimHitbox(new Rectangle(new Point(21, -51), new Size(20, 15)), 4),

@@ -73,8 +73,8 @@
             this.StartTimeHeaderLabel = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.TransitionPanel = new System.Windows.Forms.Panel();
-            this.TransitionTextLabel = new System.Windows.Forms.Label();
             this.TransitionButton = new System.Windows.Forms.Button();
+            this.TransitionTextLabel = new System.Windows.Forms.Label();
             this.StartupPanel.SuspendLayout();
             this.MainMenuPanel.SuspendLayout();
             this.GamePanel.SuspendLayout();
@@ -539,16 +539,6 @@
             this.TransitionPanel.Size = new System.Drawing.Size(970, 692);
             this.TransitionPanel.TabIndex = 15;
             // 
-            // TransitionTextLabel
-            // 
-            this.TransitionTextLabel.Font = new System.Drawing.Font("Segoe UI", 21.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.TransitionTextLabel.Location = new System.Drawing.Point(258, 158);
-            this.TransitionTextLabel.Name = "TransitionTextLabel";
-            this.TransitionTextLabel.Size = new System.Drawing.Size(425, 90);
-            this.TransitionTextLabel.TabIndex = 0;
-            this.TransitionTextLabel.Text = "Game Over\r\nPlayer1 Won!\r\n";
-            this.TransitionTextLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
             // TransitionButton
             // 
             this.TransitionButton.Location = new System.Drawing.Point(390, 437);
@@ -558,6 +548,16 @@
             this.TransitionButton.Text = "Return";
             this.TransitionButton.UseVisualStyleBackColor = true;
             this.TransitionButton.Click += new System.EventHandler(this.TransitionButton_Click);
+            // 
+            // TransitionTextLabel
+            // 
+            this.TransitionTextLabel.Font = new System.Drawing.Font("Segoe UI", 21.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.TransitionTextLabel.Location = new System.Drawing.Point(135, 158);
+            this.TransitionTextLabel.Name = "TransitionTextLabel";
+            this.TransitionTextLabel.Size = new System.Drawing.Size(654, 90);
+            this.TransitionTextLabel.TabIndex = 0;
+            this.TransitionTextLabel.Text = "Game Over\r\nPlayer1 Won!\r\n";
+            this.TransitionTextLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // Client
             // 

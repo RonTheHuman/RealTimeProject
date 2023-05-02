@@ -469,7 +469,6 @@ namespace RealTimeProject
 
         private void EndGame(int winner)
         {
-            Console.WriteLine("Game ended");
             gameLength = DateTime.Now - gameStartTime;
             GameLoopTimer.Enabled = false;
             Thread.Sleep(15);
@@ -477,13 +476,28 @@ namespace RealTimeProject
             foreach (var lp in lobbyPlayerDict.Values)
             {
                 Console.WriteLine("Got to loop " + lp.Disconnected);
-                playerString += lp.UName + ", ";
-                if (lp.Number == winner)
-                    winnerString = lp.UName;
+                if (lp.UName == "guest")
+                {
+                    playerString += lp.UName + lp.Number + ", ";
+                    if (lp.Number == winner)
+                        winnerString = lp.UName + lp.Number;
+                }
+                else
+                {
+                    playerString += lp.UName + ", ";
+                    if (lp.Number == winner)
+                        winnerString = lp.UName;
+                }
+            }
+            foreach (var lp in lobbyPlayerDict.Values)
+            {
                 if (!lp.Disconnected)
                 {
                     Console.WriteLine("Sent end message");
-                    lp.Sock.Send(new byte[1] { (byte)ServerMessageType.GameEnd });
+                    byte[] toSend = new byte[1 + winnerString.Length];
+                    toSend[0] = (byte)ServerMessageType.GameEnd;
+                    Encoding.Latin1.GetBytes(winnerString).CopyTo(toSend, 1);
+                    lp.Sock.Send(toSend);
                 }
             }
             playerString = playerString.Substring(0, playerString.Length - 2);
