@@ -25,7 +25,7 @@ namespace RealTimeProject
 
         static List<Frame> simHistory = new List<Frame>(200);
         static int curFNum;
-        static List<Input> unackedInputs;
+        static List<Input> unackedInputs = new List<Input>(200);
 
         static Task<int> gameEndMsgTask;
         static byte[] gameEndBuffer = new byte[1024];
@@ -46,22 +46,30 @@ namespace RealTimeProject
             string recvData = "";
             if (SocketFuncs.JoinLobbyRequest(uName, ref recvData))
             {
+                bool stayedInLobby = true;
                 if (recvData.Length > 0)
                 {
                     Console.WriteLine("All in one packet");
                 }
                 else
                 {
-                    recvData = SocketFuncs.GetGameData();
+                    stayedInLobby = SocketFuncs.GetGameData(ref recvData);
                 }
-                thisPlayer = int.Parse(recvData[0] + "");
-                pCount = int.Parse(recvData[1] + "");
-                levelLayout = int.Parse(recvData[2] + "");
-                NBConsole.WriteLine("You are player " + thisPlayer);
-                gameEndMsgTask = SocketFuncs.clientSockTcp.ReceiveAsync(gameEndBuffer, SocketFlags.None);
-                InitSimulatedHistory();
-                Thread.Sleep(200);
-                UI.Invoke(OnJoinLobby);
+                if (stayedInLobby)
+                {
+                    thisPlayer = int.Parse(recvData[0] + "");
+                    pCount = int.Parse(recvData[1] + "");
+                    levelLayout = int.Parse(recvData[2] + "");
+                    NBConsole.WriteLine("You are player " + thisPlayer);
+                    gameEndMsgTask = SocketFuncs.clientSockTcp.ReceiveAsync(gameEndBuffer, SocketFlags.None);
+                    InitSimulatedHistory();
+                    Thread.Sleep(200);
+                    UI.Invoke(OnJoinLobby);
+                }
+                else
+                {
+                    NBConsole.WriteLine("Left Lobby");
+                }
             }
             else
             {
@@ -84,14 +92,14 @@ namespace RealTimeProject
 
             //NBConsole.WriteLine("Getting packets from server");
             List<byte[]> packets = new List<byte[]>(); // get packets from server
-            while (SocketFuncs.clientSock.Poll(1, SelectMode.SelectRead))
+            while (SocketFuncs.clientSockUdp.Poll(1, SelectMode.SelectRead))
             {
                 byte[] buffer = new byte[1024];
                 EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
                 int packetLen = 0;
                 try
                 {
-                    packetLen = SocketFuncs.clientSock.ReceiveFrom(buffer, ref recieveEP);
+                    packetLen = SocketFuncs.clientSockUdp.ReceiveFrom(buffer, ref recieveEP);
                 }
                 catch (SocketException)
                 {

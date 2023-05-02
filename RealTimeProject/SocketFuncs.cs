@@ -12,7 +12,7 @@ namespace RealTimeProject
 {
     internal class SocketFuncs
     {
-        public static Socket clientSock, clientSockTcp;
+        public static Socket clientSockUdp, clientSockTcp;
         static IPEndPoint clientEP, serverEP;
         public static void InitSockets(int serverPort, int clientPort, string serverIP, string clientIP)
         {
@@ -23,10 +23,12 @@ namespace RealTimeProject
             clientEP = new IPEndPoint(cAddress, actualClientPort);
             serverEP = new IPEndPoint(sAddress, serverPort);
 
+            clientSockUdp = new Socket(SocketType.Dgram, ProtocolType.Udp);
+            clientSockTcp = new Socket(SocketType.Stream, ProtocolType.Tcp);
             clientSockTcp.Bind(clientEP);
             clientSockTcp.Connect(serverEP);
-            clientSock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            clientSock.Bind(clientEP);
+            clientSockUdp.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            clientSockUdp.Bind(clientEP);
         }
 
         static int FindAvailablePort(int startPort)
@@ -101,14 +103,22 @@ namespace RealTimeProject
 
         public static void SendUdp(byte[] sendData)
         {
-            clientSock.SendTo(sendData, SocketFlags.None, serverEP);
+            clientSockUdp.SendTo(sendData, SocketFlags.None, serverEP);
         }
 
-        public static string GetGameData()
+        public static bool GetGameData(ref string recvData)
         {
             byte[] buffer = new byte[8];
             clientSockTcp.Receive(buffer);
-            return Encoding.Latin1.GetString(buffer);
+            if (buffer[0] == (byte)ServerMessageType.Failure)
+            {
+                return false;
+            }
+            else
+            {
+                recvData = Encoding.Latin1.GetString(buffer);
+            }
+            return true;
         }
 
         public static List<Match> GetMatchesWithUser(string uName)

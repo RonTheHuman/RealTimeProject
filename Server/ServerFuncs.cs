@@ -84,8 +84,8 @@ namespace RealTimeProject
 
         static public void OnPlayerLeaveLobby(string ipStr)
         {
-            pCount -= 1;
             UI.Invoke(OnLobbyUpdate, new string[] { "Player " + (pCount + 1) + ", " + ipStr + " left\n" });
+            pCount -= 1;
         }
 
         static public void ResetGame()
