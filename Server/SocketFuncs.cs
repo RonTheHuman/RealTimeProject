@@ -167,10 +167,10 @@ namespace RealTimeProject
                 }
 
             }
-            else if (msgType == ClientMessageType.ExitLobby)
+            else if (msgType == ClientMessageType.LeaveLobby)
             {
                 lobbyPlayerDict.Remove((IPEndPoint)pSock.RemoteEndPoint, out LobbyPlayer removedPlayer);
-                ServerFuncs.OnPlayerExitLobby(pSock.RemoteEndPoint.ToString());
+                ServerFuncs.OnPlayerLeaveLobby(pSock.RemoteEndPoint.ToString());
                 pSock.Send(new byte[1] { (byte)ServerMessageType.Failure });
             }
         }

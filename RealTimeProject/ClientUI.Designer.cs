@@ -1,6 +1,6 @@
 ﻿namespace RealTimeProject
 {
-    partial class Client
+    partial class ClientUI
     {
         /// <summary>
         ///  Required designer variable.
@@ -274,7 +274,7 @@
             this.button3.TabIndex = 7;
             this.button3.Text = "Enter as Guest (Quickplay)";
             this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.EnterLobbyButton_Click);
+            this.button3.Click += new System.EventHandler(this.JoinLobbyButton_Click);
             // 
             // SignUpButton
             // 
@@ -395,7 +395,7 @@
             this.EnterLobbyButton.TabIndex = 0;
             this.EnterLobbyButton.Text = "Enter Lobby";
             this.EnterLobbyButton.UseVisualStyleBackColor = true;
-            this.EnterLobbyButton.Click += new System.EventHandler(this.EnterLobbyButton_Click);
+            this.EnterLobbyButton.Click += new System.EventHandler(this.JoinLobbyButton_Click);
             // 
             // GamePanel
             // 

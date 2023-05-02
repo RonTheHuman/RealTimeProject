@@ -40,3 +40,4 @@ C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\o
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\clientSettings.txt
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\bin\Debug\net6.0-windows\clientSettings.txt
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\RealTimeProject.Client.resources
+C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\RealTimeProject\obj\Debug\net6.0-windows\RealTimeProject.ClientUI.resources
