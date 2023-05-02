@@ -64,7 +64,7 @@ namespace RealTimeProject
         private void OnLobbyUpdate(string msg)
         {
             StartGameButton.Enabled = !(SocketFuncs.lobbyPlayerDict.Count() == 0);
-            PlayerListLabel.Text += msg;
+            PlayerListLabel.Text = msg;
         }
 
         private void OnInitGame()
@@ -82,11 +82,40 @@ namespace RealTimeProject
         {
             GameLoopTimer.Enabled = false;
 
+            PlayerListLabel.Text = "";
             ResetGameButton.Enabled = false;
             StopGameButton.Enabled = false;
         }
 
+        private void DisablePanels()
+        {
+            MainPanel.Enabled = false;
+            MainPanel.Visible = false;
+            UserViewPanel.Enabled = false;
+            UserViewPanel.Visible = false;
+            MatchViewPanel.Enabled = false;
+            MatchViewPanel.Visible = false;
+        }
 
+        private void UserListButton_Click(object sender, EventArgs e)
+        {
+            DisablePanels();
+            UserViewPanel.Enabled = true;
+            UserViewPanel.Visible = true;
+            UserListTextBox.Text = string.Join("\r\n", DatabaseAccess.GetUserNames());
+        }
 
+        private void MatchHistoryButton_Click(object sender, EventArgs e)
+        {
+            DisablePanels();
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            DisablePanels();
+            MainPanel.Enabled = false;
+            MainPanel.Visible = false;
+        }
     }
 }
