@@ -88,7 +88,6 @@ C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\bin\Debug\net6
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\bin\Debug\net6.0-windows\CommonCode.dll
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\bin\Debug\net6.0-windows\CommonCode.pdb
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0-windows\Server.csproj.AssemblyReference.cache
-C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0-windows\RealTimeProject.Server.resources
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0-windows\Server.csproj.GenerateResource.cache
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0-windows\Server.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0-windows\Server.AssemblyInfoInputs.cache
@@ -100,3 +99,4 @@ C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0-windows\Server.pdb
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0-windows\Server.genruntimeconfig.cache
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0-windows\ref\Server.dll
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0-windows\RealTimeProject.ServerGraphics.resources

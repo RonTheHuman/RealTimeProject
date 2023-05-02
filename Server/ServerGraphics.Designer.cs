@@ -1,6 +1,6 @@
 ﻿namespace RealTimeProject
 {
-    partial class Server
+    partial class ServerGraphics
     {
         /// <summary>
         ///  Required designer variable.

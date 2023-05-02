@@ -7,11 +7,11 @@ using System.Text.Json;
 
 namespace RealTimeProject
 {
-    public partial class Server : Form
+    public partial class ServerGraphics : Form
     {
         static int bufferSize = 1024, pCount = 0, levelLayout;
         static bool compensateLag = true, gameRunning = false;
-        static Server staticThis;
+        static ServerGraphics staticThis;
         static Dictionary<string, string> settings;
         static Socket serverSockUDP;
         static ConcurrentDictionary<IPEndPoint, LobbyPlayer> lobbyPlayerDict = new ConcurrentDictionary<IPEndPoint, LobbyPlayer>();
@@ -517,7 +517,7 @@ namespace RealTimeProject
             return "" + mins + ":" + secs;
         }
 
-        public Server()
+        public ServerGraphics()
         {
             InitializeComponent();
             staticThis = this;
