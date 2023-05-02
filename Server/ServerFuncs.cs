@@ -40,6 +40,7 @@ namespace RealTimeProject
             Task.Factory.StartNew(() => SocketFuncs.HandleTcpSockets(settings["serverIP"], int.Parse(settings["serverPort"])));
             InitLobby();
         }
+
         static public void InitLobby()
         {
             pCount = 0;
@@ -48,6 +49,7 @@ namespace RealTimeProject
             SocketFuncs.gameRunning = false;
             SocketFuncs.CreateUdpSocket(settings["serverIP"], int.Parse(settings["serverPort"]));
         }
+
         static public void InitGame()
         {
             SocketFuncs.gameRunning = true;
@@ -85,10 +87,12 @@ namespace RealTimeProject
             pCount -= 1;
             UI.Invoke(OnLobbyUpdate, new string[] { "Player " + (pCount + 1) + ", " + ipStr + " left\n" });
         }
+
         static public void ResetGame()
         {
             history[history.Count - 1] = CreateInitFrame(pCount);
         }
+
         static void Rollback(Input input, DateTime time, int player)
         {
             for (int i = history.Count() - 1; i >= 0; i--)
@@ -107,6 +111,7 @@ namespace RealTimeProject
                 }
             }
         }
+
         static public void OnTimerTick()
         {
             DateTime frameStart = DateTime.Now;
@@ -253,6 +258,7 @@ namespace RealTimeProject
             printMsg += "took " + duration.TotalMilliseconds + " ms\n";
             NBConsole.WriteLine(printMsg);
         }
+
         public static void EndGame(int winner)
         {
             OnEndGame();
@@ -300,6 +306,7 @@ namespace RealTimeProject
                 return new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None }, GameLogic.InitialState(3));
             return new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None, Input.None }, GameLogic.InitialState(4));
         }
+
         static string MinutesToString(double totalMinutes)
         {
             int mins = (int)totalMinutes;

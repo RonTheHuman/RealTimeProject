@@ -11,24 +11,28 @@ namespace RealTimeProject
     {
         static ServerUI staticThis;
 
-        private void GameLoopTimer_Tick(object sender, EventArgs e)
+        public ServerUI()
         {
-            ServerFuncs.OnTimerTick();
+            InitializeComponent();
+            staticThis = this;
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            ServerFuncs.UI = staticThis;
+            ServerFuncs.OnLobbyUpdate = OnLobbyUpdate;
+            ServerFuncs.OnInitGame = OnInitGame;
+            ServerFuncs.OnEndGame = OnEndGame;
+            ServerFuncs.frameMS = (byte)numericUpDown1.Value;
+            ServerFuncs.levelLayout = 0;
+            ServerFuncs.InitServer();
+            InfoTextLabel.Text = "Opened lobby, waiting for players. Starts automatically at max or with button";
+            PlayerListLabel.Text = "";
         }
 
         private void StartGameButton_Click(object sender, EventArgs e)
         {
             ServerFuncs.InitGame();
-        }
-
-        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
-        {
-            GameLoopTimer.Interval = (byte)numericUpDown1.Value;
-            ServerFuncs.frameMS = (byte)numericUpDown1.Value;
-        }
-        private void LevelLayoutComboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            ServerFuncs.levelLayout = LevelLayoutComboBox.SelectedIndex;
         }
 
         private void ResetGameButton_Click(object sender, EventArgs e)
@@ -39,6 +43,22 @@ namespace RealTimeProject
         private void StopGameButton_Click(object sender, EventArgs e)
         {
             ServerFuncs.EndGame(0);
+        }
+
+        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        {
+            GameLoopTimer.Interval = (byte)numericUpDown1.Value;
+            ServerFuncs.frameMS = (byte)numericUpDown1.Value;
+        }
+
+        private void LevelLayoutComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ServerFuncs.levelLayout = LevelLayoutComboBox.SelectedIndex;
+        }
+
+        private void GameLoopTimer_Tick(object sender, EventArgs e)
+        {
+            ServerFuncs.OnTimerTick();
         }
 
         private void OnLobbyUpdate(string msg)
@@ -66,24 +86,7 @@ namespace RealTimeProject
             StopGameButton.Enabled = false;
         }
 
-        public ServerUI()
-        {
-            InitializeComponent();
-            staticThis = this;
-        }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            ServerFuncs.UI = staticThis;
-            ServerFuncs.OnLobbyUpdate = OnLobbyUpdate;
-            ServerFuncs.OnInitGame = OnInitGame;
-            ServerFuncs.OnEndGame = OnEndGame;
-            ServerFuncs.frameMS = (byte)numericUpDown1.Value;
-            ServerFuncs.levelLayout = 0;
-            ServerFuncs.InitServer();
-            InfoTextLabel.Text = "Opened lobby, waiting for players. Starts automatically at max or with button";
-            PlayerListLabel.Text = "";
-        }
 
     }
 }

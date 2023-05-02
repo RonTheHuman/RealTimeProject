@@ -14,8 +14,8 @@ namespace RealTimeProject
     {
         public static ConcurrentDictionary<IPEndPoint, LobbyPlayer> lobbyPlayerDict = new ConcurrentDictionary<IPEndPoint, LobbyPlayer>();
         public static Socket serverSockUdp;
-        
         public static bool gameRunning;
+
         public static void HandleTcpSockets(string ipstr, int port)
         {
             Socket serverSockTcp = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -87,6 +87,7 @@ namespace RealTimeProject
                 }
             }
         }
+
         static void TcpMessageResponse(byte[] data, int bytesRecieved, Socket pSock)
         {
             byte[] msg = data[..bytesRecieved];
@@ -197,6 +198,7 @@ namespace RealTimeProject
             }
             return packets;
         }
+
         public static Socket CreateUdpSocket(string ipstr, int port)
         {
             serverSockUdp = new Socket(SocketType.Dgram, ProtocolType.Udp);
