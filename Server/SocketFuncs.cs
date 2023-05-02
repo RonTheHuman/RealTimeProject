@@ -174,6 +174,29 @@ namespace RealTimeProject
             }
         }
 
+        public static List<ClientPacket> GetClientPackets(int bufferSize)
+        {
+            List<ClientPacket> packets = new List<ClientPacket>();
+            while (serverSockUdp.Poll(1, SelectMode.SelectRead))
+            {
+                byte[] buffer = new byte[bufferSize];
+                EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
+                try
+                {
+                    int bytesRecieved = serverSockUdp.ReceiveFrom(buffer, ref clientEP);
+                    if (lobbyPlayerDict.ContainsKey((IPEndPoint)clientEP))
+                        packets.Add(new ClientPacket(lobbyPlayerDict[(IPEndPoint)clientEP].Number, buffer[..bytesRecieved]));
+                }
+                catch (Exception ex)
+                {
+                    if (ex is SocketException)
+                    {
+                        Console.WriteLine("Client Disconnected, stopped stupid error");
+                    }
+                }
+            }
+            return packets;
+        }
         public static Socket CreateUdpSocket(string ipstr, int port)
         {
             serverSockUdp = new Socket(SocketType.Dgram, ProtocolType.Udp);

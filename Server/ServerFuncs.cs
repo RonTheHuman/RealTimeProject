@@ -34,8 +34,6 @@ namespace RealTimeProject
         static TimeSpan gameLength;
         static DateTime gameStartTime;
 
-        
-
         static public void InitServer()
         {
             settings = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.GetFullPath("serverSettings.txt")));
@@ -115,25 +113,7 @@ namespace RealTimeProject
             currentFNum++;
             NBConsole.WriteLine("Frame start " + frameStart.ToString("mm.ss.fff") + ", Frame num: " + currentFNum);
 
-            List<ClientPacket> packets = new List<ClientPacket>();
-            while (SocketFuncs.serverSockUdp.Poll(1, SelectMode.SelectRead))
-            {
-                byte[] buffer = new byte[bufferSize];
-                EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
-                try
-                {
-                    int bytesRecieved = SocketFuncs.serverSockUdp.ReceiveFrom(buffer, ref clientEP);
-                    if (SocketFuncs.lobbyPlayerDict.ContainsKey((IPEndPoint)clientEP))
-                        packets.Add(new ClientPacket(SocketFuncs.lobbyPlayerDict[(IPEndPoint)clientEP].Number, buffer[..bytesRecieved]));
-                }
-                catch (Exception ex)
-                {
-                    if (ex is SocketException)
-                    {
-                        Console.WriteLine("Client Disconnected, stopped stupid error");
-                    }
-                }
-            }
+            List<ClientPacket> packets = SocketFuncs.GetClientPackets(bufferSize);
             if (packets.Count == 0) { NBConsole.WriteLine("no user inputs recieved"); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
             //now each packet has (in this order): pnum, right, left, block, attack, timestamp
@@ -307,7 +287,6 @@ namespace RealTimeProject
             playerString = playerString.Substring(0, playerString.Length - 2);
             DatabaseAccess.AddMatch(new Match(gameStartTime.ToString("d/M/yyyy HH:mm"), playerString, winnerString, MinutesToString(gameLength.TotalMinutes)));
             SocketFuncs.serverSockUdp.Close();
-            Console.WriteLine("Got to init lobby");
             InitLobby();
         }
 
