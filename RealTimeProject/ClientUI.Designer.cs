@@ -559,17 +559,17 @@
             this.TransitionTextLabel.Text = "Game Over\r\nPlayer1 Won!\r\n";
             this.TransitionTextLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
-            // Client
+            // ClientUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(970, 692);
+            this.Controls.Add(this.GameHistoryPanel);
             this.Controls.Add(this.TransitionPanel);
             this.Controls.Add(this.GamePanel);
             this.Controls.Add(this.MainMenuPanel);
-            this.Controls.Add(this.GameHistoryPanel);
             this.Controls.Add(this.StartupPanel);
-            this.Name = "Client";
+            this.Name = "ClientUI";
             this.Text = "Form1";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Client_FormClosed);
             this.Load += new System.EventHandler(this.Client_Load);

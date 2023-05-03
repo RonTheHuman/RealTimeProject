@@ -69,7 +69,7 @@ namespace RealTimeProject
         {
             using (IDbConnection cnn = new SqliteConnection(LoadConnectionString()))
             {
-                var output = cnn.Query<Match>("SELECT * FROM Matches ORDER BY StartTime");
+                var output = cnn.Query<Match>("SELECT StartTime, Players, Winner, Length FROM Matches ORDER BY StartTime");
                 return output.ToList();
             }
         }

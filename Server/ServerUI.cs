@@ -107,8 +107,40 @@ namespace RealTimeProject
 
         private void MatchHistoryButton_Click(object sender, EventArgs e)
         {
+            SuspendLayout();
+            HistoryTableLayoutPanel.RowCount = 2;
+            List<Match> MatchHistory = DatabaseAccess.GetAllMatches();
+            Console.WriteLine("Recieved " + MatchHistory.Count() + " matches");
+            foreach (Match match in MatchHistory)
+            {
+                AddMatchToTable(match);
+            }
+            ResumeLayout();
             DisablePanels();
+            MatchViewPanel.Enabled = true;
+            MatchViewPanel.Visible = true;
 
+        }
+
+        public void AddMatchToTable(Match match)
+        {
+            int row = HistoryTableLayoutPanel.RowCount;
+            HistoryTableLayoutPanel.RowCount++;
+            Console.WriteLine("Adding Match To Table at row " + row);
+            HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.StartTime, StartTimeHeaderLabel.Width), 0, row);
+            HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.Players, PlayersHeaderLabel.Width), 1, row);
+            HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.Winner, WinnerHeaderLabel.Width), 2, row);
+            HistoryTableLayoutPanel.Controls.Add(CreateTableLabel(match.Length, LengthHeaderLabel.Width), 3, row);
+        }
+
+        public Label CreateTableLabel(string text, int width)
+        {
+            Label outLabel = new Label();
+            outLabel.Text = text;
+            outLabel.AutoSize = false;
+            outLabel.Width = width;
+            outLabel.Font = StartTimeHeaderLabel.Font;
+            return outLabel;
         }
 
         private void button1_Click(object sender, EventArgs e)
