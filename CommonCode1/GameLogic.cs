@@ -471,9 +471,7 @@ namespace RealTimeProject
         {
             public static Rectangle Bounds { get; set; }
             public static Vector2 RespawnPos { get; set; }
-
             public static Rectangle Stage { get; set; }
-
             public static Rectangle[][] PlatformLayouts { get; set; }
             public static int FloorY { get; set; }
             public static float Gravity { get; set; }
@@ -520,11 +518,11 @@ namespace RealTimeProject
                     new AnimHitbox(new Rectangle(new Point(-11, -125), new Size(20, 67)), 9),
                     new AnimHitbox(new Rectangle(new Point(-11, -140), new Size(20, 24)), 12),
                     new AnimHitbox(new Rectangle(new Point(-11, -151), new Size(20, 20)), 15)},
-                    new Vector2(0, -20), 20, 5, 10);
+                    new Vector2(0, -20), 20, 2, 10);
                 AttackDict[AttackName.DLight] = new Attack(new AnimHitbox[] {
-                    new AnimHitbox(new Rectangle(new Point(32, 10), new Size(40, 15)), 12),
-                    new AnimHitbox(new Rectangle(new Point(-72, 10), new Size(40, 15)), 24, new Vector2(-10, -8))},
-                    new Vector2(10, -8), 20, 0, 5);
+                    new AnimHitbox(new Rectangle(new Point(32, 10), new Size(40, 15)), 5),
+                    new AnimHitbox(new Rectangle(new Point(-72, 10), new Size(40, 15)), 10, new Vector2(10, -20))},
+                    new Vector2(-10, -20), 20, 5, 0);
                 AttackDict[AttackName.NAir] = new Attack(new AnimHitbox[] { 
                     new AnimHitbox(new Rectangle(new Point(-30, -30), new Size(60, 60)), 5),
                     new AnimHitbox(new Rectangle(new Point(-40, -40), new Size(80, 80)), 30)}, 

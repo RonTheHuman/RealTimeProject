@@ -98,5 +98,5 @@ C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0-windows\Server.pdb
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0-windows\Server.genruntimeconfig.cache
 C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0-windows\ref\Server.dll
-C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0-windows\RealTimeProject.ServerGraphics.resources
 C:\Users\USER\Desktop\Coding\SchoolProgramming\RealTimeProject\Server\obj\Debug\net6.0-windows\RealTimeProject.ServerUI.resources
+C:\Users\u101040.DESHALIT\Documents\GitHub\RealTimeProject\Server\obj\Debug\net6.0-windows\RealTimeProject.ServerUI.resources
