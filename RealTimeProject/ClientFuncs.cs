@@ -15,7 +15,6 @@ namespace RealTimeProject
         public static string uName = "guest";
         public static Action OnJoinLobby;
         public static Action<string> OnEndGame;
-        public static Action<GameState> Draw;
         public static System.Windows.Forms.Timer timer;
         public static ClientUI UI;
         public static bool inLobby;
@@ -77,7 +76,7 @@ namespace RealTimeProject
             }
         }
 
-        public static void OnTimerTick(Input curInput, bool fullSim, bool clientSim, bool enemySim)
+        public static GameState OnTimerTick(Input curInput, bool fullSim, bool clientSim, bool enemySim)
         {
             DateTime frameStart = DateTime.Now;
             NBConsole.WriteLine("Current input: [" + curInput + "]" + " current frame num: " + curFNum + " frameStart: " + frameStart.ToString("mm.ss.fff"));
@@ -89,6 +88,19 @@ namespace RealTimeProject
             timeStamp.CopyTo(sendData, 1);
             SocketFuncs.SendUdp(sendData);
             //NBConsole.WriteLine(inputBytes.Length + " | " + Convert.ToHexString(inputBytes) + " | " + Convert.ToHexString(timeStamp) + ", " + new DateTime(BinaryPrimitives.ReadInt64BigEndian(timeStamp)).ToString("mm.ss.fff") + " | " + Convert.ToHexString(sendData));
+
+            if (gameEndMsgTask.IsCompleted)
+            {
+                if (gameEndBuffer[0] == (byte)ServerMessageType.GameEnd)
+                {
+                    inLobby = false;
+                    OnEndGame(Encoding.Latin1.GetString(gameEndBuffer[1..gameEndMsgTask.Result]));
+                }
+                else
+                {
+                    throw new Exception("wrong tcp message while in game");
+                }
+            }
 
             //NBConsole.WriteLine("Getting packets from server");
             List<byte[]> packets = new List<byte[]>(); // get packets from server
@@ -105,7 +117,7 @@ namespace RealTimeProject
                 {
                     Console.WriteLine("Server closed");
                     timer.Enabled = false;
-                    return;
+                    return null;
                 }
                 packets.Add(buffer[..packetLen]);
                 //NBConsole.WriteLine("Recieved " + packets.Last());
@@ -195,8 +207,8 @@ namespace RealTimeProject
             {
                 // show the final frame from the simulated history (with causality)
                 NBConsole.WriteLine("updated state: " + simHistory.Last().State.ToString());
-                Draw(simHistory.Last().State);
                 NBConsole.WriteLine("Took " + (DateTime.Now - frameStart).Milliseconds);
+                return simHistory.Last().State;
             }
             else
             {
@@ -209,7 +221,7 @@ namespace RealTimeProject
                         {
                             NBConsole.WriteLine("applying data from " + lastServerPacket.TimeStamp.ToString("mm.ss.fff") +
                                 " during frame that started at " + frameStart.ToString("mm.ss.fff"));
-                            Draw(lastServerPacket.Frame.State);
+                            return lastServerPacket.Frame.State;
                         }
                     }
                 }
@@ -263,25 +275,11 @@ namespace RealTimeProject
                             }
 
                         }
-                        Draw(stateToDraw);
+                        return stateToDraw;
                     }
                 }
             }
-
-            if (gameEndMsgTask.IsCompleted)
-            {
-                if (gameEndBuffer[0] == (byte)ServerMessageType.GameEnd)
-                {
-                    inLobby = false;
-                    OnEndGame(Encoding.Latin1.GetString(gameEndBuffer[1..gameEndMsgTask.Result]));
-                }
-                else
-                {
-                    throw new Exception("wrong tcp message while in game");
-                }
-            }
-
-            
+            return null;
         }
 
         private static void InitSimulatedHistory()

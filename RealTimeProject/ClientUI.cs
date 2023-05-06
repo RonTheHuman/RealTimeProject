@@ -29,7 +29,6 @@ namespace RealTimeProject
             ClientFuncs.UI = this;
             ClientFuncs.OnJoinLobby = OnJoinLobby;
             ClientFuncs.OnEndGame = OnEndGame;
-            ClientFuncs.Draw = Draw;
             ClientFuncs.timer = GameLoopTimer;
             LoadStartupPanel();
         }
@@ -365,7 +364,9 @@ namespace RealTimeProject
 
         private void GameLoopTimer_Tick(object sender, EventArgs e)
         {
-            ClientFuncs.OnTimerTick(curInput, fullSim, clientSim, enemySim);
+            GameState toDraw = ClientFuncs.OnTimerTick(curInput, fullSim, clientSim, enemySim);
+            if (toDraw != null)
+                Draw(toDraw);
             if (fullSim)
                 Text = "Fully simulating";
             else
