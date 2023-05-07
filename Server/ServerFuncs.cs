@@ -103,7 +103,7 @@ namespace RealTimeProject
             history[history.Count - 1] = CreateInitFrame(pCount);
         }
 
-        static void Rollback(Input input, DateTime time, int player)
+        static void ApplyWithLagComp(Input input, DateTime time, int player)
         {
             for (int i = history.Count() - 1; i >= 0; i--)
             {
@@ -159,7 +159,7 @@ namespace RealTimeProject
                     {
                         throw new Exception("timestamp error");
                     }
-                    Rollback(packetInput, packetTime, packetPlayer);
+                    ApplyWithLagComp(packetInput, packetTime, packetPlayer);
                 }
             }
             else

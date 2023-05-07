@@ -169,16 +169,19 @@ namespace RealTimeProject
             }
             else if (msgType == ClientMessageType.LeaveLobby)
             {
-                lobbyPlayerDict.Remove((IPEndPoint)pSock.RemoteEndPoint, out LobbyPlayer removedPlayer);
-                foreach (LobbyPlayer player in lobbyPlayerDict.Values)
+                if (!gameRunning)
                 {
-                    if (player.Number > removedPlayer.Number)
+                    lobbyPlayerDict.Remove((IPEndPoint)pSock.RemoteEndPoint, out LobbyPlayer removedPlayer);
+                    foreach (LobbyPlayer player in lobbyPlayerDict.Values)
                     {
-                        player.Number -= 1;
+                        if (player.Number > removedPlayer.Number)
+                        {
+                            player.Number -= 1;
+                        }
                     }
+                    ServerFuncs.OnPlayerLeaveLobby(pSock.RemoteEndPoint.ToString());
+                    pSock.Send(new byte[1] { (byte)ServerMessageType.Failure });
                 }
-                ServerFuncs.OnPlayerLeaveLobby(pSock.RemoteEndPoint.ToString());
-                pSock.Send(new byte[1] { (byte)ServerMessageType.Failure });
             }
 
             foreach (var ip in lobbyPlayerDict.Keys)
