@@ -172,7 +172,7 @@ namespace RealTimeProject
                                     int offset = 0;
                                     if (k > thisPlayer - 1)
                                         offset = -1;
-                                    if (servPacket.EnemyInputs[k + offset].Length > j - i - 1)
+                                    if (j - i - 1 < servPacket.EnemyInputs[k + offset].Length)
                                     {
                                         correctInputs[k] = servPacket.EnemyInputs[k + offset][j - i - 1];
                                         //NBConsole.WriteLine(correctInputs[k].ToString());

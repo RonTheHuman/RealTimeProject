@@ -468,9 +468,9 @@ namespace RealTimeProject
             int eIStartI = 8 + Frame.SizeInBytes(pCount);
             for (int i = 0; i < pCount - 1; i++)
             {
-                for (int j = 0; j < EnemyInputs[i].Length; j++)
+                for (int j = 0; j < eICount; j++)
                 {
-                    bytes[eIStartI + i * EnemyInputs[i].Length + j] = (byte)EnemyInputs[i][j];
+                    bytes[eIStartI + i * eICount + j] = (byte)EnemyInputs[i][j];
                 }
             }
             bytes[^1] = FrameMS;
@@ -487,6 +487,7 @@ namespace RealTimeProject
             int eICount = 0;
             if (pCount > 1)
                 eICount = (packet.Length - frameEndIndex - 1) / (pCount - 1);
+            Console.WriteLine("Enemy input count from deserialization: " + eICount);
             for (int i = 0; i < pCount - 1; i++)
             {
                 Input[] oneEnemyInput = new Input[eICount];
@@ -502,7 +503,7 @@ namespace RealTimeProject
 
         public static int SizeInBytes(int pCount, int enemyInputCount)
         {
-            return 8 + Frame.SizeInBytes(pCount) + (pCount * enemyInputCount) + 1;
+            return 8 + Frame.SizeInBytes(pCount) + ((pCount - 1) * enemyInputCount) + 1;
         }
 
     }
