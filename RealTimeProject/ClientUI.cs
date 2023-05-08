@@ -28,6 +28,7 @@ namespace RealTimeProject
             ClientFuncs.InitClient();
             ClientFuncs.UI = this;
             ClientFuncs.OnJoinLobby = OnJoinLobby;
+            ClientFuncs.OnJoinFail = OnJoinFail;
             ClientFuncs.OnEndGame = OnEndGame;
             ClientFuncs.timer = GameLoopTimer;
             LoadStartupPanel();
@@ -292,6 +293,11 @@ namespace RealTimeProject
             GameLoopTimer.Interval = frameMS;
             GameLoopTimer.Enabled = true;
             LoadGamePanel();
+        }
+
+        private void OnJoinFail()
+        {
+            TransitionTextLabel.Text = "Game is already running.";
         }
 
         private void OnEndGame(string winner)

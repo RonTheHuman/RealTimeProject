@@ -13,7 +13,7 @@ namespace RealTimeProject
     internal class ClientFuncs
     {
         public static string uName = "guest";
-        public static Action OnJoinLobby;
+        public static Action OnJoinLobby, OnJoinFail;
         public static Action<string> OnEndGame;
         public static System.Windows.Forms.Timer timer;
         public static ClientUI UI;
@@ -72,6 +72,7 @@ namespace RealTimeProject
             }
             else
             {
+                UI.Invoke(OnJoinFail);
                 NBConsole.WriteLine("Game is already running.");
             }
         }
