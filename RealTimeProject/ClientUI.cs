@@ -145,7 +145,7 @@ namespace RealTimeProject
             GameHistoryPanel.Enabled = true;
             GameHistoryPanel.Visible = true;
             HistoryTableLayoutPanel.RowCount = 2;
-            List<Match> MatchHistory = SocketFuncs.GetMatchesWithUser(ClientFuncs.uName);
+            List<Match> MatchHistory = ClientSockFuncs.GetMatchesWithUser(ClientFuncs.uName);
             Console.WriteLine("Recieved " + MatchHistory.Count() + " matches");
             foreach (Match match in MatchHistory)
             {
@@ -273,7 +273,7 @@ namespace RealTimeProject
 
         private void SignInButton_Click(object sender, EventArgs e)
         { 
-            if (SocketFuncs.SignIn(UNameTextBox.Text, PassTextBox.Text))
+            if (ClientSockFuncs.SignIn(UNameTextBox.Text, PassTextBox.Text))
             {
                 ClientFuncs.uName = UNameTextBox.Text;
                 LoadMainMenuPanel();
@@ -323,7 +323,7 @@ namespace RealTimeProject
             }
             else
             {
-                if (SocketFuncs.SignUp(UNameTextBox.Text, PassTextBox.Text))
+                if (ClientSockFuncs.SignUp(UNameTextBox.Text, PassTextBox.Text))
                     ResponseLabel.Text = "Signed up successfully";
                 else
                     ResponseLabel.Text = "User name already exists";
@@ -350,7 +350,7 @@ namespace RealTimeProject
         {
             if (ClientFuncs.inLobby)
             {
-                SocketFuncs.clientSockTcp.Send(new byte[1] { (byte)ClientMessageType.LeaveLobby });
+                ClientSockFuncs.clientSockTcp.Send(new byte[1] { (byte)ClientMessageType.LeaveLobby });
             }
             if (ClientFuncs.uName == "guest")
             {
@@ -457,7 +457,7 @@ namespace RealTimeProject
 
         private void Client_FormClosed(object sender, FormClosedEventArgs e)
         {
-            SocketFuncs.clientSockTcp.Close();
+            ClientSockFuncs.clientSockTcp.Close();
         }
 
         private void TimeTimer_Tick(object sender, EventArgs e)

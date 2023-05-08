@@ -31,7 +31,7 @@ namespace RealTimeProject
         public static void InitClient()
         {
             settings = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.GetFullPath("clientSettings.txt")));
-            SocketFuncs.InitSockets(int.Parse(settings["serverPort"]), int.Parse(settings["clientPort"]), settings["serverIP"], settings["clientIP"]);
+            ClientSockFuncs.InitSockets(int.Parse(settings["serverPort"]), int.Parse(settings["clientPort"]), settings["serverIP"], settings["clientIP"]);
         }
 
         public static void JoinLobby()
@@ -43,7 +43,7 @@ namespace RealTimeProject
         static void JoinLobbyAsync()
         {
             string recvData = "";
-            if (SocketFuncs.JoinLobbyRequest(uName, ref recvData))
+            if (ClientSockFuncs.JoinLobbyRequest(uName, ref recvData))
             {
                 bool stayedInLobby = true;
                 if (recvData.Length > 0)
@@ -52,7 +52,7 @@ namespace RealTimeProject
                 }
                 else
                 {
-                    stayedInLobby = SocketFuncs.GetGameData(ref recvData);
+                    stayedInLobby = ClientSockFuncs.GetGameData(ref recvData);
                 }
                 if (stayedInLobby)
                 {
@@ -60,7 +60,7 @@ namespace RealTimeProject
                     pCount = int.Parse(recvData[1] + "");
                     levelLayout = int.Parse(recvData[2] + "");
                     NBConsole.WriteLine("You are player " + thisPlayer);
-                    gameEndMsgTask = SocketFuncs.clientSockTcp.ReceiveAsync(gameEndBuffer, SocketFlags.None);
+                    gameEndMsgTask = ClientSockFuncs.clientSockTcp.ReceiveAsync(gameEndBuffer, SocketFlags.None);
                     InitSimulatedHistory();
                     Thread.Sleep(200);
                     UI.Invoke(OnJoinLobby);
@@ -86,7 +86,7 @@ namespace RealTimeProject
             byte[] sendData = new byte[8 + 1];
             sendData[0] = (byte)curInput;
             timeStamp.CopyTo(sendData, 1);
-            SocketFuncs.SendUdp(sendData);
+            ClientSockFuncs.SendUdp(sendData);
             //NBConsole.WriteLine(inputBytes.Length + " | " + Convert.ToHexString(inputBytes) + " | " + Convert.ToHexString(timeStamp) + ", " + new DateTime(BinaryPrimitives.ReadInt64BigEndian(timeStamp)).ToString("mm.ss.fff") + " | " + Convert.ToHexString(sendData));
 
             if (gameEndMsgTask.IsCompleted)
@@ -104,14 +104,14 @@ namespace RealTimeProject
 
             //NBConsole.WriteLine("Getting packets from server");
             List<byte[]> packets = new List<byte[]>(); // get packets from server
-            while (SocketFuncs.clientSockUdp.Poll(1, SelectMode.SelectRead))
+            while (ClientSockFuncs.clientSockUdp.Poll(1, SelectMode.SelectRead))
             {
                 byte[] buffer = new byte[1024];
                 EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
                 int packetLen = 0;
                 try
                 {
-                    packetLen = SocketFuncs.clientSockUdp.ReceiveFrom(buffer, ref recieveEP);
+                    packetLen = ClientSockFuncs.clientSockUdp.ReceiveFrom(buffer, ref recieveEP);
                 }
                 catch (SocketException)
                 {

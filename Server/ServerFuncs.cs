@@ -37,7 +37,7 @@ namespace RealTimeProject
         static public void InitServer()
         {
             settings = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.GetFullPath("serverSettings.txt")));
-            Task.Factory.StartNew(() => SocketFuncs.HandleTcpSockets(settings["serverIP"], int.Parse(settings["serverPort"])));
+            Task.Factory.StartNew(() => ServerSockFuncs.HandleTcpSockets(settings["serverIP"], int.Parse(settings["serverPort"])));
             InitLobby();
         }
 
@@ -45,14 +45,14 @@ namespace RealTimeProject
         {
             pCount = 0;
             history.Clear();
-            SocketFuncs.lobbyPlayerDict.Clear();
-            SocketFuncs.gameRunning = false;
-            SocketFuncs.CreateUdpSocket(settings["serverIP"], int.Parse(settings["serverPort"]));
+            ServerSockFuncs.lobbyPlayerDict.Clear();
+            ServerSockFuncs.gameRunning = false;
+            ServerSockFuncs.CreateUdpSocket(settings["serverIP"], int.Parse(settings["serverPort"]));
         }
 
         static public void InitGame()
         {
-            SocketFuncs.gameRunning = true;
+            ServerSockFuncs.gameRunning = true;
             playerLRS = new DateTime[pCount];
             playerLRS2 = new DateTime[pCount];
             for (int i = 0; i < pCount; i++)
@@ -60,7 +60,7 @@ namespace RealTimeProject
                 playerLRS[i] = DateTime.MinValue;
                 playerLRS2[i] = DateTime.MinValue;
             }
-            foreach (LobbyPlayer lp in SocketFuncs.lobbyPlayerDict.Values)
+            foreach (LobbyPlayer lp in ServerSockFuncs.lobbyPlayerDict.Values)
             {
                 if (!lp.Disconnected)
                 {
@@ -91,7 +91,7 @@ namespace RealTimeProject
         public static string MakePlayerList()
         {
             string pList = "";
-            foreach (LobbyPlayer player in SocketFuncs.lobbyPlayerDict.Values.OrderBy(p => p.Number))
+            foreach (LobbyPlayer player in ServerSockFuncs.lobbyPlayerDict.Values.OrderBy(p => p.Number))
             {
                 pList += "Player " + player.Number + ": " + player.UName + ", " + player.Sock.RemoteEndPoint + "\n";
             }
@@ -128,7 +128,7 @@ namespace RealTimeProject
             currentFNum++;
             NBConsole.WriteLine("Frame start " + frameStart.ToString("mm.ss.fff") + ", Frame num: " + currentFNum);
 
-            List<ClientPacket> packets = SocketFuncs.GetClientPackets(bufferSize);
+            List<ClientPacket> packets = ServerSockFuncs.GetClientPackets(bufferSize);
             if (packets.Count == 0) { NBConsole.WriteLine("no user inputs recieved"); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
             //now each packet has (in this order): pnum, right, left, block, attack, timestamp
@@ -200,19 +200,19 @@ namespace RealTimeProject
                 }
             }
 
-            foreach (var ip in SocketFuncs.lobbyPlayerDict.Keys) // send state to players
+            foreach (var ip in ServerSockFuncs.lobbyPlayerDict.Keys) // send state to players
             {
-                int thisPlayer = SocketFuncs.lobbyPlayerDict[ip].Number;
+                int thisPlayer = ServerSockFuncs.lobbyPlayerDict[ip].Number;
                 if (DateTime.Now - playerLRS[thisPlayer - 1] > TimeSpan.FromSeconds(2))
                 {
                     NBConsole.WriteLine("Disconnected for time reasons");
-                    SocketFuncs.lobbyPlayerDict[ip].Disconnected = true;
+                    ServerSockFuncs.lobbyPlayerDict[ip].Disconnected = true;
                 }
                 else
                 {
-                    SocketFuncs.lobbyPlayerDict[ip].Disconnected = false;
+                    ServerSockFuncs.lobbyPlayerDict[ip].Disconnected = false;
                 }
-                if (playerLRS[thisPlayer - 1] != DateTime.MinValue && !SocketFuncs.lobbyPlayerDict[ip].Disconnected)
+                if (playerLRS[thisPlayer - 1] != DateTime.MinValue && !ServerSockFuncs.lobbyPlayerDict[ip].Disconnected)
                 {
                     DateTime saveNow = DateTime.Now;
                     int startI = 1;
@@ -254,7 +254,7 @@ namespace RealTimeProject
                     }
                     ServerGamePacket sendPacket = new ServerGamePacket(saveNow, sendFrame, enemyInputs, frameMS);
                     Console.WriteLine("sending: " + sendPacket);
-                    SocketFuncs.serverSockUdp.SendTo(sendPacket.Serialize(pCount), ip);
+                    ServerSockFuncs.serverSockUdp.SendTo(sendPacket.Serialize(pCount), ip);
                 }
             }
 
@@ -275,7 +275,7 @@ namespace RealTimeProject
             gameLength = DateTime.Now - gameStartTime;
             Thread.Sleep(15);
             string playerString = "", winnerString = "Tie";
-            foreach (var lp in SocketFuncs.lobbyPlayerDict.Values)
+            foreach (var lp in ServerSockFuncs.lobbyPlayerDict.Values)
             {
                 if (lp.UName == "guest")
                 {
@@ -290,7 +290,7 @@ namespace RealTimeProject
                         winnerString = lp.UName;
                 }
             }
-            foreach (var lp in SocketFuncs.lobbyPlayerDict.Values)
+            foreach (var lp in ServerSockFuncs.lobbyPlayerDict.Values)
             {
                 if (!lp.Disconnected)
                 {
@@ -302,7 +302,7 @@ namespace RealTimeProject
             }
             playerString = playerString.Substring(0, playerString.Length - 2);
             DatabaseAccess.AddMatch(new Match(gameStartTime.ToString("d/M/yyyy HH:mm"), playerString, winnerString, MinutesToString(gameLength.TotalMinutes)));
-            SocketFuncs.serverSockUdp.Close();
+            ServerSockFuncs.serverSockUdp.Close();
             InitLobby();
         }
 

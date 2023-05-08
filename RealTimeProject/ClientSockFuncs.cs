@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace RealTimeProject
 {
-    internal class SocketFuncs
+    internal class ClientSockFuncs
     {
         public static Socket clientSockUdp, clientSockTcp;
         static IPEndPoint clientEP, serverEP;

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace RealTimeProject
 {
-    internal class SocketFuncs
+    internal class ServerSockFuncs
     {
         public static ConcurrentDictionary<IPEndPoint, LobbyPlayer> lobbyPlayerDict = new ConcurrentDictionary<IPEndPoint, LobbyPlayer>();
         public static Socket serverSockUdp;
@@ -152,7 +152,7 @@ namespace RealTimeProject
                             pSock.Send(Encoding.Latin1.GetBytes(lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint].Number.ToString() + pCount.ToString() + ServerFuncs.levelLayout));
                         }
                     }
-                    else if (IsUserNameInLobby(uName, out IPEndPoint ipWithName))
+                    else if (uName != "guest" && IsUserNameInLobby(uName, out IPEndPoint ipWithName))
                     {
                         lobbyPlayerDict.Remove(ipWithName, out LobbyPlayer removedPlayer);
                         removedPlayer.Sock = pSock;

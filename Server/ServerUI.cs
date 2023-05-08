@@ -63,7 +63,7 @@ namespace RealTimeProject
 
         private void OnLobbyUpdate(string msg)
         {
-            StartGameButton.Enabled = !(SocketFuncs.lobbyPlayerDict.Count() == 0);
+            StartGameButton.Enabled = !(ServerSockFuncs.lobbyPlayerDict.Count() == 0);
             PlayerListLabel.Text = msg;
         }
 
