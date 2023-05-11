@@ -38,6 +38,7 @@ namespace RealTimeProject
         {
             settings = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.GetFullPath("serverSettings.txt")));
             Task.Factory.StartNew(() => ServerSockFuncs.HandleTcpSockets(settings["serverIP"], int.Parse(settings["serverPort"])));
+            ServerSockFuncs.CreateUdpSocket(settings["serverIP"], int.Parse(settings["serverPort"]));
             InitLobby();
         }
 
@@ -47,7 +48,6 @@ namespace RealTimeProject
             history.Clear();
             ServerSockFuncs.lobbyPlayerDict.Clear();
             ServerSockFuncs.gameRunning = false;
-            ServerSockFuncs.CreateUdpSocket(settings["serverIP"], int.Parse(settings["serverPort"]));
         }
 
         static public void InitGame()
@@ -302,7 +302,6 @@ namespace RealTimeProject
             }
             playerString = playerString.Substring(0, playerString.Length - 2);
             DatabaseAccess.AddMatch(new Match(gameStartTime.ToString("d/M/yyyy HH:mm"), playerString, winnerString, MinutesToString(gameLength.TotalMinutes)));
-            ServerSockFuncs.serverSockUdp.Close();
             InitLobby();
         }
 
