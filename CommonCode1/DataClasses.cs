@@ -187,7 +187,7 @@ namespace RealTimeProject
             StunFrame = 0;
             KBPercent = 50;
             Jumps = 2;
-            Stocks = 5;
+            Stocks = 3;
             DownHoldFrame = 0;
         }
 

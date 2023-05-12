@@ -142,18 +142,31 @@ namespace RealTimeProject
 
         private void LoadGameHistoryPanel()
         {
+            var toRemove = new List<Control>();
+            foreach (Control c in HistoryTableLayoutPanel.Controls)
+            {
+                Console.WriteLine(HistoryTableLayoutPanel.GetRow(c));
+                if (HistoryTableLayoutPanel.GetRow(c) > 1)
+                {
+                    toRemove.Add(c);
+                }
+            }
+            foreach (Control c in toRemove)
+            {
+                HistoryTableLayoutPanel.Controls.Remove(c);
+            }
+            HistoryTableLayoutPanel.RowCount = 2;
             SuspendLayout();
+            List<Match> MatchHistory = ClientSockFuncs.GetMatchesWithUser(ClientFuncs.uName);
+            Console.WriteLine("Recieved " + MatchHistory.Count() + " matches");
+            for (int i = MatchHistory.Count() - 1; i >= 0; i--)
+            {
+                AddMatchToTable(MatchHistory[i]);
+            }
+            ResumeLayout();
             DisablePanels();
             GameHistoryPanel.Enabled = true;
             GameHistoryPanel.Visible = true;
-            HistoryTableLayoutPanel.RowCount = 2;
-            List<Match> MatchHistory = ClientSockFuncs.GetMatchesWithUser(ClientFuncs.uName);
-            Console.WriteLine("Recieved " + MatchHistory.Count() + " matches");
-            foreach (Match match in MatchHistory)
-            {
-                AddMatchToTable(match);
-            }
-            ResumeLayout();
         }
 
         public void AddMatchToTable(Match match)
@@ -171,9 +184,10 @@ namespace RealTimeProject
         {
             Label outLabel = new Label();
             outLabel.Text = text;
-            outLabel.AutoSize = false;
+            outLabel.AutoSize = true;
             outLabel.Width = width;
             outLabel.Font = StartTimeHeaderLabel.Font;
+            outLabel.Padding = new Padding(5);
             return outLabel;
         }
 

@@ -136,8 +136,8 @@ namespace RealTimeProject
                 {
                     int pCount = lobbyPlayerDict.Count;
                     lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint] = new LobbyPlayer(uName, pCount + 1, pSock);
-                    ServerFuncs.OnPlayerJoinLobby(pSock.RemoteEndPoint.ToString());
                     pSock.Send(new byte[1] { (byte)ServerMessageType.Success });
+                    ServerFuncs.OnPlayerJoinLobby(pSock.RemoteEndPoint.ToString());
                 }
                 else
                 {

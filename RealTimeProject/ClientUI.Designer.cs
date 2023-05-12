@@ -35,7 +35,6 @@
             this.AttackLabel1 = new System.Windows.Forms.Label();
             this.AttackLabel2 = new System.Windows.Forms.Label();
             this.ScoreLabel = new System.Windows.Forms.Label();
-            this.TimeLabel = new System.Windows.Forms.Label();
             this.TimeTimer = new System.Windows.Forms.Timer(this.components);
             this.FloorLabel = new System.Windows.Forms.Label();
             this.AttackLabel3 = new System.Windows.Forms.Label();
@@ -57,8 +56,8 @@
             this.UNameTextBox = new System.Windows.Forms.TextBox();
             this.TitleLabel = new System.Windows.Forms.Label();
             this.MainMenuPanel = new System.Windows.Forms.Panel();
-            this.MenuTextLabel = new System.Windows.Forms.Label();
             this.BackButton = new System.Windows.Forms.Button();
+            this.MenuTextLabel = new System.Windows.Forms.Label();
             this.ViewGameHistoryButton = new System.Windows.Forms.Button();
             this.EnterLobbyButton = new System.Windows.Forms.Button();
             this.GamePanel = new System.Windows.Forms.Panel();
@@ -92,6 +91,7 @@
             // Player1Label
             // 
             this.Player1Label.BackColor = System.Drawing.Color.MediumTurquoise;
+            this.Player1Label.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.Player1Label.Location = new System.Drawing.Point(258, 395);
             this.Player1Label.Name = "Player1Label";
             this.Player1Label.Size = new System.Drawing.Size(50, 50);
@@ -102,6 +102,7 @@
             // Player2Label
             // 
             this.Player2Label.BackColor = System.Drawing.Color.Coral;
+            this.Player2Label.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.Player2Label.ForeColor = System.Drawing.SystemColors.ControlText;
             this.Player2Label.Location = new System.Drawing.Point(605, 395);
             this.Player2Label.Name = "Player2Label";
@@ -140,15 +141,6 @@
             this.ScoreLabel.TabIndex = 4;
             this.ScoreLabel.Text = "Waiting For Server...";
             this.ScoreLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // TimeLabel
-            // 
-            this.TimeLabel.AutoSize = true;
-            this.TimeLabel.Location = new System.Drawing.Point(435, 9);
-            this.TimeLabel.Name = "TimeLabel";
-            this.TimeLabel.Size = new System.Drawing.Size(36, 15);
-            this.TimeLabel.TabIndex = 5;
-            this.TimeLabel.Text = "Time:";
             // 
             // TimeTimer
             // 
@@ -221,6 +213,7 @@
             // Player3Label
             // 
             this.Player3Label.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(90)))));
+            this.Player3Label.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.Player3Label.Location = new System.Drawing.Point(332, 395);
             this.Player3Label.Name = "Player3Label";
             this.Player3Label.Size = new System.Drawing.Size(50, 50);
@@ -232,6 +225,7 @@
             // Player4Label
             // 
             this.Player4Label.BackColor = System.Drawing.Color.MediumPurple;
+            this.Player4Label.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.Player4Label.ForeColor = System.Drawing.SystemColors.ControlText;
             this.Player4Label.Location = new System.Drawing.Point(677, 395);
             this.Player4Label.Name = "Player4Label";
@@ -345,8 +339,8 @@
             // 
             // MainMenuPanel
             // 
-            this.MainMenuPanel.Controls.Add(this.MenuTextLabel);
             this.MainMenuPanel.Controls.Add(this.BackButton);
+            this.MainMenuPanel.Controls.Add(this.MenuTextLabel);
             this.MainMenuPanel.Controls.Add(this.ViewGameHistoryButton);
             this.MainMenuPanel.Controls.Add(this.EnterLobbyButton);
             this.MainMenuPanel.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -354,6 +348,17 @@
             this.MainMenuPanel.Name = "MainMenuPanel";
             this.MainMenuPanel.Size = new System.Drawing.Size(970, 692);
             this.MainMenuPanel.TabIndex = 8;
+            // 
+            // BackButton
+            // 
+            this.BackButton.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.BackButton.Location = new System.Drawing.Point(407, 418);
+            this.BackButton.Name = "BackButton";
+            this.BackButton.Size = new System.Drawing.Size(178, 47);
+            this.BackButton.TabIndex = 2;
+            this.BackButton.Text = "Sign Out";
+            this.BackButton.UseVisualStyleBackColor = true;
+            this.BackButton.Click += new System.EventHandler(this.BackButton_Click);
             // 
             // MenuTextLabel
             // 
@@ -364,17 +369,6 @@
             this.MenuTextLabel.TabIndex = 3;
             this.MenuTextLabel.Text = "Welcome User!";
             this.MenuTextLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // BackButton
-            // 
-            this.BackButton.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.BackButton.Location = new System.Drawing.Point(407, 418);
-            this.BackButton.Name = "BackButton";
-            this.BackButton.Size = new System.Drawing.Size(178, 47);
-            this.BackButton.TabIndex = 2;
-            this.BackButton.Text = "Back";
-            this.BackButton.UseVisualStyleBackColor = true;
-            this.BackButton.Click += new System.EventHandler(this.BackButton_Click);
             // 
             // ViewGameHistoryButton
             // 
@@ -412,7 +406,6 @@
             this.GamePanel.Controls.Add(this.AttackLabel3);
             this.GamePanel.Controls.Add(this.ScoreLabel);
             this.GamePanel.Controls.Add(this.FloorLabel);
-            this.GamePanel.Controls.Add(this.TimeLabel);
             this.GamePanel.Controls.Add(this.AttackLabel2);
             this.GamePanel.Controls.Add(this.AttackLabel1);
             this.GamePanel.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -438,7 +431,7 @@
             this.BackButtonGH.Name = "BackButtonGH";
             this.BackButtonGH.Size = new System.Drawing.Size(187, 50);
             this.BackButtonGH.TabIndex = 2;
-            this.BackButtonGH.Text = "Back";
+            this.BackButtonGH.Text = "Return";
             this.BackButtonGH.UseVisualStyleBackColor = true;
             this.BackButtonGH.Click += new System.EventHandler(this.BackButtonGH_Click);
             // 
@@ -565,11 +558,11 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(970, 692);
-            this.Controls.Add(this.StartupPanel);
-            this.Controls.Add(this.GameHistoryPanel);
-            this.Controls.Add(this.TransitionPanel);
             this.Controls.Add(this.GamePanel);
             this.Controls.Add(this.MainMenuPanel);
+            this.Controls.Add(this.GameHistoryPanel);
+            this.Controls.Add(this.StartupPanel);
+            this.Controls.Add(this.TransitionPanel);
             this.Name = "ClientUI";
             this.Text = "Form1";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Client_FormClosed);
@@ -580,7 +573,6 @@
             this.StartupPanel.PerformLayout();
             this.MainMenuPanel.ResumeLayout(false);
             this.GamePanel.ResumeLayout(false);
-            this.GamePanel.PerformLayout();
             this.GameHistoryPanel.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
@@ -598,7 +590,6 @@
         private Label AttackLabel1;
         private Label AttackLabel2;
         private Label ScoreLabel;
-        private Label TimeLabel;
         private System.Windows.Forms.Timer TimeTimer;
         private Label FloorLabel;
         private Label AttackLabel3;

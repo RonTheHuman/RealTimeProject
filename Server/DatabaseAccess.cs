@@ -69,7 +69,7 @@ namespace RealTimeProject
         {
             using (IDbConnection cnn = new SqliteConnection(LoadConnectionString()))
             {
-                var output = cnn.Query<Match>("SELECT StartTime, Players, Winner, Length FROM Matches ORDER BY StartTime");
+                var output = cnn.Query<Match>("SELECT StartTime, Players, Winner, Length FROM Matches");
                 output.OrderBy(m => DateTime.ParseExact(m.StartTime, "dd/MM/yyyy HH:mm", null));
                 return output.ToList();
             }
@@ -79,7 +79,8 @@ namespace RealTimeProject
         {
             using (IDbConnection cnn = new SqliteConnection(LoadConnectionString()))
             {
-                var output = cnn.Query<Match>("SELECT StartTime, Players, Winner, Length FROM Matches WHERE instr(Players, '" + userName + "') > 0 ORDER BY StartTime");
+                var output = cnn.Query<Match>("SELECT StartTime, Players, Winner, Length FROM Matches WHERE instr(Players, '" + userName + "') > 0");
+                output.OrderBy(m => DateTime.ParseExact(m.StartTime, "dd/MM/yyyy HH:mm", null));
                 return output.ToList();
             }
         }
