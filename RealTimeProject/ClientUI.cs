@@ -31,6 +31,7 @@ namespace RealTimeProject
             ClientFuncs.OnJoinFail = OnJoinFail;
             ClientFuncs.OnEndGame = OnEndGame;
             ClientFuncs.timer = GameLoopTimer;
+            Text = "Fight^2";
             LoadStartupPanel();
         }
 
@@ -311,6 +312,7 @@ namespace RealTimeProject
             {
                 LoadTransitionPanel("Game Over\n" + winner + " Won!");
             }
+            Text = "Fight^2";
         }
 
         private void SignUpButton_Click(object sender, EventArgs e)

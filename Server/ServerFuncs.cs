@@ -105,7 +105,7 @@ namespace RealTimeProject
 
         static void ApplyWithLagComp(Input input, DateTime time, int player)
         {
-            for (int i = history.Count() - 1; i >= 0; i--)
+            for (int i = history.Count() - 1; i > 0; i--)
             {
                 if (history[i].StartTime < time)
                 {
@@ -301,7 +301,7 @@ namespace RealTimeProject
                 }
             }
             playerString = playerString.Substring(0, playerString.Length - 2);
-            DatabaseAccess.AddMatch(new Match(gameStartTime.ToString("d/M/yyyy HH:mm"), playerString, winnerString, MinutesToString(gameLength.TotalMinutes)));
+            DatabaseAccess.AddMatch(new Match(gameStartTime.ToString("dd/MM/yyyy HH:mm"), playerString, winnerString, MinutesToString(gameLength.TotalMinutes)));
             InitLobby();
         }
 

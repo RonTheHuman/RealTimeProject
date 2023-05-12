@@ -28,6 +28,9 @@ namespace RealTimeProject
             ServerFuncs.InitServer();
             InfoTextLabel.Text = "Opened lobby, waiting for players. Starts automatically at max or with button";
             PlayerListLabel.Text = "";
+            DisablePanels();
+            MainPanel.Enabled = true;
+            MainPanel.Visible = true;
         }
 
         private void StartGameButton_Click(object sender, EventArgs e)
@@ -102,7 +105,8 @@ namespace RealTimeProject
             DisablePanels();
             UserViewPanel.Enabled = true;
             UserViewPanel.Visible = true;
-            UserListTextBox.Text = string.Join("\r\n", DatabaseAccess.GetUserNames());
+            UserListLabel.Text = string.Join("\r\n", DatabaseAccess.GetUserNames());
+            UserListLabel.Location = new Point((UserListPanel.Width - UserListLabel.Width) / 2, UserListLabel.Location.Y);
         }
 
         private void MatchHistoryButton_Click(object sender, EventArgs e)
@@ -146,8 +150,8 @@ namespace RealTimeProject
         private void button1_Click(object sender, EventArgs e)
         {
             DisablePanels();
-            MainPanel.Enabled = false;
-            MainPanel.Visible = false;
+            MainPanel.Enabled = true;
+            MainPanel.Visible = true;
         }
     }
 }
