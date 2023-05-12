@@ -43,6 +43,7 @@
             this.MatchHistoryButton = new System.Windows.Forms.Button();
             this.UserListButton = new System.Windows.Forms.Button();
             this.MatchViewPanel = new System.Windows.Forms.Panel();
+            this.button2 = new System.Windows.Forms.Button();
             this.MatchListPanel = new System.Windows.Forms.Panel();
             this.HistoryTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
             this.LengthHeaderLabel = new System.Windows.Forms.Label();
@@ -226,6 +227,7 @@
             // 
             // MatchViewPanel
             // 
+            this.MatchViewPanel.Controls.Add(this.button2);
             this.MatchViewPanel.Controls.Add(this.MatchListPanel);
             this.MatchViewPanel.Controls.Add(this.label4);
             this.MatchViewPanel.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -234,13 +236,23 @@
             this.MatchViewPanel.Size = new System.Drawing.Size(444, 625);
             this.MatchViewPanel.TabIndex = 10;
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(151, 567);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(142, 37);
+            this.button2.TabIndex = 5;
+            this.button2.Text = "Return";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button1_Click);
+            // 
             // MatchListPanel
             // 
             this.MatchListPanel.AutoScroll = true;
             this.MatchListPanel.Controls.Add(this.HistoryTableLayoutPanel);
             this.MatchListPanel.Location = new System.Drawing.Point(21, 129);
             this.MatchListPanel.Name = "MatchListPanel";
-            this.MatchListPanel.Size = new System.Drawing.Size(402, 461);
+            this.MatchListPanel.Size = new System.Drawing.Size(402, 422);
             this.MatchListPanel.TabIndex = 3;
             // 
             // HistoryTableLayoutPanel
@@ -268,16 +280,20 @@
             // 
             // LengthHeaderLabel
             // 
-            this.LengthHeaderLabel.Location = new System.Drawing.Point(310, 1);
+            this.LengthHeaderLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.LengthHeaderLabel.Location = new System.Drawing.Point(301, 1);
             this.LengthHeaderLabel.Name = "LengthHeaderLabel";
-            this.LengthHeaderLabel.Size = new System.Drawing.Size(68, 49);
+            this.LengthHeaderLabel.Size = new System.Drawing.Size(89, 49);
             this.LengthHeaderLabel.TabIndex = 5;
             this.LengthHeaderLabel.Text = "Length";
             this.LengthHeaderLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // WinnerHeaderLabel
             // 
-            this.WinnerHeaderLabel.Location = new System.Drawing.Point(202, 1);
+            this.WinnerHeaderLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.WinnerHeaderLabel.Location = new System.Drawing.Point(193, 1);
             this.WinnerHeaderLabel.Name = "WinnerHeaderLabel";
             this.WinnerHeaderLabel.Size = new System.Drawing.Size(101, 49);
             this.WinnerHeaderLabel.TabIndex = 4;
@@ -286,7 +302,9 @@
             // 
             // PlayersHeaderLabel
             // 
-            this.PlayersHeaderLabel.Location = new System.Drawing.Point(99, 1);
+            this.PlayersHeaderLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.PlayersHeaderLabel.Location = new System.Drawing.Point(90, 1);
             this.PlayersHeaderLabel.Name = "PlayersHeaderLabel";
             this.PlayersHeaderLabel.Size = new System.Drawing.Size(96, 49);
             this.PlayersHeaderLabel.TabIndex = 3;
@@ -295,15 +313,19 @@
             // 
             // StartTimeHeaderLabel
             // 
+            this.StartTimeHeaderLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.StartTimeHeaderLabel.Location = new System.Drawing.Point(4, 1);
             this.StartTimeHeaderLabel.Name = "StartTimeHeaderLabel";
-            this.StartTimeHeaderLabel.Size = new System.Drawing.Size(88, 49);
+            this.StartTimeHeaderLabel.Size = new System.Drawing.Size(79, 49);
             this.StartTimeHeaderLabel.TabIndex = 2;
             this.StartTimeHeaderLabel.Text = "Start Time";
             this.StartTimeHeaderLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label9
             // 
+            this.label9.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.label9.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.HistoryTableLayoutPanel.SetColumnSpan(this.label9, 4);
             this.label9.Location = new System.Drawing.Point(4, 51);
@@ -426,5 +448,6 @@
         private Label label9;
         private Panel UserListPanel;
         private Label UserListLabel;
+        private Button button2;
     }
 }
