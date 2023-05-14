@@ -17,7 +17,7 @@ namespace RealTimeProject
     {
 
         public static List<Frame> history = new List<Frame>(200);
-        public static int currentFNum;
+        public static int curFNum;
         
         public static Form UI;
         public static Action OnInitGame;
@@ -69,6 +69,7 @@ namespace RealTimeProject
             }
             history.Add(CreateInitFrame(pCount));
             gameStartTime = DateTime.Now;
+            curFNum = 0;
             UI.Invoke(OnInitGame);
         }
 
@@ -125,8 +126,8 @@ namespace RealTimeProject
         static public void OnTimerTick()
         {
             DateTime frameStart = DateTime.Now;
-            currentFNum++;
-            NBConsole.WriteLine("Frame start " + frameStart.ToString("mm.ss.fff") + ", Frame num: " + currentFNum);
+            curFNum++;
+            NBConsole.WriteLine("Frame start " + frameStart.ToString("mm.ss.fff") + ", Frame num: " + curFNum);
 
             List<ClientPacket> packets = ServerSockFuncs.GetClientPackets(bufferSize);
             if (packets.Count == 0) { NBConsole.WriteLine("no user inputs recieved"); }

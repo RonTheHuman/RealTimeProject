@@ -62,6 +62,7 @@ namespace RealTimeProject
                     NBConsole.WriteLine("You are player " + thisPlayer);
                     gameEndMsgTask = ClientSockFuncs.clientSockTcp.ReceiveAsync(gameEndBuffer, SocketFlags.None);
                     InitSimulatedHistory();
+                    curFNum = 0;
                     Thread.Sleep(200);
                     UI.Invoke(OnJoinLobby);
                 }
