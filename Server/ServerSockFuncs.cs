@@ -214,11 +214,10 @@ namespace RealTimeProject
             return packets;
         }
 
-        public static Socket CreateUdpSocket(string ipstr, int port)
+        public static void CreateUdpSocket(string ipstr, int port)
         {
             serverSockUdp = new Socket(SocketType.Dgram, ProtocolType.Udp);
             serverSockUdp.Bind(new IPEndPoint(IPAddress.Parse(ipstr), port));
-            return serverSockUdp;
         }
 
         static bool IsUserNameInLobby(string uName, out IPEndPoint ipWithName)

@@ -104,25 +104,7 @@ namespace RealTimeProject
             }
 
             //NBConsole.WriteLine("Getting packets from server");
-            List<byte[]> packets = new List<byte[]>(); // get packets from server
-            while (ClientSockFuncs.clientSockUdp.Poll(1, SelectMode.SelectRead))
-            {
-                byte[] buffer = new byte[1024];
-                EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
-                int packetLen = 0;
-                try
-                {
-                    packetLen = ClientSockFuncs.clientSockUdp.ReceiveFrom(buffer, ref recieveEP);
-                }
-                catch (SocketException)
-                {
-                    Console.WriteLine("Server closed");
-                    timer.Enabled = false;
-                    return null;
-                }
-                packets.Add(buffer[..packetLen]);
-                //NBConsole.WriteLine("Recieved " + packets.Last());
-            }
+            List<byte[]> packets = ClientSockFuncs.GetServerPackets(1024);
             if (packets.Count == 0) { NBConsole.WriteLine("no server data recieved"); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
 

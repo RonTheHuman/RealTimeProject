@@ -121,6 +121,28 @@ namespace RealTimeProject
             return true;
         }
 
+        public static List<byte[]> GetServerPackets(int bufferSize)
+        {
+            List<byte[]> packets = new List<byte[]>();
+            while (clientSockUdp.Poll(1, SelectMode.SelectRead))
+            {
+                byte[] buffer = new byte[1024];
+                EndPoint recieveEP = new IPEndPoint(IPAddress.Any, 0);
+                int bytesRecieved = 0;
+                try
+                {
+                    bytesRecieved = clientSockUdp.ReceiveFrom(buffer, ref recieveEP);
+                }
+                catch (SocketException)
+                {
+                    Console.WriteLine("Server closed");
+                    return null;
+                }
+                packets.Add(buffer[..bytesRecieved]);
+            }
+            return packets;
+        }
+
         public static List<Match> GetMatchesWithUser(string uName)
         {
             List<byte> toSend = new List<byte> { (byte)ClientMessageType.GetMatchesWithUser };
