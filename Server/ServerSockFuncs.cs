@@ -205,15 +205,18 @@ namespace RealTimeProject
                 int pIndex = lobbyPlayerDict[ip].Number - 1;
                 while (echosMade < 5)
                 {
+                    Console.WriteLine("Checking if send or recv");
                     if (DateTime.Now - sendTime > TimeSpan.FromSeconds(2) || !waiting)
                     {
+                        Console.WriteLine("Sent");
                         serverSockUdp.SendTo(new byte[] { 42 }, ip);
                         waiting = true;
                         sendTime = DateTime.Now;
                     }
                     if (serverSockUdp.Poll(1, SelectMode.SelectRead))
                     {
-                        serverSockUdp.ReceiveFrom(buffer, ref recvAddress);
+                        int recvCount = serverSockUdp.ReceiveFrom(buffer, ref recvAddress);
+                        Console.WriteLine("got echo reply " + recvCount + " bytes");
                         DateTime recvTime = DateTime.Now;
                         DateTime stampTime = DateTime.FromBinary(BinaryPrimitives.ReadInt64BigEndian(buffer));
                         timeShift[pIndex] = (recvTime - stampTime - ((recvTime - sendTime) / 2)).TotalMilliseconds;

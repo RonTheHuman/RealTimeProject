@@ -53,6 +53,7 @@ namespace RealTimeProject
 
         static public void InitGame()
         {
+            ServerSockFuncs.GetClientPackets(1024);
             ServerSockFuncs.gameRunning = true;
             playerLRS = new DateTime[pCount];
             playerLRS2 = new DateTime[pCount];
@@ -154,6 +155,7 @@ namespace RealTimeProject
                 {
                     packetPlayer = packets[i].Player;
                     packetInput = (Input)packets[i].Data[0];
+                    Console.WriteLine(packets[i].Data[1..].Length);
                     packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].Data[1..])).AddMilliseconds(stampShiftMS[packetPlayer - 1]);
                     if (packetTime > playerLRS[packetPlayer - 1])
                     {
@@ -258,7 +260,7 @@ namespace RealTimeProject
                         sendFrame.StartTime = playerLRS2[thisPlayer - 1];
                     }
                     ServerGamePacket sendPacket = new ServerGamePacket(saveNow, sendFrame, enemyInputs, frameMS);
-                    Console.WriteLine("sending: " + sendPacket);
+                    NBConsole.WriteLine("sending: " + sendPacket);
                     ServerSockFuncs.serverSockUdp.SendTo(sendPacket.Serialize(pCount), ip);
                 }
             }

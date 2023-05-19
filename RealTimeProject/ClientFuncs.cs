@@ -53,7 +53,9 @@ namespace RealTimeProject
                 }
                 else
                 {
+                    Console.WriteLine("Started replying");
                     ClientSockFuncs.ReplyToSyncEchos();
+                    Console.WriteLine("Waiting for data");
                     stayedInLobby = ClientSockFuncs.GetGameData(ref recvData);
                 }
                 if (stayedInLobby)
