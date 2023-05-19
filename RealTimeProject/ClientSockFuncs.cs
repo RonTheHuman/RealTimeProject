@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -117,6 +118,25 @@ namespace RealTimeProject
             }
             else
                 return false;
+        }
+
+        public static void ReplyToSyncEchos()
+        {
+            int echoCount = 0;
+            while (echoCount < 5)
+            {
+                if (clientSockUdp.Poll(-1, SelectMode.SelectRead))
+                {
+                    EndPoint recvAddress = new IPEndPoint(IPAddress.Any, 0);
+                    clientSockUdp.ReceiveFrom(new byte[2], ref recvAddress);
+                    byte[] toSend = new byte[8];
+                    BinaryPrimitives.WriteInt64BigEndian(toSend, DateTime.Now.ToBinary());
+                    SendUdp(toSend);
+                    echoCount++;
+                }
+                else
+                    break;
+            }
         }
 
         public static void SendUdp(byte[] sendData)

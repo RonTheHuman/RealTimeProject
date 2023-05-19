@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -189,6 +190,47 @@ namespace RealTimeProject
             {
                 Console.WriteLine(ip + " " + lobbyPlayerDict[ip].UName + " " + lobbyPlayerDict[ip].Number + " " + lobbyPlayerDict[ip].Sock.RemoteEndPoint);
             }
+        }
+
+        public static double[] FindStampShift()
+        {
+            byte[] buffer = new byte[32];
+            EndPoint recvAddress = new IPEndPoint(IPAddress.Any, 0);
+            double[] timeShift = new double[lobbyPlayerDict.Count], avgTimeShift = new double[lobbyPlayerDict.Count];
+            foreach (IPEndPoint ip in lobbyPlayerDict.Keys)
+            {
+                DateTime sendTime = DateTime.MinValue;
+                bool waiting = false;
+                int echosMade = 0;
+                int pIndex = lobbyPlayerDict[ip].Number - 1;
+                while (echosMade < 5)
+                {
+                    if (DateTime.Now - sendTime > TimeSpan.FromSeconds(2) || !waiting)
+                    {
+                        serverSockUdp.SendTo(new byte[] { 42 }, ip);
+                        waiting = true;
+                        sendTime = DateTime.Now;
+                    }
+                    if (serverSockUdp.Poll(1, SelectMode.SelectRead))
+                    {
+                        serverSockUdp.ReceiveFrom(buffer, ref recvAddress);
+                        DateTime recvTime = DateTime.Now;
+                        DateTime stampTime = DateTime.FromBinary(BinaryPrimitives.ReadInt64BigEndian(buffer));
+                        timeShift[pIndex] = (recvTime - stampTime - ((recvTime - sendTime) / 2)).TotalMilliseconds;
+                        Console.WriteLine(stampTime.Millisecond + ", " + recvTime.Millisecond + ", " + timeShift[pIndex]);
+                        if (avgTimeShift[pIndex] == 0)
+                            avgTimeShift[pIndex] = timeShift[pIndex];
+                        else
+                        {
+                            avgTimeShift[pIndex] = ((echosMade * avgTimeShift[pIndex]) + timeShift[pIndex]) / (echosMade + 1);
+                        }
+                        echosMade++;
+                        waiting = false;
+                    }
+                }
+                Console.WriteLine("avg: " + avgTimeShift[pIndex]);
+            }
+            return avgTimeShift;
         }
 
         public static List<ClientPacket> GetClientPackets(int bufferSize)

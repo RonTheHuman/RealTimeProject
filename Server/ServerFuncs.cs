@@ -28,9 +28,8 @@ namespace RealTimeProject
 
         static Dictionary<string, string> settings;
         static int pCount = 0;
-        static DateTime[] playerLRS, playerLRS2, echoSendTime;
-        static double[] echoDelayMS;
-        static bool[] echoWaiting;
+        static DateTime[] playerLRS, playerLRS2;
+        static double[] stampShiftMS;
         static int bufferSize = 1024;
         static bool compensateLag = true;
         static TimeSpan gameLength;
@@ -57,14 +56,13 @@ namespace RealTimeProject
             ServerSockFuncs.gameRunning = true;
             playerLRS = new DateTime[pCount];
             playerLRS2 = new DateTime[pCount];
-            echoDelayMS = new double[pCount];
-            echoSendTime = new DateTime[pCount];
-            echoWaiting = new bool[pCount];
             for (int i = 0; i < pCount; i++)
             {
                 playerLRS[i] = DateTime.MinValue;
                 playerLRS2[i] = DateTime.MinValue;
             }
+
+            stampShiftMS = ServerSockFuncs.FindStampShift();
 
             foreach (LobbyPlayer lp in ServerSockFuncs.lobbyPlayerDict.Values)
             {
@@ -140,28 +138,6 @@ namespace RealTimeProject
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
             //now each packet has (in this order): pnum, right, left, block, attack, timestamp
 
-            //for (int i = 0; i < packets.Count(); i++)
-            //{
-            //    if (packets[i].Data.Length == 1)
-            //    {
-            //        echoDelayMS[packets[i].Player - 1] = (frameStart - echoSendTime[packets[i].Player - 1]).TotalMilliseconds;
-            //        echoWaiting[packets[i].Player - 1] = false;
-            //        packets.Remove(packets[i]);
-            //        i -= 1;
-            //    }
-            //}
-
-            //foreach (IPEndPoint ip in ServerSockFuncs.lobbyPlayerDict.Keys)
-            //{
-            //    int playerI = ServerSockFuncs.lobbyPlayerDict[ip].Number - 1;
-            //    if (curFNum%5 == 0 && (echoWaiting[packets[playerI].Player - 1] == true || (DateTime.Now - echoSendTime[playerI]).TotalMilliseconds > 2000))
-            //    {
-            //        ServerSockFuncs.serverSockUdp.SendTo(new byte[] { 42 }, ip);
-            //        echoSendTime[playerI] = DateTime.Now;
-            //        echoWaiting[playerI] = true;
-            //    }
-            //}
-
             Input[] prevInputs = new Input[pCount]; // add temp extrapolated state
             for (int i = 0; i < pCount; i++)
             {
@@ -178,13 +154,12 @@ namespace RealTimeProject
                 {
                     packetPlayer = packets[i].Player;
                     packetInput = (Input)packets[i].Data[0];
-                    packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].Data[1..]));
+                    packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].Data[1..])).AddMilliseconds(stampShiftMS[packetPlayer - 1]);
                     if (packetTime > playerLRS[packetPlayer - 1])
                     {
                         playerLRS[packetPlayer - 1] = packetTime;
                     }
-                    NBConsole.WriteLine("recv inputs [" + packetInput + "], p" + packetPlayer + " from " + packetTime.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff") +
-                        "\nMS delay by stamp: " + (frameStart - packetTime).TotalMilliseconds + ", delay by echo: " + echoDelayMS[packetPlayer - 1]);
+                    NBConsole.WriteLine("recv inputs [" + packetInput + "], p" + packetPlayer + " from " + packetTime.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
                     if (packetTime > DateTime.Now)
                     {
                         //throw new Exception("timestamp error");

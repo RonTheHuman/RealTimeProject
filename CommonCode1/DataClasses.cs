@@ -563,6 +563,7 @@ namespace RealTimeProject
         public int Number { get; set; }
         public Socket Sock { get; set; }
         public bool Disconnected { get; set; }
+        public double StampShift { get; set; }
 
         public LobbyPlayer(string uName, int number, Socket sock)
         {
@@ -570,6 +571,7 @@ namespace RealTimeProject
             Number = number;
             Sock = sock;
             Disconnected = false;
+            StampShift = 0;
         }
     }
 }
