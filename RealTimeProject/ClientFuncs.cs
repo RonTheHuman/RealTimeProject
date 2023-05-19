@@ -268,7 +268,7 @@ namespace RealTimeProject
                         }
                         if (enemySim && lastServerPacket.EnemyInputs.Length != 0)
                         {
-                            if (lastServerPacket.EnemyInputs[0].Length != 0)
+                            if (lastServerPacket.EnemyInputs[0].Length != 0 && unackedInputs.Count > 0)
                             {
                                 for (int i = 0; i < pCount; i++)
                                 {
@@ -279,7 +279,7 @@ namespace RealTimeProject
                                         {
                                             offset = -1;
                                         }
-                                        Input[] enemyInputs = new Input[unackedInputs.Count - lastServerPacket.EnemyInputs.Length + 1];
+                                        Input[] enemyInputs = new Input[Math.Abs(unackedInputs.Count - lastServerPacket.EnemyInputs[0].Length) + 1];
                                         for (int j = 0; j < enemyInputs.Length; j++)
                                         {
                                             enemyInputs[j] = lastServerPacket.EnemyInputs[i + offset][^1];

@@ -22,7 +22,7 @@ namespace RealTimeProject
             var thread = new Thread(
               () =>
               {
-                  while (true) Console.WriteLine(m_Queue.Take());
+                  //while (true) Console.WriteLine(m_Queue.Take());
               });
             thread.IsBackground = true;
             thread.Start();
@@ -30,7 +30,7 @@ namespace RealTimeProject
 
         public static void WriteLine(string value)
         {
-            m_Queue.Add(value);
+            //m_Queue.Add(value);
         }
     }
 
