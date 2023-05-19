@@ -140,27 +140,27 @@ namespace RealTimeProject
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
             //now each packet has (in this order): pnum, right, left, block, attack, timestamp
 
-            for (int i = 0; i < packets.Count(); i++)
-            {
-                if (packets[i].Data.Length == 1)
-                {
-                    echoDelayMS[packets[i].Player - 1] = (frameStart - echoSendTime[packets[i].Player - 1]).TotalMilliseconds;
-                    echoWaiting[packets[i].Player - 1] = false;
-                    packets.Remove(packets[i]);
-                    i -= 1;
-                }
-            }
+            //for (int i = 0; i < packets.Count(); i++)
+            //{
+            //    if (packets[i].Data.Length == 1)
+            //    {
+            //        echoDelayMS[packets[i].Player - 1] = (frameStart - echoSendTime[packets[i].Player - 1]).TotalMilliseconds;
+            //        echoWaiting[packets[i].Player - 1] = false;
+            //        packets.Remove(packets[i]);
+            //        i -= 1;
+            //    }
+            //}
 
-            foreach (IPEndPoint ip in ServerSockFuncs.lobbyPlayerDict.Keys)
-            {
-                int playerI = ServerSockFuncs.lobbyPlayerDict[ip].Number - 1;
-                if (curFNum%5 == 0 && (echoWaiting[packets[playerI].Player - 1] == true || (DateTime.Now - echoSendTime[playerI]).TotalMilliseconds > 2000))
-                {
-                    ServerSockFuncs.serverSockUdp.SendTo(new byte[] { 42 }, ip);
-                    echoSendTime[playerI] = DateTime.Now;
-                    echoWaiting[playerI] = true;
-                }
-            }
+            //foreach (IPEndPoint ip in ServerSockFuncs.lobbyPlayerDict.Keys)
+            //{
+            //    int playerI = ServerSockFuncs.lobbyPlayerDict[ip].Number - 1;
+            //    if (curFNum%5 == 0 && (echoWaiting[packets[playerI].Player - 1] == true || (DateTime.Now - echoSendTime[playerI]).TotalMilliseconds > 2000))
+            //    {
+            //        ServerSockFuncs.serverSockUdp.SendTo(new byte[] { 42 }, ip);
+            //        echoSendTime[playerI] = DateTime.Now;
+            //        echoWaiting[playerI] = true;
+            //    }
+            //}
 
             Input[] prevInputs = new Input[pCount]; // add temp extrapolated state
             for (int i = 0; i < pCount; i++)

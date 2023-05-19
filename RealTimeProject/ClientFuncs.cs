@@ -21,6 +21,7 @@ namespace RealTimeProject
         public static int thisPlayer, pCount, levelLayout;
 
         static Dictionary<string, string> settings;
+        static string[] playerColor = new string[] { "Blue", "Red", "Yellow", "purple" };
 
         static List<Frame> simHistory = new List<Frame>(200);
         static int curFNum;
@@ -95,8 +96,28 @@ namespace RealTimeProject
             {
                 if (gameEndBuffer[0] == (byte)ServerMessageType.GameEnd)
                 {
+                    string winner = Encoding.Latin1.GetString(gameEndBuffer[1..gameEndMsgTask.Result]);
+                    if (winner[..^1] == "guest")
+                    {
+                        switch (winner[^1])
+                        {
+                            case '1':
+                                winner += " (" + playerColor[0] + ")";
+                                break;
+                            case '2':
+                                winner += " (" + playerColor[1] + ")";
+                                break;
+                            case '3':
+                                winner += " (" + playerColor[2] + ")";
+                                break;
+                            case '4':
+                                winner += " (" + playerColor[3] + ")";
+                                break;
+                        }
+
+                    }
                     inLobby = false;
-                    OnEndGame(Encoding.Latin1.GetString(gameEndBuffer[1..gameEndMsgTask.Result]));
+                    OnEndGame(winner);
                 }
                 else
                 {
@@ -109,15 +130,15 @@ namespace RealTimeProject
             if (packets.Count == 0) { NBConsole.WriteLine("no server data recieved"); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
 
-            for (int i = 0; i < packets.Count(); i++)
-            {
-                if (packets[i].Length == 1)
-                {
-                    ClientSockFuncs.SendUdp(new byte[] { 42 });
-                    packets.Remove(packets[i]);
-                    i -= 1;
-                }
-            }
+            //for (int i = 0; i < packets.Count(); i++)
+            //{
+            //    if (packets[i].Length == 1)
+            //    {
+            //        ClientSockFuncs.SendUdp(new byte[] { 42 });
+            //        packets.Remove(packets[i]);
+            //        i -= 1;
+            //    }
+            //}
 
             Input[] simInputs = new Input[pCount]; // create simulated frame
             simHistory.Last().Inputs.CopyTo(simInputs, 0);

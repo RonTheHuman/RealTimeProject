@@ -374,7 +374,8 @@ namespace RealTimeProject
             {
                 ClientSockFuncs.clientSockTcp.Send(new byte[1] { (byte)ClientMessageType.LeaveLobby });
             }
-            if (ClientFuncs.uName == "guest")
+            if (ClientFuncs.uName == "guest" || ClientFuncs.uName == "guest1" || ClientFuncs.uName == "guest2" || ClientFuncs.uName == "guest3" 
+                || ClientFuncs.uName == "guest4")
             {
                 LoadStartupPanel();
             }
