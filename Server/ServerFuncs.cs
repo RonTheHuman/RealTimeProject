@@ -91,8 +91,8 @@ namespace RealTimeProject
 
         static public void OnPlayerLeaveLobby(string ipStr)
         {
-            UI.Invoke(OnLobbyUpdate, new string[] { MakePlayerList() });
             pCount -= 1;
+            UI.Invoke(OnLobbyUpdate, new string[] { MakePlayerList() });
         }
 
         public static string MakePlayerList()

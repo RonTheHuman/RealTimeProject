@@ -387,6 +387,7 @@ namespace RealTimeProject
                     playerI.AttackName = 0;
                     playerI.Jumps = 2;
                     playerI.FacingLeft = false;
+                    playerI.KBPercent = 50;
                 }
             }
         }
@@ -502,12 +503,12 @@ namespace RealTimeProject
                 BlockDur = 20;
                 AttackDict = new Dictionary<AttackName, Attack>();
                 AttackDict[AttackName.NLight] = new Attack( new AnimHitbox[] { 
-                    new AnimHitbox(new Rectangle(new Point(21, -51), new Size(20, 15)), 4),
-                    new AnimHitbox(new Rectangle(new Point(32, -49), new Size(25, 21)), 8),
-                    new AnimHitbox(new Rectangle(new Point(41, -38), new Size(32, 34)), 12),
-                    new AnimHitbox(new Rectangle(new Point(38, -32), new Size(32, 34)), 16),
-                    new AnimHitbox(new Rectangle(new Point(34, -5), new Size(15, 20)), 20)}, 
-                    new Vector2(6, -10), 20, 3, 0);
+                    new AnimHitbox(new Rectangle(new Point(21, -51), new Size(20, 15)), 2),
+                    new AnimHitbox(new Rectangle(new Point(32, -49), new Size(25, 21)), 6),
+                    new AnimHitbox(new Rectangle(new Point(41, -38), new Size(32, 34)), 10),
+                    new AnimHitbox(new Rectangle(new Point(38, -32), new Size(32, 34)), 14),
+                    new AnimHitbox(new Rectangle(new Point(34, -5), new Size(15, 20)), 16)}, 
+                    new Vector2(6, -10), 20, 0, 0);
                 AttackDict[AttackName.SLight] = new Attack(new AnimHitbox[] { 
                     new AnimHitbox(new Rectangle(new Point(30, -18), new Size(28, 16)), 10),
                     new AnimHitbox(new Rectangle(new Point(51, -18), new Size(48, 16)), 20)}, 
@@ -520,13 +521,13 @@ namespace RealTimeProject
                     new AnimHitbox(new Rectangle(new Point(-11, -151), new Size(20, 20)), 15)},
                     new Vector2(0, -20), 20, 2, 10);
                 AttackDict[AttackName.DLight] = new Attack(new AnimHitbox[] {
-                    new AnimHitbox(new Rectangle(new Point(32, 10), new Size(40, 15)), 5),
-                    new AnimHitbox(new Rectangle(new Point(-72, 10), new Size(40, 15)), 10, new Vector2(10, -20))},
+                    new AnimHitbox(new Rectangle(new Point(32, 10), new Size(40, 15)), 6),
+                    new AnimHitbox(new Rectangle(new Point(-72, 10), new Size(40, 15)), 12, new Vector2(10, -20))},
                     new Vector2(-10, -20), 20, 5, 0);
                 AttackDict[AttackName.NAir] = new Attack(new AnimHitbox[] { 
                     new AnimHitbox(new Rectangle(new Point(-30, -30), new Size(60, 60)), 5),
                     new AnimHitbox(new Rectangle(new Point(-40, -40), new Size(80, 80)), 30)}, 
-                    new Vector2(0, -10), 20, 0, 10);
+                    new Vector2(0, -10), 20, 10, 0);
                 AttackDict[AttackName.SAir] = new Attack(new AnimHitbox[] {
                     new AnimHitbox(new Rectangle(new Point(43, -12), new Size(20, 20)), 3),
                     new AnimHitbox(new Rectangle(new Point(62, -24), new Size(25, 25)), 6),
@@ -537,16 +538,16 @@ namespace RealTimeProject
                     new AnimHitbox(new Rectangle(new Point(-47, -37), new Size(19, 15)), 21)},
                     new Vector2(0, -20), 20, 5, 10);
                 AttackDict[AttackName.UAir] = new Attack( new AnimHitbox[] { 
-                    new AnimHitbox(new Rectangle(new Point(25, -54), new Size(20, 20)), 4),
-                    new AnimHitbox(new Rectangle(new Point(17, -74), new Size(20, 29)), 8),
-                    new AnimHitbox(new Rectangle(new Point(-16, -100), new Size(38, 38)), 12),
-                    new AnimHitbox(new Rectangle(new Point(-22, -100), new Size(38, 38)), 16),
-                    new AnimHitbox(new Rectangle(new Point(-37, -74), new Size(20, 29)), 20),
-                    new AnimHitbox(new Rectangle(new Point(-45, -54), new Size(20, 20)), 24)},
-                    new Vector2(0, -10), 20, 5, 60);
+                    new AnimHitbox(new Rectangle(new Point(25, -34), new Size(20, 20)), 4),
+                    new AnimHitbox(new Rectangle(new Point(17, -54), new Size(20, 29)), 8),
+                    new AnimHitbox(new Rectangle(new Point(-16, -80), new Size(38, 38)), 12),
+                    new AnimHitbox(new Rectangle(new Point(-22, -80), new Size(38, 38)), 16),
+                    new AnimHitbox(new Rectangle(new Point(-37, -54), new Size(20, 29)), 20),
+                    new AnimHitbox(new Rectangle(new Point(-45, -34), new Size(20, 20)), 24)},
+                    new Vector2(5, -10), 20, 5, 60);
                 AttackDict[AttackName.DAir] = new Attack(new AnimHitbox[] {
                     new AnimHitbox(new Rectangle(new Point(-10, 25), new Size(20, 80)), 35)},
-                    new Vector2(10, 0), 20, 0, 10);
+                    new Vector2(10, -2), 20, 0, 10);
                 AttackDict[AttackName.NHeavy] = new Attack(new AnimHitbox[] { 
                     new AnimHitbox(new Rectangle(new Point(-50, -37), new Size(100, 62)), 5),
                     new AnimHitbox(new Rectangle(new Point(-100, -50), new Size(200, 75)), 20)}, 
@@ -555,10 +556,10 @@ namespace RealTimeProject
                     new AnimHitbox(new Rectangle(new Point(25, -4), new Size(700, 8)), 12),
                     new AnimHitbox(new Rectangle(new Point(25, -15), new Size(700, 30)), 15),
                     new AnimHitbox(new Rectangle(new Point(25, -25), new Size(700, 50)), 40)},
-                    new Vector2(50, 20), 30, 25, 20);
+                    new Vector2(40, -5), 30, 25, 20);
                 AttackDict[AttackName.UHeavy] = new Attack(new AnimHitbox[] { 
                     new AnimHitbox(new Rectangle(new Point(-81, -186), new Size(162, 113)), 40)}, 
-                    new Vector2(5, -50), 30, 25, 20);
+                    new Vector2(5, -35), 30, 25, 20);
             }
         }
     }
