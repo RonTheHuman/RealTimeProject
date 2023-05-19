@@ -28,22 +28,25 @@
   },
   "packageFolders": {
     "C:\\Users\\u101040.DESHALIT\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {},
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\RealTimeProject\\Client.csproj",
+      "projectUniqueName": "C:\\Users\\u101040.DESHALIT\\Desktop\\RealTimeProject\\RealTimeProject\\Client.csproj",
       "projectName": "Client",
-      "projectPath": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\RealTimeProject\\Client.csproj",
+      "projectPath": "C:\\Users\\u101040.DESHALIT\\Desktop\\RealTimeProject\\RealTimeProject\\Client.csproj",
       "packagesPath": "C:\\Users\\u101040.DESHALIT\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\RealTimeProject\\obj\\",
+      "outputPath": "C:\\Users\\u101040.DESHALIT\\Desktop\\RealTimeProject\\RealTimeProject\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
         "C:\\Users\\u101040.DESHALIT\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -51,14 +54,15 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net6.0-windows7.0": {
           "targetAlias": "net6.0-windows",
           "projectReferences": {
-            "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\CommonCode1\\CommonCode.csproj": {
-              "projectPath": "C:\\Users\\u101040.DESHALIT\\Documents\\GitHub\\RealTimeProject\\CommonCode1\\CommonCode.csproj"
+            "C:\\Users\\u101040.DESHALIT\\Desktop\\RealTimeProject\\CommonCode1\\CommonCode.csproj": {
+              "projectPath": "C:\\Users\\u101040.DESHALIT\\Desktop\\RealTimeProject\\CommonCode1\\CommonCode.csproj"
             }
           }
         }

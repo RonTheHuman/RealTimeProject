@@ -62,6 +62,7 @@ namespace RealTimeProject
                     levelLayout = int.Parse(recvData[2] + "");
                     NBConsole.WriteLine("You are player " + thisPlayer);
                     gameEndMsgTask = ClientSockFuncs.clientSockTcp.ReceiveAsync(gameEndBuffer, SocketFlags.None);
+                    ClientSockFuncs.GetServerPackets(1024); // for cleaning packets left from last game.
                     InitSimulatedHistory();
                     curFNum = 0;
                     Thread.Sleep(200);
