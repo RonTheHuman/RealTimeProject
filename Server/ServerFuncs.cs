@@ -185,9 +185,9 @@ namespace RealTimeProject
                     }
                     NBConsole.WriteLine("recv inputs [" + packetInput + "], p" + packetPlayer + " from " + packetTime.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff") +
                         "\nMS delay by stamp: " + (frameStart - packetTime).TotalMilliseconds + ", delay by echo: " + echoDelayMS[packetPlayer - 1]);
-                    if (packetTime >= DateTime.Now)
+                    if (packetTime > DateTime.Now)
                     {
-                        throw new Exception("timestamp error");
+                        //throw new Exception("timestamp error");
                     }
                     ApplyWithLagComp(packetInput, packetTime, packetPlayer);
                 }
