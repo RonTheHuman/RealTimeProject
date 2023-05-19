@@ -20,6 +20,7 @@ namespace RealTimeProject
         {
             Socket serverSockTcp = new Socket(SocketType.Stream, ProtocolType.Tcp);
             serverSockTcp.Bind(new IPEndPoint(IPAddress.Parse(ipstr), port));
+            Console.WriteLine(serverSockTcp.LocalEndPoint);
             serverSockTcp.Listen(5);
             List<Socket> readSocks = new List<Socket>() { serverSockTcp };
             List<Socket> errorSocks = new List<Socket>();

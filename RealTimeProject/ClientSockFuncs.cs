@@ -17,7 +17,25 @@ namespace RealTimeProject
         public static void InitSockets(int serverPort, int clientPort, string serverIP, string clientIP)
         {
             var sAddress = IPAddress.Parse(serverIP);
-            var cAddress = IPAddress.Parse(clientIP);
+            IPAddress cAddress = null;
+            if (clientIP == "")
+            {
+                foreach (IPAddress add in Dns.GetHostEntry(Dns.GetHostName()).AddressList)
+                {
+                    if (add.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        cAddress = add;
+                    }
+                }
+            }
+            else
+                cAddress = IPAddress.Parse(clientIP);
+
+            if (cAddress == null)
+            {
+                throw new Exception("Didn't find ipv4 address");
+            }
+
             var actualClientPort = FindAvailablePort(clientPort);
             Console.WriteLine("Using port " + actualClientPort);
             clientEP = new IPEndPoint(cAddress, actualClientPort);
