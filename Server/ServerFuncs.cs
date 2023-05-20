@@ -155,7 +155,6 @@ namespace RealTimeProject
                 {
                     packetPlayer = packets[i].Player;
                     packetInput = (Input)packets[i].Data[0];
-                    Console.WriteLine(packets[i].Data[1..].Length);
                     packetTime = new DateTime(BinaryPrimitives.ReadInt64BigEndian(packets[i].Data[1..])).AddMilliseconds(stampShiftMS[packetPlayer - 1]);
                     if (packetTime > playerLRS[packetPlayer - 1])
                     {
