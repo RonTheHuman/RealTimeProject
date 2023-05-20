@@ -131,16 +131,6 @@ namespace RealTimeProject
             if (packets.Count == 0) { NBConsole.WriteLine("no server data recieved"); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
 
-            //for (int i = 0; i < packets.Count(); i++)
-            //{
-            //    if (packets[i].Length == 1)
-            //    {
-            //        ClientSockFuncs.SendUdp(new byte[] { 42 });
-            //        packets.Remove(packets[i]);
-            //        i -= 1;
-            //    }
-            //}
-
             Input[] simInputs = new Input[pCount]; // create simulated frame
             simHistory.Last().Inputs.CopyTo(simInputs, 0);
             simInputs[thisPlayer - 1] = curInput;
