@@ -211,14 +211,14 @@ namespace RealTimeProject
             foreach (var ip in ServerSockFuncs.lobbyPlayerDict.Keys) // send state to players
             {
                 int thisPlayer = ServerSockFuncs.lobbyPlayerDict[ip].Number;
-                if (DateTime.Now - playerLRS[thisPlayer - 1] > TimeSpan.FromSeconds(2))
+                if (DateTime.Now - playerLRS[thisPlayer - 1] > TimeSpan.FromSeconds(2) && playerLRS[thisPlayer - 1] != DateTime.MinValue)
                 {
                     NBConsole.WriteLine("Disconnected for time reasons");
-                    ServerSockFuncs.lobbyPlayerDict[ip].Disconnected = true;
+                    ServerSockFuncs.UpdatePlayerConnectionStatus(ip, true);
                 }
                 else
                 {
-                    ServerSockFuncs.lobbyPlayerDict[ip].Disconnected = false;
+                    ServerSockFuncs.UpdatePlayerConnectionStatus(ip, false);
                 }
                 if (playerLRS[thisPlayer - 1] != DateTime.MinValue && !ServerSockFuncs.lobbyPlayerDict[ip].Disconnected)
                 {

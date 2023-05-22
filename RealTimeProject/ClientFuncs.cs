@@ -22,13 +22,13 @@ namespace RealTimeProject
 
         static Dictionary<string, string> settings;
         static string[] playerColor = new string[] { "Blue", "Red", "Yellow", "purple" };
+        static bool[] playerConnected;
 
         static List<Frame> simHistory = new List<Frame>(200);
         static int curFNum;
         static List<Input> unackedInputs = new List<Input>(200);
 
-        static Task<int> gameEndMsgTask;
-        static byte[] gameEndBuffer = new byte[1024];
+        static byte[] gameTcpBuffer = new byte[1024];
         public static void InitClient()
         {
             settings = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.GetFullPath("clientSettings.txt")));
@@ -61,7 +61,6 @@ namespace RealTimeProject
                     pCount = int.Parse(recvData[1] + "");
                     levelLayout = int.Parse(recvData[2] + "");
                     NBConsole.WriteLine("You are player " + thisPlayer);
-                    gameEndMsgTask = ClientSockFuncs.clientSockTcp.ReceiveAsync(gameEndBuffer, SocketFlags.None);
                     ClientSockFuncs.GetServerPackets(1024); // for cleaning packets left from last game.
                     InitSimulatedHistory();
                     curFNum = 0;
@@ -93,11 +92,12 @@ namespace RealTimeProject
             ClientSockFuncs.SendUdp(sendData);
             //NBConsole.WriteLine(inputBytes.Length + " | " + Convert.ToHexString(inputBytes) + " | " + Convert.ToHexString(timeStamp) + ", " + new DateTime(BinaryPrimitives.ReadInt64BigEndian(timeStamp)).ToString("mm.ss.fff") + " | " + Convert.ToHexString(sendData));
 
-            if (gameEndMsgTask.IsCompleted)
+            if (ClientSockFuncs.clientSockTcp.Poll(1, SelectMode.SelectRead))
             {
-                if (gameEndBuffer[0] == (byte)ServerMessageType.GameEnd)
+                int byteCount =  ClientSockFuncs.clientSockTcp.Receive(gameTcpBuffer);
+                if (gameTcpBuffer[0] == (byte)ServerMessageType.GameEnd)
                 {
-                    string winner = Encoding.Latin1.GetString(gameEndBuffer[1..gameEndMsgTask.Result]);
+                    string winner = Encoding.Latin1.GetString(gameTcpBuffer[1..byteCount]);
                     if (winner[..^1] == "guest")
                     {
                         switch (winner[^1])

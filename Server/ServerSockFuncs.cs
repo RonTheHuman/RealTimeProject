@@ -41,7 +41,7 @@ namespace RealTimeProject
                     errorSocks.Remove(sock);
                     if (lobbyPlayerDict.ContainsKey((IPEndPoint)sock.RemoteEndPoint))
                     {
-                        lobbyPlayerDict[(IPEndPoint)sock.RemoteEndPoint].Disconnected = true;
+                        UpdatePlayerConnectionStatus((IPEndPoint)sock.RemoteEndPoint, true);
                     }
                 }
                 foreach (Socket sock in checkReadSocks)
@@ -65,7 +65,7 @@ namespace RealTimeProject
                                 errorSocks.Remove(sock);
                                 if (lobbyPlayerDict.ContainsKey((IPEndPoint)sock.RemoteEndPoint))
                                 {
-                                    lobbyPlayerDict[(IPEndPoint)sock.RemoteEndPoint].Disconnected = true;
+                                    UpdatePlayerConnectionStatus((IPEndPoint)sock.RemoteEndPoint, true);
                                 }
                             }
                             else
@@ -80,7 +80,7 @@ namespace RealTimeProject
                             errorSocks.Remove(sock);
                             if (lobbyPlayerDict.ContainsKey((IPEndPoint)sock.RemoteEndPoint))
                             {
-                                lobbyPlayerDict[(IPEndPoint)sock.RemoteEndPoint].Disconnected = true;
+                                UpdatePlayerConnectionStatus((IPEndPoint)sock.RemoteEndPoint, true);
                             }
                         }
 
@@ -147,7 +147,7 @@ namespace RealTimeProject
                         if (lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint].UName == uName)
                         {
                             lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint].Sock = pSock;
-                            lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint].Disconnected = false;
+                            UpdatePlayerConnectionStatus((IPEndPoint)pSock.RemoteEndPoint, false);
                             pSock.Send(new byte[1] { (byte)ServerMessageType.Success });
                             int pCount = lobbyPlayerDict.Count;
                             pSock.Send(Encoding.Latin1.GetBytes(lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint].Number.ToString() + pCount.ToString() + ServerFuncs.levelLayout));
@@ -158,7 +158,7 @@ namespace RealTimeProject
                         lobbyPlayerDict.Remove(ipWithName, out LobbyPlayer removedPlayer);
                         removedPlayer.Sock = pSock;
                         lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint] = removedPlayer;
-                        lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint].Disconnected = false;
+                        UpdatePlayerConnectionStatus((IPEndPoint)pSock.RemoteEndPoint, false);
                         pSock.Send(new byte[1] { (byte)ServerMessageType.Success });
                         int pCount = lobbyPlayerDict.Count;
                         pSock.Send(Encoding.Latin1.GetBytes(lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint].Number.ToString() + pCount.ToString() + ServerFuncs.levelLayout));
@@ -219,6 +219,32 @@ namespace RealTimeProject
         {
             serverSockUdp = new Socket(SocketType.Dgram, ProtocolType.Udp);
             serverSockUdp.Bind(new IPEndPoint(IPAddress.Parse(ipstr), port));
+        }
+
+        public static void UpdatePlayerConnectionStatus(IPEndPoint changedPlayerIP, bool disconnected)
+        {
+            LobbyPlayer changedPlayer = lobbyPlayerDict[changedPlayerIP];
+            if (changedPlayer.Disconnected != disconnected)
+            {
+                changedPlayer.Disconnected = disconnected;
+                foreach (LobbyPlayer lp in lobbyPlayerDict.Values)
+                {
+                    if (lp != changedPlayer)
+                    {
+                        byte[] toSend = new byte[2];
+                        if (disconnected)
+                        {
+                            toSend[0] = (byte)ServerMessageType.PlayerDisconnected;
+                        }
+                        else
+                        {
+                            toSend[0] = (byte)ServerMessageType.PlayerReconnected;
+                        }
+                        toSend[1] = (byte)changedPlayer.Number;
+                        lp.Sock.Send(toSend);
+                    }
+                }
+            }
         }
 
         static bool IsUserNameInLobby(string uName, out IPEndPoint ipWithName)

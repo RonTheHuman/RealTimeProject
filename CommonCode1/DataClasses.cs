@@ -519,7 +519,7 @@ namespace RealTimeProject
     }
 
     public enum ClientMessageType : byte { GetMatchesWithUser, SignUp, CheckSignIn, JoinLobby, LeaveLobby, LeaveGame }
-    public enum ServerMessageType : byte { None = 0, Success, Failure, GameEnd }
+    public enum ServerMessageType : byte { None = 0, Success, Failure, GameEnd, PlayerDisconnected, PlayerReconnected }
 
     public class User
     {
