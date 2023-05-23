@@ -51,7 +51,7 @@ namespace RealTimeProject
             ServerSockFuncs.lobbyPlayerDict.Clear();
             ServerSockFuncs.gameRunning = false;
         }
-
+        // Initializes arrays needed for running the game, and sends start game messages to all players in the lobby.
         static public void InitGame()
         {
             ServerSockFuncs.GetClientPackets(1024); // for cleaning packets left from last game.
@@ -79,7 +79,7 @@ namespace RealTimeProject
             curFNum = 0;
             UI.Invoke(OnInitGame);
         }
-
+        // Function called when a join lobby request is recieved.
         static public void OnPlayerJoinLobby(string ipStr)
         {
             pCount += 1;
@@ -89,13 +89,13 @@ namespace RealTimeProject
                 InitGame();
             }
         }
-
+        // Function called when a leave lobby request is recieved.
         static public void OnPlayerLeaveLobby(string ipStr)
         {
             pCount -= 1;
             UI.Invoke(OnLobbyUpdate, new string[] { MakePlayerList() });
         }
-
+        // Creates an in game player list for the ui.
         public static string MakePlayerList()
         {
             string pList = "";
@@ -105,12 +105,12 @@ namespace RealTimeProject
             }
             return pList;
         }
-
+        // Resets game.
         static public void ResetGame()
         {
             history[history.Count - 1] = CreateInitFrame(pCount);
         }
-
+        // Applies the input at the frame the happened during the specified time. Resimulates until present frame if real input was different from assumed input.
         static void ApplyWithLagComp(Input input, DateTime time, int player)
         {
             for (int i = history.Count() - 1; i > 0; i--)
@@ -129,14 +129,22 @@ namespace RealTimeProject
                 }
             }
         }
-
+        /* 
+            Game loop, handles:
+                - recieving player inputs
+                - creating an assumed present gamestate using laast inputs from clients
+                - applying them with lag compensation (or without, though the lagcomp toggle didn't make it to the final project because its buggy)
+                - checking whether game is over
+                - sending each player the frame after their last recieved inputs, and all enemy inputs since then.
+            returns the game state to draw.
+        */
         static public void OnTimerTick()
         {
             DateTime frameStart = DateTime.Now;
             curFNum++;
             NBConsole.WriteLine("Frame start " + frameStart.ToString("mm.ss.fff") + ", Frame num: " + curFNum);
 
-            List<ClientPacket> packets = ServerSockFuncs.GetClientPackets(bufferSize);
+            List<ClientPacket> packets = ServerSockFuncs.GetClientPackets(bufferSize); // recieve player inputs
             if (packets.Count == 0) { NBConsole.WriteLine("no user inputs recieved"); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
 
@@ -276,7 +284,7 @@ namespace RealTimeProject
             printMsg += "took " + duration.TotalMilliseconds + " ms\n";
             NBConsole.WriteLine(printMsg);
         }
-
+        // Called on game end. Sends each player a message including the winner, and adds the game to the match history.
         public static void EndGame(int winner)
         {
             OnEndGame();
@@ -312,7 +320,7 @@ namespace RealTimeProject
             DatabaseAccess.AddMatch(new Match(gameStartTime.ToString("dd/MM/yyyy HH:mm"), playerString, winnerString, MinutesToString(gameLength.TotalMinutes)));
             InitLobby();
         }
-
+        // Creates initial frame for the history, according to player count
         static Frame CreateInitFrame(int playerCount)
         {
             if (playerCount == 1)
@@ -323,7 +331,7 @@ namespace RealTimeProject
                 return new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None }, GameLogic.InitialState(3));
             return new Frame(DateTime.MinValue, new Input[] { Input.None, Input.None, Input.None, Input.None }, GameLogic.InitialState(4));
         }
-
+        // turns a minute count into a minutes:seconds count.
         static string MinutesToString(double totalMinutes)
         {
             int mins = (int)totalMinutes;

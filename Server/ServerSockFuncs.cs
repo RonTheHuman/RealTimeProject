@@ -15,7 +15,7 @@ namespace RealTimeProject
         public static ConcurrentDictionary<IPEndPoint, LobbyPlayer> lobbyPlayerDict = new ConcurrentDictionary<IPEndPoint, LobbyPlayer>();
         public static Socket serverSockUdp;
         public static bool gameRunning;
-
+        // Runs on a different thread from the ui. Creates Tcp sockets, reads from them and reacts to errors. 
         public static void HandleTcpSockets(string ipstr, int port)
         {
             Socket serverSockTcp = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -88,7 +88,7 @@ namespace RealTimeProject
                 }
             }
         }
-
+        // Gets a tcp message from a client, acts and replies accordingly, using the message type specified by the first byte.
         static void TcpMessageResponse(byte[] data, int bytesRecieved, Socket pSock)
         {
             byte[] msg = data[..bytesRecieved];
@@ -188,7 +188,7 @@ namespace RealTimeProject
                 Console.WriteLine(ip + " " + lobbyPlayerDict[ip].UName + " " + lobbyPlayerDict[ip].Number + " " + lobbyPlayerDict[ip].Sock.RemoteEndPoint);
             }
         }
-
+        // Checks whether recieved udp messages and returns a list of them.
         public static List<ClientPacket> GetClientPackets(int bufferSize)
         {
             List<ClientPacket> packets = new List<ClientPacket>();
@@ -212,13 +212,13 @@ namespace RealTimeProject
             }
             return packets;
         }
-
+        // Creates a udp socket for the server.
         public static void CreateUdpSocket(string ipstr, int port)
         {
             serverSockUdp = new Socket(SocketType.Dgram, ProtocolType.Udp);
             serverSockUdp.Bind(new IPEndPoint(IPAddress.Parse(ipstr), port));
         }
-
+        // If a player in the game disconnects or reconnects, updates the relevant variable in lobbyPlayerDict and updates other players.
         public static void UpdatePlayerConnectionStatus(IPEndPoint changedPlayerIP, bool disconnected)
         {
             LobbyPlayer changedPlayer = lobbyPlayerDict[changedPlayerIP];
@@ -244,7 +244,7 @@ namespace RealTimeProject
                 }
             }
         }
-
+        // Checks if a user in lobbyPlayerDict has the specified user name. Used for checking reconnection.
         static bool IsUserNameInLobby(string uName, out IPEndPoint ipWithName)
         {
             foreach (var ip in lobbyPlayerDict.Keys)

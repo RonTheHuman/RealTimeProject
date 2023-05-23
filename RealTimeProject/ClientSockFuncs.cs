@@ -14,6 +14,7 @@ namespace RealTimeProject
     {
         public static Socket clientSockUdp, clientSockTcp;
         static IPEndPoint clientEP, serverEP;
+        // Creates tcp and udp sockets with either an automatic or provided adress.
         public static void InitSockets(int serverPort, int clientPort, string serverIP, string clientIP)
         {
             var sAddress = IPAddress.Parse(serverIP);
@@ -48,7 +49,7 @@ namespace RealTimeProject
             clientSockUdp.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             clientSockUdp.Bind(clientEP);
         }
-
+        // Starts with startPort and finds a port not taken.
         static int FindAvailablePort(int startPort)
         {
             IPEndPoint[] endPoints;
@@ -78,7 +79,7 @@ namespace RealTimeProject
                     return i;
             return 0;
         }
-
+        // Sends a sign in request to server and returns whether it was successful.
         public static bool SignIn(string uName, string password)
         {
             List<byte> toSend = new List<byte> { (byte)ClientMessageType.CheckSignIn };
@@ -88,7 +89,7 @@ namespace RealTimeProject
             clientSockTcp.Receive(buffer);
             return buffer[0] == (byte)ServerMessageType.Success;
         }
-
+        // Sends a sign up request to server and returns whether it was successful .
         public static bool SignUp(string uName, string password)
         {
             List<byte> toSend = new List<byte> { (byte)ClientMessageType.SignUp };
@@ -98,7 +99,7 @@ namespace RealTimeProject
             clientSockTcp.Receive(buffer);
             return buffer[0] == (byte)ServerMessageType.Success;
         }
-
+        // Sends a request to join lobby and returns whether it was successful. If the success message contains the start game data, saves to to recvData.
         public static bool JoinLobbyRequest(string uName, ref string recvData)
         {
             byte[] buffer = new byte[8];
@@ -118,12 +119,12 @@ namespace RealTimeProject
             else
                 return false;
         }
-
+        // Sends a udp message to server
         public static void SendUdp(byte[] sendData)
         {
             clientSockUdp.SendTo(sendData, SocketFlags.None, serverEP);
         }
-
+        // Gets start-game message from server and decodes data to recvData.
         public static bool GetGameData(ref string recvData)
         {
             byte[] buffer = new byte[8];
@@ -138,7 +139,7 @@ namespace RealTimeProject
             }
             return true;
         }
-
+        // Checks whether recieved udp messages and returns a list of them.
         public static List<byte[]> GetServerPackets(int bufferSize)
         {
             List<byte[]> packets = new List<byte[]>();
@@ -160,7 +161,7 @@ namespace RealTimeProject
             }
             return packets;
         }
-
+        // Sends request to get matches the user participated in, and returns the list of recieved matches.
         public static List<Match> GetMatchesWithUser(string uName)
         {
             List<byte> toSend = new List<byte> { (byte)ClientMessageType.GetMatchesWithUser };

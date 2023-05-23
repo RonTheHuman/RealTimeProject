@@ -17,7 +17,7 @@ namespace RealTimeProject
         {
             return @"Data Source=.\GameDB.db";
         }
-
+        // Adds user to database.
         public static void AddUser(User user)
         {
             using (IDbConnection cnn = new SqliteConnection(LoadConnectionString()))
@@ -25,7 +25,7 @@ namespace RealTimeProject
                 cnn.Execute("INSERT INTO Users (UserName, Password) VALUES (@UserName, @Password)", user);
             }
         }
-
+        // Gets a list of all users in the database.
         public static List<string> GetUserNames()
         {
             using (IDbConnection cnn = new SqliteConnection(LoadConnectionString()))
@@ -34,7 +34,7 @@ namespace RealTimeProject
                 return output.ToList();
             }
         }
-
+        // Checks if a user name exists.
         public static bool CheckIfUserNameExists(string userName)
         {
             using (IDbConnection cnn = new SqliteConnection(LoadConnectionString()))
@@ -45,7 +45,7 @@ namespace RealTimeProject
                 return false;
             }
         }
-
+        // Checks if a user exists with a matching name and password.
         public static bool CheckIfUserExists(string userName, string password)
         {
             using (IDbConnection cnn = new SqliteConnection(LoadConnectionString()))
@@ -56,7 +56,7 @@ namespace RealTimeProject
                 return false;
             }
         }
-
+        // Adds a match to database.
         public static void AddMatch(Match match)
         {
             using (IDbConnection cnn = new SqliteConnection(LoadConnectionString()))
@@ -64,7 +64,7 @@ namespace RealTimeProject
                 cnn.Execute("INSERT INTO Matches (StartTime, Players, Winner, Length) VALUES (@StartTime, @Players, @Winner, @Length)", match);
             }
         }
-
+        // Gets all matches from the database.
         public static List<Match> GetAllMatches()
         {
             using (IDbConnection cnn = new SqliteConnection(LoadConnectionString()))
@@ -74,7 +74,7 @@ namespace RealTimeProject
                 return output.ToList();
             }
         }
-
+        // Gets all matches from the database where the specified user participated.
         public static List<Match> GetMatchesWithUser(string userName)
         {
             using (IDbConnection cnn = new SqliteConnection(LoadConnectionString()))

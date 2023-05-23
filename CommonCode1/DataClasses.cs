@@ -13,7 +13,8 @@ using System.Collections.Concurrent;
 
 namespace RealTimeProject
 {
-    public static class NBConsole
+    // a non blocking console that works with multiple threads 
+    public static class NBConsole 
     {
         private static BlockingCollection<string> m_Queue = new BlockingCollection<string>();
 
@@ -145,7 +146,7 @@ namespace RealTimeProject
     {
         None = 0, NLight, SLight, ULight, DLight, NAir, SAir, UAir, DAir, NHeavy, SHeavy, UHeavy, DHeavy
     }
-
+    // class representing player input with a key bitmap
     [Flags]
     public enum Input : byte
     {

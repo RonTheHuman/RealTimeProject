@@ -60,7 +60,7 @@ namespace RealTimeProject
             TransitionTextLabel.Text = labelText;
 
         }
-
+        // Loads game panel and creates arrays for Draw function to use.
         private void LoadGamePanel()
         {
             DisablePanels();
@@ -190,7 +190,7 @@ namespace RealTimeProject
             outLabel.Padding = new Padding(5);
             return outLabel;
         }
-
+        // Draws the game state to the screen.
         private void Draw(GameState state)
         {
             string scoreText = "";

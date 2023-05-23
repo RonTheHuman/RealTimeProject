@@ -10,6 +10,7 @@ namespace RealTimeProject
 {
     public class GameLogic
     {
+        // Increments counter of the frames the player is stunned
         static void IncrementStunF(GameState state)
         {
             foreach (PlayerState player in state.PStates)
@@ -18,7 +19,7 @@ namespace RealTimeProject
                     player.StunFrame--;
             }
         }
-
+        // Increments counter of the frames the player is blocking
         static void IncrementBlockF(Input[] prevInputs, Input[] curInputs, GameState state, int pCount)
         {
             for (int i = 0; i < pCount; i++)
@@ -42,7 +43,7 @@ namespace RealTimeProject
                 }
             }
         }
-
+        // Increments counter of the frames the player is holding down
         static void IncrementDownHoldF(Input[] curInputs, GameState state, int pCount)
         {
             for (int i = 0; i < pCount; i++)
@@ -59,6 +60,7 @@ namespace RealTimeProject
                 }
             }
         }
+        // Returns an array of whether each player is on a floor (ground or platform)
         static bool[] GetOnFloorArr(GameState state, int pCount, int levelLayout)
         {
             bool[] OnFloorArr = new bool[pCount];
@@ -89,7 +91,7 @@ namespace RealTimeProject
             }
             return OnFloorArr;
         }
-
+        // Progressess started attacks by one frame, and starts new attacks according to inputs
         static void IncrementAttackF(Input[] prevInputs, Input[] curInputs, GameState state, int pCount, bool[] onFloorArr)
         {
             for (int i = 0; i < pCount; i++)
@@ -173,7 +175,7 @@ namespace RealTimeProject
                 }
             }
         }
-
+        // Checks whether any attacks hit any players, stuns and adds accelleration to hit players. 
         static void ProccessAttackCollisions(GameState state, int pCount, Vector2[] accArr)
         {
             for (int i = 0; i < pCount; i++)
@@ -259,7 +261,7 @@ namespace RealTimeProject
                 }
             }
         }
-
+        // Adds accelleration from jumping and using up-light attack, and returns an array of the horizontal constant movement speed of each player.
         static float[] ProccessControlledMovement(Input[] prevInputs, Input[] curInputs, GameState state, int pCount, bool[] onFloorArr, Vector2[] accArr)
         {
             float[] walkVArr = new float[pCount];
@@ -305,7 +307,7 @@ namespace RealTimeProject
             }
             return walkVArr;
         }
-
+        // applies accelleration to velocity, and velocity to position of each player.
         static void ApplyMovement(Input[] prevInputs, Input[] curInputs, GameState state, int pCount, bool[] onFloorArr, Vector2[] accArr, float[] walkVArr)
         {
             for (int i = 0; i < pCount; i++)
@@ -331,7 +333,7 @@ namespace RealTimeProject
                 playerI.Pos.Y += playerI.Vel.Y;
             }
         }
-
+        // Checks if any player is colliding with a floor, and pushes them to the edge of the floor if they do.
         static void ProccessFloorCollisions(Input[] curInputs, GameState prevState, GameState state, int pCount, int levelLayout)
         {
             for (int i = 0; i < pCount; i++)
@@ -391,7 +393,7 @@ namespace RealTimeProject
                 }
             }
         }
-
+        // Uses all functions above to generate the next framestate. Inputs from the previous frames are used to check whether a key was just pressed.
         public static GameState NextState(Input[] prevInputs, Input[] curInputs, GameState state, int levelLayout)
         {
             GameState nextState = new GameState(state);
@@ -412,7 +414,7 @@ namespace RealTimeProject
             ProccessFloorCollisions(curInputs, state, nextState, pCount, levelLayout);
             return nextState;
         }
-
+        // Returns the initial game state according to the player count.
         public static GameState InitialState(int pCount)
         {
             PlayerState[] pStates = new PlayerState[pCount];
@@ -429,7 +431,7 @@ namespace RealTimeProject
             }
             return new GameState(pStates);
         }
-
+        // checks whether the state is a game over state, and returns the player number of the winner if it is.
         public static bool IsGameOver(GameState state, ref int winner)
         {
             bool oneAlive = false;
@@ -452,18 +454,13 @@ namespace RealTimeProject
             }
             return true;
         }
-
-        private static GameState _NextPlayerState(GameState state, Input prevInput, Input curInput, int levelLayout)
-        {
-            return NextState(new Input[] { prevInput }, new Input[] { curInput }, state, levelLayout);
-        }
-
+        // Simulates a player state forwards using a game state that only contains that player.
         public static PlayerState SimulatePlayerState(PlayerState startState, Input[] inputs, int levelLayout)
         {
             GameState finalState = new GameState(new PlayerState[] { startState });
             for (int i = 1; i < inputs.Length; i++)
             {
-                finalState = _NextPlayerState(finalState, inputs[i - 1], inputs[i], levelLayout);
+                finalState = NextState(new Input[] { inputs[i - 1] }, new Input[] { inputs[i] }, finalState, levelLayout);
             }
             return finalState.PStates[0];
         }

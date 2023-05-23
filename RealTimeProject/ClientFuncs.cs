@@ -34,13 +34,13 @@ namespace RealTimeProject
             settings = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.GetFullPath("clientSettings.txt")));
             ClientSockFuncs.InitSockets(int.Parse(settings["serverPort"]), int.Parse(settings["clientPort"]), settings["serverIP"], settings["clientIP"]);
         }
-
+        // the function called by ui to join a game lobby
         public static void JoinLobby()
         {
             inLobby = true;
             Task.Factory.StartNew(() => JoinLobbyAsync());
         }
-
+        // Function running on another thread, waiting for a reply from the server about the start of the game. When game starts initializes vairables. 
         static void JoinLobbyAsync()
         {
             string recvData = "";
@@ -79,7 +79,14 @@ namespace RealTimeProject
                 NBConsole.WriteLine("Game is already running.");
             }
         }
-
+        /* 
+            Game loop, handles:
+                - recieving tcp updates about game end, and disconnection or reconnection of other players
+                - recieving udp game state data
+                - creating a simulated history using combined client sim and enemy extrapolation
+                - if needed, creating seperatly simulated gamestates
+            returns the game state to draw.
+        */
         public static GameState OnTimerTick(Input curInput, bool fullSim, bool clientSim, bool enemySim)
         {
             DateTime frameStart = DateTime.Now;
@@ -91,9 +98,8 @@ namespace RealTimeProject
             sendData[0] = (byte)curInput;
             timeStamp.CopyTo(sendData, 1);
             ClientSockFuncs.SendUdp(sendData);
-            //NBConsole.WriteLine(inputBytes.Length + " | " + Convert.ToHexString(inputBytes) + " | " + Convert.ToHexString(timeStamp) + ", " + new DateTime(BinaryPrimitives.ReadInt64BigEndian(timeStamp)).ToString("mm.ss.fff") + " | " + Convert.ToHexString(sendData));
 
-            if (ClientSockFuncs.clientSockTcp.Poll(1, SelectMode.SelectRead))
+            if (ClientSockFuncs.clientSockTcp.Poll(1, SelectMode.SelectRead)) // check for end game message or for update about other player connection
             {
                 int byteCount =  ClientSockFuncs.clientSockTcp.Receive(gameTcpBuffer);
                 if (gameTcpBuffer[0] == (byte)ServerMessageType.GameEnd)
@@ -137,8 +143,7 @@ namespace RealTimeProject
                 }
             }
 
-            //NBConsole.WriteLine("Getting packets from server");
-            List<byte[]> packets = ClientSockFuncs.GetServerPackets(1024);
+            List<byte[]> packets = ClientSockFuncs.GetServerPackets(1024); // gets server packets
             if (packets.Count == 0) { NBConsole.WriteLine("no server data recieved"); }
             else { NBConsole.WriteLine("got " + packets.Count + " packets"); }
 
@@ -192,12 +197,10 @@ namespace RealTimeProject
                                     if (j - i - 1 < servPacket.EnemyInputs[k + offset].Length)
                                     {
                                         correctInputs[k] = servPacket.EnemyInputs[k + offset][j - i - 1];
-                                        //NBConsole.WriteLine(correctInputs[k].ToString());
                                     }
                                     else
                                     {
                                         correctInputs[k] = simHistory[j - 1].Inputs[k];
-                                        //NBConsole.WriteLine(correctInputs[k].ToString());
                                     }
                                 }
                             }
@@ -298,7 +301,7 @@ namespace RealTimeProject
             }
             return null;
         }
-
+        // Adds first frame to simHistory, according to player count
         private static void InitSimulatedHistory()
         {
             simHistory.Clear();
