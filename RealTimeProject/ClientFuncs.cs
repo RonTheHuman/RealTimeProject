@@ -19,10 +19,10 @@ namespace RealTimeProject
         public static ClientUI UI;
         public static bool inLobby;
         public static int thisPlayer, pCount, levelLayout;
+        public static bool[] pDisconnectedArr;
 
         static Dictionary<string, string> settings;
         static string[] playerColor = new string[] { "Blue", "Red", "Yellow", "purple" };
-        static bool[] playerConnected;
 
         static List<Frame> simHistory = new List<Frame>(200);
         static int curFNum;
@@ -63,6 +63,7 @@ namespace RealTimeProject
                     NBConsole.WriteLine("You are player " + thisPlayer);
                     ClientSockFuncs.GetServerPackets(1024); // for cleaning packets left from last game.
                     InitSimulatedHistory();
+                    pDisconnectedArr = new bool[pCount];
                     curFNum = 0;
                     Thread.Sleep(200);
                     UI.Invoke(OnJoinLobby);
@@ -119,6 +120,16 @@ namespace RealTimeProject
                     }
                     inLobby = false;
                     OnEndGame(winner);
+                }
+                else if (gameTcpBuffer[0] == (byte)ServerMessageType.PlayerDisconnected)
+                {
+                    int player = gameTcpBuffer[1];
+                    pDisconnectedArr[player - 1] = true;
+                }
+                else if (gameTcpBuffer[0] == (byte)ServerMessageType.PlayerReconnected)
+                {
+                    int player = gameTcpBuffer[1];
+                    pDisconnectedArr[player - 1] = false;
                 }
                 else
                 {

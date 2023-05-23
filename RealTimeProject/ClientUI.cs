@@ -193,18 +193,47 @@ namespace RealTimeProject
 
         private void Draw(GameState state)
         {
-            string ScoreText = "";
+            string scoreText = "";
             for (int i = 0; i < ClientFuncs.pCount; i++)
             {
                 PlayerState playerI = state.PStates[i];
                 if (i == 0)
-                    ScoreText += "Blue: " + playerI.Stocks + " | ";
+                {
+                    scoreText += "Blue";
+                    if (ClientFuncs.pDisconnectedArr[0])
+                    {
+                        scoreText += "*";
+                    }
+                    scoreText += ": " + playerI.Stocks + " | ";
+                }
                 else if (i == 1)
-                    ScoreText += "Orange: " + playerI.Stocks + " | ";
+                {
+                    scoreText += "Orange";
+                    if (ClientFuncs.pDisconnectedArr[1])
+                    {
+                        scoreText += "*";
+                    }
+                    scoreText += ": " + playerI.Stocks + " | ";
+                }
                 else if (i == 2)
-                    ScoreText += "Yellow: " + playerI.Stocks + " | ";
+                {
+                    scoreText += "Yellow";
+                    if (ClientFuncs.pDisconnectedArr[2])
+                    {
+                        scoreText += "*";
+                    }
+                    scoreText += ": " + playerI.Stocks + " | ";
+                }
                 else if (i == 3)
-                    ScoreText += "Purple: " + playerI.Stocks;
+                {
+                    scoreText += "Purple";
+                    if (ClientFuncs.pDisconnectedArr[3])
+                    {
+                        scoreText += "*";
+                    }
+                    scoreText += ": " + playerI.Stocks + " | ";
+                }
+                scoreText = scoreText.Substring(0, scoreText.Length - 2);
                 if (playerI.Stocks > 0)
                 {
                     playerLabels[i].Visible = true;
@@ -278,7 +307,7 @@ namespace RealTimeProject
                     blockLabels[i].Visible = false;
                 }
             }
-            ScoreLabel.Text = ScoreText;
+            ScoreLabel.Text = scoreText;
         }
 
         private void JoinLobby()

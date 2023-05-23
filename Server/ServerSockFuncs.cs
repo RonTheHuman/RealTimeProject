@@ -147,7 +147,6 @@ namespace RealTimeProject
                         if (lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint].UName == uName)
                         {
                             lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint].Sock = pSock;
-                            UpdatePlayerConnectionStatus((IPEndPoint)pSock.RemoteEndPoint, false);
                             pSock.Send(new byte[1] { (byte)ServerMessageType.Success });
                             int pCount = lobbyPlayerDict.Count;
                             pSock.Send(Encoding.Latin1.GetBytes(lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint].Number.ToString() + pCount.ToString() + ServerFuncs.levelLayout));
@@ -158,7 +157,6 @@ namespace RealTimeProject
                         lobbyPlayerDict.Remove(ipWithName, out LobbyPlayer removedPlayer);
                         removedPlayer.Sock = pSock;
                         lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint] = removedPlayer;
-                        UpdatePlayerConnectionStatus((IPEndPoint)pSock.RemoteEndPoint, false);
                         pSock.Send(new byte[1] { (byte)ServerMessageType.Success });
                         int pCount = lobbyPlayerDict.Count;
                         pSock.Send(Encoding.Latin1.GetBytes(lobbyPlayerDict[(IPEndPoint)pSock.RemoteEndPoint].Number.ToString() + pCount.ToString() + ServerFuncs.levelLayout));
