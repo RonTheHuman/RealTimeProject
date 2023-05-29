@@ -63,8 +63,6 @@ namespace RealTimeProject
                 playerLRS2[i] = DateTime.MinValue;
             }
 
-            stampShiftMS = ServerSockFuncs.FindStampShift();
-
             foreach (LobbyPlayer lp in ServerSockFuncs.lobbyPlayerDict.Values)
             {
                 if (!lp.Disconnected)
@@ -72,6 +70,9 @@ namespace RealTimeProject
                     lp.Sock.Send(Encoding.Latin1.GetBytes(lp.Number.ToString() + pCount.ToString() + levelLayout));
                 }
             }
+
+            stampShiftMS = ServerSockFuncs.FindStampShift();
+
             history.Add(CreateInitFrame(pCount));
             gameStartTime = DateTime.Now;
             curFNum = 0;

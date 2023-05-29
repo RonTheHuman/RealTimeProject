@@ -53,8 +53,6 @@ namespace RealTimeProject
                 }
                 else
                 {
-                    Console.WriteLine("Started replying");
-                    ClientSockFuncs.ReplyToSyncEchos();
                     Console.WriteLine("Waiting for data");
                     stayedInLobby = ClientSockFuncs.GetGameData(ref recvData);
                 }
@@ -63,6 +61,8 @@ namespace RealTimeProject
                     thisPlayer = int.Parse(recvData[0] + "");
                     pCount = int.Parse(recvData[1] + "");
                     levelLayout = int.Parse(recvData[2] + "");
+                    Console.WriteLine("Started replying");
+                    ClientSockFuncs.ReplyToSyncEchos();
                     NBConsole.WriteLine("You are player " + thisPlayer);
                     gameEndMsgTask = ClientSockFuncs.clientSockTcp.ReceiveAsync(gameEndBuffer, SocketFlags.None);
                     ClientSockFuncs.GetServerPackets(1024); // for cleaning packets left from last game.
