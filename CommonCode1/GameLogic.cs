@@ -222,7 +222,7 @@ namespace RealTimeProject
                             {
                                 if (new RectangleF(playerJ.Pos.ToPoint(), GameVariables.PlayerSize).IntersectsWith(actualHitbox))
                                 {
-                                    if (0 < playerJ.BFrame && playerJ.BFrame < GameVariables.BlockDur + 1)
+                                    if (0 < playerJ.BFrame && playerJ.BFrame < GameVariables.BlockDur)
                                     {
                                         playerI.AttackFrame = 0;
                                         playerI.StunFrame = 30;
@@ -281,7 +281,7 @@ namespace RealTimeProject
                     else
                         walkVArr[i] = GameVariables.BaseMS;
                 }
-                else if (playerI.StunFrame == 0 && playerI.BFrame == 0 && 
+                else if (playerI.StunFrame == 0 && (playerI.BFrame == 0 || playerI.BFrame >= GameVariables.BlockDur) && 
                         (playerI.AttackName == AttackName.None || playerI.AttackName == AttackName.DAir || playerI.AttackName == AttackName.UAir || playerI.AttackName == AttackName.NAir))
                 {
                     if ((curInputs[i] & Input.Right) != 0)
