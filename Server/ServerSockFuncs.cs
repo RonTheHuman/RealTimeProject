@@ -209,7 +209,7 @@ namespace RealTimeProject
                     if (DateTime.Now - sendTime > TimeSpan.FromSeconds(2) || !waiting)
                     {
                         Console.WriteLine("Sent");
-                        serverSockUdp.SendTo(new byte[] { 42 }, ip);
+                        serverSockUdp.SendTo(Encoding.Latin1.GetBytes("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"), ip);
                         waiting = true;
                         sendTime = DateTime.Now;
                     }

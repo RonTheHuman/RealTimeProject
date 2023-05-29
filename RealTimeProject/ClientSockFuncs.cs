@@ -128,7 +128,7 @@ namespace RealTimeProject
                 if (clientSockUdp.Poll(-1, SelectMode.SelectRead))
                 {
                     EndPoint recvAddress = new IPEndPoint(IPAddress.Any, 0);
-                    int recvCount = clientSockUdp.ReceiveFrom(new byte[2], ref recvAddress);
+                    int recvCount = clientSockUdp.ReceiveFrom(new byte[128], ref recvAddress);
                     Console.WriteLine("Got echo request, " + recvCount + "bytes");
                     byte[] toSend = new byte[8];
                     BinaryPrimitives.WriteInt64BigEndian(toSend, DateTime.Now.ToBinary());
