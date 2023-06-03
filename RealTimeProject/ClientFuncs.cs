@@ -239,8 +239,6 @@ namespace RealTimeProject
                     {
                         if (packets.Count() > 0) // deserialize packets and apply to simulated history
                         {
-                            NBConsole.WriteLine("applying data from " + lastServerPacket.TimeStamp.ToString("mm.ss.fff") +
-                                " during frame that started at " + frameStart.ToString("mm.ss.fff"));
                             return lastServerPacket.Frame.State;
                         }
                     }
@@ -269,10 +267,12 @@ namespace RealTimeProject
                         //simulate client inputs that didn't reach the server
                         if (clientSim)
                         {
+                            NBConsole.WriteLine("Simulating client seperatly: " + unackedInputs.Count + " frames");
                             stateToDraw.PStates[thisPlayer - 1] = GameLogic.SimulatePlayerState(stateToDraw.PStates[thisPlayer - 1], unackedInputs.ToArray(), levelLayout);
                         }
                         if (enemySim && lastServerPacket.EnemyInputs.Length != 0)
                         {
+                            NBConsole.WriteLine("Simulating enemy seperatly: " + (Math.Abs(unackedInputs.Count - lastServerPacket.EnemyInputs[0].Length) + 1) + " frames");
                             if (lastServerPacket.EnemyInputs[0].Length != 0 && unackedInputs.Count > 0)
                             {
                                 for (int i = 0; i < pCount; i++)

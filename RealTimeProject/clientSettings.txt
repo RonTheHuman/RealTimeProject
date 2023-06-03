@@ -1,5 +1,5 @@
 {
-"clientIP": "",
+"clientIP": "10.100.102.20",
 "clientPort": "12346",
 "serverIP": "10.100.102.20",
 "serverPort": "12345"

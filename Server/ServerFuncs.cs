@@ -169,8 +169,7 @@ namespace RealTimeProject
                     {
                         playerLRS[packetPlayer - 1] = packetTime;
                     }
-                    NBConsole.WriteLine("recv inputs [" + packetInput + "], p" + packetPlayer + " from " + packetTime.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff") +
-                        "\nMS delay by stamp: " + (frameStart - packetTime).TotalMilliseconds + ", delay by echo: " + echoDelayMS[packetPlayer - 1]);
+                    NBConsole.WriteLine("recv inputs [" + packetInput + "], p" + packetPlayer + " from " + packetTime.ToString("mm.ss.fff") + " during frame that started at " + frameStart.ToString("mm.ss.fff"));
                     if (packetTime > DateTime.Now)
                     {
                         //throw new Exception("timestamp error");
