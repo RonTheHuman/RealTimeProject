@@ -24,6 +24,7 @@ namespace RealTimeProject
             ServerFuncs.OnInitGame = OnInitGame;
             ServerFuncs.OnEndGame = OnEndGame;
             ServerFuncs.frameMS = (byte)numericUpDown1.Value;
+            GameLoopTimer.Interval = (byte)numericUpDown1.Value;
             ServerFuncs.levelLayout = 0;
             ServerFuncs.InitServer();
             InfoTextLabel.Text = "Opened lobby, waiting for players. Starts automatically at max or with button";

@@ -147,7 +147,7 @@
             this.numericUpDown1.Size = new System.Drawing.Size(71, 23);
             this.numericUpDown1.TabIndex = 5;
             this.numericUpDown1.Value = new decimal(new int[] {
-            15,
+            30,
             0,
             0,
             0});
@@ -400,9 +400,9 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(444, 625);
+            this.Controls.Add(this.MainPanel);
             this.Controls.Add(this.MatchViewPanel);
             this.Controls.Add(this.UserViewPanel);
-            this.Controls.Add(this.MainPanel);
             this.Name = "ServerUI";
             this.Text = "Fight^2 Server";
             this.Load += new System.EventHandler(this.Form1_Load);

@@ -396,6 +396,12 @@ namespace RealTimeProject
         // Uses all functions above to generate the next framestate. Inputs from the previous frames are used to check whether a key was just pressed.
         public static GameState NextState(Input[] prevInputs, Input[] curInputs, GameState state, int levelLayout)
         {
+            GameState nextState = _NextState(prevInputs, curInputs, _NextState(prevInputs, curInputs, state, levelLayout), levelLayout);
+            return nextState;
+        }
+
+        public static GameState _NextState(Input[] prevInputs, Input[] curInputs, GameState state, int levelLayout)
+        {
             GameState nextState = new GameState(state);
             int pCount = prevInputs.Length;
             Vector2[] accArr = new Vector2[pCount];
@@ -414,6 +420,7 @@ namespace RealTimeProject
             ProccessFloorCollisions(curInputs, state, nextState, pCount, levelLayout);
             return nextState;
         }
+
         // Returns the initial game state according to the player count.
         public static GameState InitialState(int pCount)
         {
