@@ -232,71 +232,68 @@ namespace RealTimeProject
             }
             else
             {
-                // show the frame after the last player action recieved from server, no extra simulation
-                if (!clientSim && !enemySim)
+                if (lastServerPacket != null)
                 {
-                    if (lastServerPacket != null)
+                    GameState stateToDraw = new GameState(lastServerPacket.Frame.State);
+                    // simulate the catch-up frames for the enemies sent by the server
+                    for (int i = 0; i < pCount; i++)
                     {
-                        if (packets.Count() > 0) // deserialize packets and apply to simulated history
+                        if (i != thisPlayer - 1)
                         {
-                            return lastServerPacket.Frame.State;
+                            int offset = 0;
+                            if (i > thisPlayer - 1)
+                            {
+                                offset = -1;
+                            }
+                            Input[] enemyInputs = new Input[lastServerPacket.EnemyInputs[i + offset].Length + 1];
+                            enemyInputs[0] = lastServerPacket.Frame.Inputs[i];
+                            lastServerPacket.EnemyInputs[i + offset].CopyTo(enemyInputs, 1);
+                            stateToDraw.PStates[i] = GameLogic.SimulatePlayerState(stateToDraw.PStates[i], enemyInputs, levelLayout);
                         }
                     }
-                }
-                else
-                {
-                    if (lastServerPacket != null)
+                    // show the frame after the last player action recieved from server, no extra simulation
+                    if (!clientSim && !enemySim)
                     {
-                        GameState stateToDraw = new GameState(lastServerPacket.Frame.State);
-                        // simulate the catch-up frames for the enemies sent by the server
-                        for (int i = 0; i < pCount; i++)
+                        if (lastServerPacket != null)
                         {
-                            if (i != thisPlayer - 1)
+                            if (packets.Count() > 0) // deserialize packets and apply to simulated history
                             {
-                                int offset = 0;
-                                if (i > thisPlayer - 1)
-                                {
-                                    offset = -1;
-                                }
-                                Input[] enemyInputs = new Input[lastServerPacket.EnemyInputs[i + offset].Length + 1];
-                                enemyInputs[0] = lastServerPacket.Frame.Inputs[i];
-                                lastServerPacket.EnemyInputs[i + offset].CopyTo(enemyInputs, 1);
-                                stateToDraw.PStates[i] = GameLogic.SimulatePlayerState(stateToDraw.PStates[i], enemyInputs, levelLayout);
+                                return stateToDraw;
                             }
                         }
-                        //simulate client inputs that didn't reach the server
-                        if (clientSim)
+                    }
+                    //simulate client inputs that didn't reach the server
+                    if (clientSim)
+                    {
+                        NBConsole.WriteLine("Simulating client seperatly: " + unackedInputs.Count + " frames");
+                        stateToDraw.PStates[thisPlayer - 1] = GameLogic.SimulatePlayerState(stateToDraw.PStates[thisPlayer - 1], unackedInputs.ToArray(), levelLayout);
+                    }
+                    if (enemySim && lastServerPacket.EnemyInputs.Length != 0)
+                    {
+                        NBConsole.WriteLine("Simulating enemy seperatly: " + (Math.Abs(unackedInputs.Count - lastServerPacket.EnemyInputs[0].Length) + 1) + " frames");
+                        if (lastServerPacket.EnemyInputs[0].Length != 0 && unackedInputs.Count > 0)
                         {
-                            NBConsole.WriteLine("Simulating client seperatly: " + unackedInputs.Count + " frames");
-                            stateToDraw.PStates[thisPlayer - 1] = GameLogic.SimulatePlayerState(stateToDraw.PStates[thisPlayer - 1], unackedInputs.ToArray(), levelLayout);
-                        }
-                        if (enemySim && lastServerPacket.EnemyInputs.Length != 0)
-                        {
-                            NBConsole.WriteLine("Simulating enemy seperatly: " + (Math.Abs(unackedInputs.Count - lastServerPacket.EnemyInputs[0].Length) + 1) + " frames");
-                            if (lastServerPacket.EnemyInputs[0].Length != 0 && unackedInputs.Count > 0)
+                            for (int i = 0; i < pCount; i++)
                             {
-                                for (int i = 0; i < pCount; i++)
+                                if (i != thisPlayer - 1)
                                 {
-                                    if (i != thisPlayer - 1)
+                                    int offset = 0;
+                                    if (i > thisPlayer - 1)
                                     {
-                                        int offset = 0;
-                                        if (i > thisPlayer - 1)
-                                        {
-                                            offset = -1;
-                                        }
-                                        Input[] enemyInputs = new Input[Math.Abs(unackedInputs.Count - lastServerPacket.EnemyInputs[0].Length) + 1];
-                                        for (int j = 0; j < enemyInputs.Length; j++)
-                                        {
-                                            enemyInputs[j] = lastServerPacket.EnemyInputs[i + offset][^1];
-                                        }
-                                        stateToDraw.PStates[i] = GameLogic.SimulatePlayerState(stateToDraw.PStates[i], enemyInputs, levelLayout);
+                                        offset = -1;
                                     }
+                                    Input[] enemyInputs = new Input[Math.Abs(unackedInputs.Count - lastServerPacket.EnemyInputs[0].Length) + 1];
+                                    for (int j = 0; j < enemyInputs.Length; j++)
+                                    {
+                                        enemyInputs[j] = lastServerPacket.EnemyInputs[i + offset][^1];
+                                    }
+                                    stateToDraw.PStates[i] = GameLogic.SimulatePlayerState(stateToDraw.PStates[i], enemyInputs, levelLayout);
                                 }
                             }
-
                         }
-                        return stateToDraw;
+
                     }
+                    return stateToDraw;
                 }
             }
             return null;
